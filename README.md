@@ -4,9 +4,9 @@
 
 # ✦ Promptly
 
-**AI Prompts Manager** — A beautiful, self-hosted web app to manage your AI prompts, skills, steering configurations, MCP server setups, and shell commands.
+**AI Prompts Manager** — A beautiful, self-hosted web app to manage your AI prompts, skills, steering configurations, MCP server setups, and shell commands. **Includes built-in AI Chat** to generate prompts, skills, steering rules, MCP configs, and commands from natural language.
 
-Built with a beautiful glassmorphism design aesthetic.
+Built with a true-black glassmorphism design and multi-provider AI support.
 
 [![Docker](https://img.shields.io/badge/Docker-Ready-2496ED?logo=docker&logoColor=white)](https://hub.docker.com)
 [![Node.js](https://img.shields.io/badge/Node.js-20+-339933?logo=node.js&logoColor=white)](https://nodejs.org)
@@ -33,13 +33,14 @@ If Promptly saves you time, consider supporting its development:
 
 | Feature | Description |
 |---------|-------------|
+| 🤖 **AI Chat** | Built-in chat to generate prompts, skills, steering, MCP configs, and commands from natural language. Supports **OpenAI**, **Anthropic**, **Google Gemini**, **Amazon Bedrock**, and **OpenRouter**. Persistent history, latest models (GPT-5.4, Claude 4.6, Gemini 3.1). |
 | 📝 **Prompts** | Store AI prompt templates with categories, models, temperature, max tokens, and Markdown editor |
 | ⚡ **Skills** | Reusable AI skill definitions with trigger phrases and active/inactive toggle |
 | 🧭 **Steering** | Behavioral guidance & system instructions with scope (global/project/session) and priority |
 | 🔌 **MCP Configs** | Model Context Protocol server configurations with syntax-highlighted JSON editor |
 | 💻 **Commands** | Shell command library with shell/platform/category, copy-to-clipboard, and usage tracking |
 | 📊 **Dashboard** | Analytics with activity heatmap, usage charts, model distribution, and favorites library |
-| 🔍 **Smart Search** | Full-text search, category filters, favorites filter across all sections |
+| 🔍 **Smart Search** | Command palette (⌘K) for instant search across all sections. Full-text search, category filters, favorites filter. |
 | 🗂️ **Detail View** | Read-only detail modal for every item — maximizable to full screen |
 | 📝 **Markdown Editor** | Edit / Split / Preview modes with live rendering and syntax highlighting |
 | 📈 **Token Counter** | Real-time token estimation for all content, color-coded by size |
@@ -48,7 +49,7 @@ If Promptly saves you time, consider supporting its development:
 | ☁️ **S3 Backup & Sync** | AWS S3 / Cloudflare R2 / Backblaze B2 / MinIO — backup, restore, and auto-sync scheduling |
 | 📱 **Responsive** | Full mobile support — works on any screen size |
 | 🐳 **Docker Ready** | Single container with PostgreSQL, multi-stage build |
-| 🎨 **Glassmorphism UI** | Blur, transparency and gradients with spring animations |
+| 🎨 **Glassmorphism UI** | True-black theme (#0a0a0a), blur, transparency and gradients with spring animations |
 
 ---
 
@@ -203,6 +204,24 @@ npm run dev           # start backend + frontend in watch mode
 
 ---
 
+## 🔄 CI/CD (GitHub Actions)
+
+El workflow `.github/workflows/docker-image.yml` hace build multi-arquitectura (amd64, arm64, armv7) y publica en Docker Hub cuando la versión en `package.json` cambia.
+
+**Requisitos:**
+
+1. **Secrets** en el repo (Settings → Secrets and variables → Actions):
+   - `USER_HUB`: usuario de Docker Hub
+   - `PASS_HUB`: token o contraseña de Docker Hub
+
+2. **Permisos**: Settings → Actions → General → Workflow permissions → "Read and write permissions"
+
+3. **Branch protection** en `main`: cambios vía Pull Request; el workflow corre desde `main` (schedule semanal o manual `workflow_dispatch`)
+
+La imagen se publica como `{USER_HUB}/promptly:latest` y `{USER_HUB}/promptly:{version}`.
+
+---
+
 ## 📁 Project Structure
 
 ```
@@ -211,6 +230,7 @@ promptly/
 │   ├── config/
 │   │   └── database.js      # PostgreSQL / SQLite setup
 │   ├── routes/
+│   │   ├── ai.js            # AI Chat (multi-provider: OpenAI, Anthropic, Gemini, Bedrock, OpenRouter)
 │   │   ├── prompts.js       # Prompts CRUD
 │   │   ├── skills.js        # Skills CRUD
 │   │   ├── steering.js      # Steering CRUD
@@ -225,6 +245,7 @@ promptly/
 ├── frontend/                # React + Vite
 │   └── src/
 │       ├── components/      # Shared UI components
+│       │   ├── CommandPalette.jsx  # ⌘K search
 │       │   ├── Sidebar.jsx
 │       │   ├── Topbar.jsx
 │       │   ├── ItemCard.jsx
@@ -235,6 +256,7 @@ promptly/
 │       │   ├── CategorySelector.jsx
 │       │   └── TagsSelector.jsx
 │       ├── pages/
+│       │   ├── AiSessionPage.jsx   # AI Chat
 │       │   ├── DashboardPage.jsx
 │       │   ├── PromptsPage.jsx
 │       │   ├── SkillsPage.jsx
@@ -330,11 +352,29 @@ curl -X POST http://localhost:3001/api/backup/import/json \
 
 ---
 
+## 🤖 AI Chat
+
+Promptly includes a built-in **AI Chat** that generates library items from natural language. Describe what you need and the AI creates prompts, skills, steering rules, MCP configs, or shell commands — ready to save to your library.
+
+### Multi-provider support
+
+| Provider | Models |
+|----------|--------|
+| **OpenAI** | GPT-5.4, GPT-4.1, o3, o1 |
+| **Anthropic** | Claude Opus 4.6, Sonnet 4.6, Haiku 4.5 |
+| **Google Gemini** | Gemini 3.1 Pro, Gemini 3 Flash, Gemini 2.5 Pro/Flash |
+| **Amazon Bedrock** | Claude 4.6, Nova 2 (via AWS IAM) |
+| **OpenRouter** | All providers in one API key |
+
+Configure your preferred provider and API key in **Settings → AI Integration**. Chat history persists in your browser and can be cleared anytime.
+
+---
+
 ## 🤖 Supported AI Models (March 2026)
 
 Promptly ships with an up-to-date model list from all major providers:
 
-- **OpenAI**: GPT-5.4, GPT-4.1, o4-mini, o3, o1
+- **OpenAI**: GPT-5.4, GPT-4.1, o3, o1
 - **Anthropic**: Claude Opus 4.6, Sonnet 4.6, Haiku 4.5, Claude 3.7 Sonnet
 - **Google**: Gemini 3.1 Pro, Gemini 3 Flash, Gemini 2.5 Pro/Flash
 - **Meta**: Llama 4 Maverick, Llama 4 Scout, Llama 3.3 70B
@@ -382,6 +422,9 @@ You can also type any custom model ID directly in the model selector.
 | `POST` | `/api/backup/s3/restore` | Restore from S3 |
 | `POST` | `/api/backup/s3/test` | Test S3 connection |
 | `GET` | `/api/backup/s3/status` | S3 configuration status |
+| `GET` | `/api/ai/config` | Get AI config (provider, model, configured) |
+| `POST` | `/api/ai/generate` | Generate chat response (multi-provider) |
+| `POST` | `/api/ai/save` | Save AI-generated item to library |
 | `GET` | `/api/settings` | Get all settings |
 | `PUT` | `/api/settings` | Update settings |
 | `GET` | `/api/settings/stats` | Get statistics & analytics |

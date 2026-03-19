@@ -1,0 +1,145 @@
+# CI/CD Docker Multi-Arch para Promptly
+# - Build multi-arquitectura (amd64, arm64, armv7) con QEMU + Buildx
+# - Detecta versión desde package.json
+# - Genera releases con changelog desde commits
+# - Requiere secrets: USER_HUB, PASS_HUB (Docker Hub)
+
+name: Docker Image CI (multi-arch)
+
+on:
+  schedule:
+    - cron: '0 8 * * 1'  # Cada lunes a las 8:00 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  check_and_build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Historial completo para changelog
+
+      - name: Get version from package.json
+        id: pkg_version
+        run: |
+          VERSION=$(node -e "console.log(require('./package.json').version)")
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "Promptly version: $VERSION"
+
+      - name: Get latest release tag from repo
+        id: latest_release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          LATEST_TAG=$(gh release view --json tagName -q '.tagName' 2>/dev/null || echo "none")
+          echo "tag=$LATEST_TAG" >> "$GITHUB_OUTPUT"
+          echo "Latest release tag: $LATEST_TAG"
+
+      - name: Compare versions
+        id: compare
+        run: |
+          PKG_VERSION="v${{ steps.pkg_version.outputs.version }}"
+          LATEST="${{ steps.latest_release.outputs.tag }}"
+          echo "Package: $PKG_VERSION vs Latest release: $LATEST"
+          if [ "$PKG_VERSION" != "$LATEST" ]; then
+            echo "new_version=true" >> "$GITHUB_OUTPUT"
+            echo "Nueva versión detectada"
+          else
+            echo "new_version=false" >> "$GITHUB_OUTPUT"
+            echo "Sin cambios"
+          fi
+
+      - name: Set up QEMU
+        if: steps.compare.outputs.new_version == 'true'
+        uses: docker/setup-qemu-action@v4
+
+      - name: Set up Docker Buildx
+        if: steps.compare.outputs.new_version == 'true'
+        uses: docker/setup-buildx-action@v3
+
+      - name: Docker Login
+        if: steps.compare.outputs.new_version == 'true'
+        uses: docker/login-action@v4
+        with:
+          registry: docker.io
+          username: ${{ secrets.USER_HUB }}
+          password: ${{ secrets.PASS_HUB }}
+
+      - name: Build and push Docker image
+        if: steps.compare.outputs.new_version == 'true'
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./Dockerfile
+          platforms: linux/amd64,linux/arm64,linux/arm/v7
+          push: true
+          tags: |
+            ${{ secrets.USER_HUB }}/promptly:latest
+            ${{ secrets.USER_HUB }}/promptly:${{ steps.pkg_version.outputs.version }}
+
+      - name: Generate changelog from commits
+        if: steps.compare.outputs.new_version == 'true'
+        id: changelog
+        run: |
+          VERSION="${{ steps.pkg_version.outputs.version }}"
+          LAST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
+          if [ -n "$LAST_TAG" ]; then
+            CHANGELOG=$(git log --pretty=format:"- %s (%h)" "$LAST_TAG"..HEAD 2>/dev/null | head -40)
+          else
+            CHANGELOG=$(git log --pretty=format:"- %s (%h)" -20)
+          fi
+          [ -z "$CHANGELOG" ] && CHANGELOG="- Release v${VERSION}"
+          echo "$CHANGELOG" > /tmp/changelog.txt
+
+      - name: Create GitHub Release
+        if: steps.compare.outputs.new_version == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TAG="v${{ steps.pkg_version.outputs.version }}"
+          VERSION="${{ steps.pkg_version.outputs.version }}"
+          CHANGELOG=$(cat /tmp/changelog.txt)
+          IMAGE="${{ secrets.USER_HUB }}/promptly"
+
+          cat > /tmp/release_notes.md << EOF
+          ## Promptly ${VERSION}
+
+          ### Cambios en esta versión
+
+          \`\`\`
+          ${CHANGELOG}
+          \`\`\`
+
+          ### Docker tags
+
+          \`\`\`bash
+          docker pull ${IMAGE}:latest
+          docker pull ${IMAGE}:${VERSION}
+          \`\`\`
+
+          ### Arquitecturas soportadas
+
+          La imagen es multi-arch. Docker descarga la versión correcta automáticamente.
+
+          | Arquitectura | Plataforma | Comando para forzar |
+          |---|---|---|
+          | x86-64 | PCs, servidores | \`docker pull --platform linux/amd64 ${IMAGE}\` |
+          | ARM64 | Raspberry Pi 3/4/5, Apple Silicon | \`docker pull --platform linux/arm64 ${IMAGE}\` |
+          | ARMv7 | Raspberry Pi 2, IoT | \`docker pull --platform linux/arm/v7 ${IMAGE}\` |
+
+          ### Uso rápido
+
+          \`\`\`bash
+          docker run -d --name promptly -p 3001:3001 -v promptly_data:/data --restart unless-stopped ${IMAGE}:latest
+          \`\`\`
+
+          Abre **http://localhost:3001**
+          EOF
+
+          gh release create "$TAG" \
+            --title "Promptly $VERSION" \
+            --notes-file /tmp/release_notes.md
