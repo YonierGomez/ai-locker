@@ -281,18 +281,52 @@ A dedicated library for shell commands:
 
 ---
 
-## ☁️ S3 Backup & Sync
+## ☁️ Backup & Restore
 
-Supports **AWS S3**, **Cloudflare R2**, **Backblaze B2**, and **MinIO**:
+Your library is always safe. Promptly supports full backup and restore through S3-compatible storage and local JSON files.
 
-- **Save S3 Config** — saves connection + auto-sync settings in one click
-- **Test Connection** — validates credentials before saving
-- **Backup Now** — immediately uploads a timestamped snapshot
-- **Browse Backups** — list and restore from any previous backup
-- **Auto-sync** — scheduled backups with configurable interval:
-  `15m · 30m · 1h · 2h · 3h · 6h · 9h · 12h · 1d · 2d`
-- Prefix path is auto-normalized (adds trailing `/` if missing)
-- All sections included: Prompts, Skills, Steering, MCP, Commands, Tags, Categories
+### S3 / Cloud storage
+
+Compatible with **AWS S3**, **Cloudflare R2**, **Backblaze B2**, and **MinIO** — any S3-compatible provider works.
+
+| Action | Description |
+|--------|-------------|
+| **Test Connection** | Validates credentials and bucket access before saving |
+| **Save S3 Config** | Saves connection settings and auto-sync preferences in one click |
+| **Backup Now** | Immediately uploads a timestamped snapshot + updates `latest.json` |
+| **Browse Backups** | Lists all backups in your bucket with date and size |
+| **Restore** | One-click restore from any listed snapshot — choose merge or full replace |
+| **Auto-sync** | Scheduled automatic backups — toggle on and it starts immediately, no restart needed |
+
+**Auto-sync intervals:** `15m · 30m · 1h · 2h · 3h · 6h · 9h · 12h · 1d · 2d`
+
+### What gets backed up
+
+Every section is included in every backup:
+
+- ✅ Prompts
+- ✅ Skills
+- ✅ Steering
+- ✅ MCP Configs
+- ✅ Commands
+- ✅ Tags
+- ✅ Categories
+
+### JSON export & import
+
+No cloud storage? No problem. Export a full JSON snapshot at any time and import it to migrate between instances.
+
+```bash
+# Export via API
+curl http://localhost:3001/api/backup/export/json -o backup.json
+
+# Import via API
+curl -X POST http://localhost:3001/api/backup/import/json \
+  -H "Content-Type: application/json" \
+  -d @backup.json
+```
+
+> **Tip:** The prefix path is auto-normalized — if you enter `my-backups` without a trailing `/`, Promptly adds it automatically so S3 keys are always correct.
 
 ---
 
