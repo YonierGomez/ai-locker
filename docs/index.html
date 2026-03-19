@@ -360,6 +360,79 @@
       flex-shrink: 0;
     }
 
+    /* ── Deploy tabs ── */
+    .deploy-tabs-wrapper {
+      margin-top: 24px;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.09);
+      border-radius: 20px;
+      overflow: hidden;
+    }
+    .deploy-tab-bar {
+      display: flex;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+      background: rgba(255,255,255,0.02);
+    }
+    .deploy-tab-btn {
+      flex: 1;
+      padding: 14px 10px;
+      background: none;
+      border: none;
+      color: rgba(255,255,255,0.4);
+      font-family: var(--font);
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: color 0.2s, background 0.2s;
+      border-right: 1px solid rgba(255,255,255,0.07);
+      text-align: center;
+      position: relative;
+    }
+    .deploy-tab-btn:last-child { border-right: none; }
+    .deploy-tab-btn:hover { color: rgba(255,255,255,0.75); background: rgba(255,255,255,0.04); }
+    .deploy-tab-btn.active { color: white; background: rgba(255,255,255,0.06); }
+    .deploy-tab-btn.active::after {
+      content: '';
+      position: absolute;
+      bottom: 0; left: 16px; right: 16px;
+      height: 2px;
+      border-radius: 2px 2px 0 0;
+      background: var(--tab-color, var(--cyan));
+    }
+    .deploy-tab-label {
+      display: block;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.6px;
+      text-transform: uppercase;
+      opacity: 0.55;
+      margin-bottom: 2px;
+    }
+    .deploy-tab-btn.active .deploy-tab-label { opacity: 1; }
+    .deploy-tab-panel {
+      display: none;
+      padding: 28px 32px;
+    }
+    .deploy-tab-panel.active { display: block; }
+    .deploy-tab-desc {
+      font-size: 13px;
+      color: rgba(255,255,255,0.45);
+      margin-bottom: 18px;
+      line-height: 1.5;
+    }
+    .deploy-tab-heading {
+      font-size: 11px;
+      font-weight: 600;
+      color: rgba(255,255,255,0.3);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin: 18px 0 8px;
+    }
+    @media (max-width: 600px) {
+      .deploy-tab-btn { font-size: 11px; padding: 12px 6px; }
+      .deploy-tab-panel { padding: 20px 16px; }
+    }
+
     /* ── Sponsor ── */
     .sponsor-section { text-align: center; padding: 80px 0; border-top: 1px solid rgba(255,255,255,0.07); }
     .sponsor-title { font-size: 28px; font-weight: 700; margin-bottom: 12px; }
@@ -626,49 +699,55 @@
       </div>
     </div>
 
-    <!-- Three options -->
-    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:20px;margin-top:20px;">
+    <!-- Tabbed deploy options -->
+    <div class="deploy-tabs-wrapper reveal">
 
-      <!-- Option A -->
-      <div class="docker-section reveal" style="margin:0;">
-        <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;flex-wrap:wrap;">
-          <span class="option-pill" style="background:rgba(0,212,255,0.12);border:1px solid rgba(0,212,255,0.3);color:var(--cyan);">OPTION A</span>
-          <span style="font-size:15px;font-weight:700;">Docker Compose</span>
-          <span style="font-size:12px;color:rgba(255,255,255,0.35);font-style:italic;">recommended</span>
-        </div>
-        <div style="font-size:12px;color:rgba(255,255,255,0.4);margin-bottom:14px;">App + PostgreSQL + persistent volumes + auto-restart.</div>
-        <div class="code-block" style="font-size:12px;">
-          <span class="cmd">git clone</span> <span class="arg">github.com/YonierGomez/promptly</span><br/>
+      <div class="deploy-tab-bar" role="tablist">
+        <button class="deploy-tab-btn active" style="--tab-color:var(--cyan)" onclick="switchTab(this,'tab-a')" role="tab">
+          <span class="deploy-tab-label">Option A</span>
+          Docker Compose
+        </button>
+        <button class="deploy-tab-btn" style="--tab-color:var(--green)" onclick="switchTab(this,'tab-b')" role="tab">
+          <span class="deploy-tab-label">Option B</span>
+          docker run · SQLite
+        </button>
+        <button class="deploy-tab-btn" style="--tab-color:#9B8FF5" onclick="switchTab(this,'tab-c')" role="tab">
+          <span class="deploy-tab-label">Option C</span>
+          docker run · PostgreSQL
+        </button>
+      </div>
+
+      <!-- Panel A -->
+      <div id="tab-a" class="deploy-tab-panel active" role="tabpanel">
+        <p class="deploy-tab-desc">App + PostgreSQL + persistent volumes + auto-restart. <strong style="color:rgba(255,255,255,0.7)">Recommended</strong> for most deployments.</p>
+        <div class="deploy-tab-heading">Commands</div>
+        <div class="code-block" style="font-size:12.5px;">
+          <span class="cmd">git clone</span> <span class="arg">https://github.com/YonierGomez/promptly.git</span><br/>
           <span class="cmd">cd</span> promptly<br/>
           <span class="cmd">docker compose up -d</span><br/><br/>
           <span class="comment"># Open → http://localhost:9090</span>
         </div>
-        <div style="margin-top:16px;">
-          <div style="font-size:10px;font-weight:600;color:rgba(255,255,255,0.3);letter-spacing:0.5px;text-transform:uppercase;margin-bottom:8px;">compose.yaml</div>
-          <div class="code-block" style="font-size:11px;line-height:1.7;">
-<span style="color:rgba(255,255,255,0.3);">services:</span><br/>
-<span style="color:rgba(255,255,255,0.3);">&nbsp;&nbsp;app:</span><br/>
-<span style="color:rgba(255,255,255,0.3);">&nbsp;&nbsp;&nbsp;&nbsp;build: .</span><br/>
-<span style="color:rgba(255,255,255,0.3);">&nbsp;&nbsp;&nbsp;&nbsp;ports: [</span><span class="arg">"9090:3001"</span><span style="color:rgba(255,255,255,0.3);">]</span><br/>
-<span style="color:rgba(255,255,255,0.3);">&nbsp;&nbsp;&nbsp;&nbsp;environment:</span><br/>
-<span style="color:rgba(255,255,255,0.3);">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;DB_HOST: </span><span class="arg">postgres-db</span><br/>
-<span style="color:rgba(255,255,255,0.3);">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;DB_TYPE: </span><span class="arg">postgres</span><br/>
-<span style="color:rgba(255,255,255,0.3);">&nbsp;&nbsp;&nbsp;&nbsp;restart: unless-stopped</span><br/>
-<span style="color:rgba(255,255,255,0.3);"><br/>&nbsp;&nbsp;postgres-db:</span><br/>
-<span style="color:rgba(255,255,255,0.3);">&nbsp;&nbsp;&nbsp;&nbsp;image: </span><span class="arg">postgres:alpine</span><br/>
-<span style="color:rgba(255,255,255,0.3);">&nbsp;&nbsp;&nbsp;&nbsp;restart: unless-stopped</span>
-          </div>
+        <div class="deploy-tab-heading">compose.yaml</div>
+        <div class="code-block" style="font-size:12px;line-height:1.8;">
+<span style="color:rgba(255,255,255,0.35);">services:</span><br/>
+<span style="color:rgba(255,255,255,0.35);">&nbsp;&nbsp;app:</span><br/>
+<span style="color:rgba(255,255,255,0.35);">&nbsp;&nbsp;&nbsp;&nbsp;build: .</span><br/>
+<span style="color:rgba(255,255,255,0.35);">&nbsp;&nbsp;&nbsp;&nbsp;ports: [</span><span class="arg">"9090:3001"</span><span style="color:rgba(255,255,255,0.35);">]</span><br/>
+<span style="color:rgba(255,255,255,0.35);">&nbsp;&nbsp;&nbsp;&nbsp;environment:</span><br/>
+<span style="color:rgba(255,255,255,0.35);">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;DB_HOST: </span><span class="arg">postgres-db</span><br/>
+<span style="color:rgba(255,255,255,0.35);">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;DB_TYPE: </span><span class="arg">postgres</span><br/>
+<span style="color:rgba(255,255,255,0.35);">&nbsp;&nbsp;&nbsp;&nbsp;restart: unless-stopped</span><br/><br/>
+<span style="color:rgba(255,255,255,0.35);">&nbsp;&nbsp;postgres-db:</span><br/>
+<span style="color:rgba(255,255,255,0.35);">&nbsp;&nbsp;&nbsp;&nbsp;image: </span><span class="arg">postgres:alpine</span><br/>
+<span style="color:rgba(255,255,255,0.35);">&nbsp;&nbsp;&nbsp;&nbsp;restart: unless-stopped</span>
         </div>
       </div>
 
-      <!-- Option B -->
-      <div class="docker-section reveal" style="margin:0;">
-        <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;flex-wrap:wrap;">
-          <span class="option-pill" style="background:rgba(48,209,88,0.12);border:1px solid rgba(48,209,88,0.3);color:var(--green);">OPTION B</span>
-          <span style="font-size:15px;font-weight:700;">docker run — SQLite</span>
-        </div>
-        <div style="font-size:12px;color:rgba(255,255,255,0.4);margin-bottom:14px;">Single container. Zero extra services. Data in a named volume.</div>
-        <div class="code-block" style="font-size:12px;">
+      <!-- Panel B -->
+      <div id="tab-b" class="deploy-tab-panel" role="tabpanel">
+        <p class="deploy-tab-desc">Single container, zero extra services. Data persists in a named Docker volume. Uses SQLite internally.</p>
+        <div class="deploy-tab-heading">Command</div>
+        <div class="code-block" style="font-size:12.5px;">
           <span class="cmd">docker run</span> -d \<br/>
           &nbsp;&nbsp;--name promptly \<br/>
           &nbsp;&nbsp;-p <span class="arg">3001:3001</span> \<br/>
@@ -679,22 +758,19 @@
         </div>
       </div>
 
-      <!-- Option C -->
-      <div class="docker-section reveal" style="margin:0;">
-        <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;flex-wrap:wrap;">
-          <span class="option-pill" style="background:rgba(94,92,230,0.12);border:1px solid rgba(94,92,230,0.3);color:#9B8FF5;">OPTION C</span>
-          <span style="font-size:15px;font-weight:700;">docker run — PostgreSQL</span>
-        </div>
-        <div style="font-size:12px;color:rgba(255,255,255,0.4);margin-bottom:14px;">Point to your own PostgreSQL via a connection string.</div>
-        <div class="code-block" style="font-size:12px;">
+      <!-- Panel C -->
+      <div id="tab-c" class="deploy-tab-panel" role="tabpanel">
+        <p class="deploy-tab-desc">Single container that points to your own external PostgreSQL instance via a connection string.</p>
+        <div class="deploy-tab-heading">Command</div>
+        <div class="code-block" style="font-size:12.5px;">
           <span class="cmd">docker run</span> -d \<br/>
           &nbsp;&nbsp;--name promptly \<br/>
           &nbsp;&nbsp;-p <span class="arg">3001:3001</span> \<br/>
           &nbsp;&nbsp;-v <span class="arg">promptly_data:/data</span> \<br/>
-          &nbsp;&nbsp;-e <span class="arg">DATABASE_URL=postgresql://</span>\<br/>
-          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="arg">user:pass@host:5432/promptly</span> \<br/>
+          &nbsp;&nbsp;-e <span class="arg">DATABASE_URL</span>=postgresql://<span class="arg">user:pass@host:5432/promptly</span> \<br/>
           &nbsp;&nbsp;--restart unless-stopped \<br/>
-          &nbsp;&nbsp;<span class="arg">ghcr.io/yoniergomez/promptly:latest</span>
+          &nbsp;&nbsp;<span class="arg">ghcr.io/yoniergomez/promptly:latest</span><br/><br/>
+          <span class="comment"># Open → http://localhost:3001</span>
         </div>
       </div>
 
@@ -744,6 +820,15 @@
 </footer>
 
 <script>
+  // Deploy tabs
+  function switchTab(btn, panelId) {
+    const wrapper = btn.closest('.deploy-tabs-wrapper');
+    wrapper.querySelectorAll('.deploy-tab-btn').forEach(b => b.classList.remove('active'));
+    wrapper.querySelectorAll('.deploy-tab-panel').forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById(panelId).classList.add('active');
+  }
+
   // Scroll-triggered animations
   const io = new IntersectionObserver((entries) => {
     entries.forEach(e => {
