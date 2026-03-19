@@ -1,0 +1,734 @@
+import { useQuery } from '@tanstack/react-query'
+import { useNavigate } from 'react-router-dom'
+import { settingsApi, promptsApi, commandsApi } from '../utils/api'
+import { MessageSquare, Zap, Navigation, Star, TrendingUp, BarChart2, Plus, Cpu, TerminalSquare } from 'lucide-react'
+import { estimateTokens, getTokenColor } from '../utils/tokens'
+import {
+  AreaChart, Area, BarChart, Bar,
+  PieChart, Pie,
+  XAxis, YAxis, CartesianGrid, Tooltip,
+  ResponsiveContainer, Cell,
+} from 'recharts'
+
+function McpIcon({ size = 16 }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 195 195" fill="none">
+      <path d="M25 97.8528L92.8822 29.9706C102.255 20.598 117.451 20.598 126.823 29.9706C136.196 39.3431 136.196 54.5391 126.823 63.9117L75.5581 115.177" stroke="currentColor" strokeWidth="12" strokeLinecap="round"/>
+      <path d="M76.2652 114.47L126.823 63.9117C136.196 54.5391 151.392 54.5391 160.765 63.9117L161.118 64.2652C170.491 73.6378 170.491 88.8338 161.118 98.2063L99.7248 159.6C96.6006 162.724 96.6006 167.789 99.7248 170.913L112.331 183.52" stroke="currentColor" strokeWidth="12" strokeLinecap="round"/>
+      <path d="M109.853 46.9411L59.6482 97.1457C50.2756 106.518 50.2756 121.714 59.6482 131.087C69.0208 140.459 84.2167 140.459 93.5893 131.087L143.794 80.8822" stroke="currentColor" strokeWidth="12" strokeLinecap="round"/>
+    </svg>
+  )
+}
+
+// ── Chart tooltip ────────────────────────────────────────────
+function ChartTooltip({ active, payload, label }) {
+  if (!active || !payload?.length) return null
+  return (
+    <div style={{
+      background: 'rgba(13,17,23,0.96)', border: '1px solid rgba(255,255,255,0.1)',
+      borderRadius: 8, padding: '8px 12px', fontSize: 12,
+    }}>
+      <div style={{ color: 'rgba(255,255,255,0.45)', marginBottom: 4 }}>{label}</div>
+      {payload.map(p => (
+        <div key={p.name} style={{ display: 'flex', gap: 8, alignItems: 'center', marginTop: 2 }}>
+          <div style={{ width: 8, height: 8, borderRadius: '50%', background: p.color, flexShrink: 0 }} />
+          <span style={{ color: 'rgba(255,255,255,0.6)', textTransform: 'capitalize' }}>{p.name}</span>
+          <span style={{ color: '#fff', fontWeight: 600, marginLeft: 'auto' }}>{p.value}</span>
+        </div>
+      ))}
+    </div>
+  )
+}
+
+// ── Build last-N-days array with filled zeros ────────────────
+function buildActivityData(rawActivity, days = 30) {
+  const map = {}
+  rawActivity?.forEach(r => {
+    map[r.day] = {
+      prompts:  r.prompts  || 0,
+      skills:   r.skills   || 0,
+      steering: r.steering || 0,
+      mcp:      r.mcp      || 0,
+      commands: r.commands || 0,
+    }
+  })
+  return Array.from({ length: days }, (_, i) => {
+    const d = new Date()
+    d.setDate(d.getDate() - (days - 1 - i))
+    const iso = d.toISOString().split('T')[0]
+    const label = `${String(d.getMonth() + 1).padStart(2, '0')}/${String(d.getDate()).padStart(2, '0')}`
+    return { day: label, ...(map[iso] || { prompts: 0, skills: 0, steering: 0, mcp: 0, commands: 0 }) }
+  })
+}
+
+const CHART_COLORS = {
+  prompts: '#007AFF',
+  skills: '#FF9500',
+  steering: '#BF5AF2',
+  mcp: '#30D158',
+  commands: '#5AC8FA',
+}
+
+const CAT_COLORS = ['#007AFF', '#BF5AF2', '#FF9500', '#30D158', '#FF375F', '#00D4FF', '#FFD60A', '#FF6B35']
+
+// ── Empty state ──────────────────────────────────────────────
+function EmptyDashboard({ navigate }) {
+  return (
+    <div style={{
+      display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+      padding: '60px 20px', textAlign: 'center', gap: 24,
+    }}>
+      <div style={{
+        width: 80, height: 80, borderRadius: 20,
+        background: 'linear-gradient(145deg, rgba(0,122,255,0.15), rgba(191,90,242,0.1))',
+        border: '1px solid rgba(255,255,255,0.08)',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+      }}>
+        <BarChart2 size={36} color="rgba(0,122,255,0.7)" />
+      </div>
+      <div>
+        <div style={{ fontSize: 18, fontWeight: 700, marginBottom: 8, letterSpacing: -0.3 }}>
+          Your library is empty
+        </div>
+        <div style={{ fontSize: 14, color: 'var(--text-tertiary)', maxWidth: 320, lineHeight: 1.6 }}>
+          Create prompts, skills and more to see your metrics and activity here.
+        </div>
+      </div>
+      <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', justifyContent: 'center' }}>
+        <button className="btn btn-primary" onClick={() => navigate('/prompts')} style={{ gap: 7 }}>
+          <Plus size={14} /> Create first prompt
+        </button>
+        <button className="btn btn-glass" onClick={() => navigate('/skills')} style={{ gap: 7 }}>
+          <Zap size={14} color="var(--orange)" /> Create skill
+        </button>
+      </div>
+    </div>
+  )
+}
+
+// ── Progress nudge (few items) ───────────────────────────────
+function AnalyticsNudge({ total, navigate }) {
+  const TARGET = 5
+  const pct = Math.min((total / TARGET) * 100, 100)
+  return (
+    <div className="glass-card" style={{ padding: 20, display: 'flex', alignItems: 'center', gap: 20 }}>
+      <div style={{
+        width: 44, height: 44, borderRadius: 12, flexShrink: 0,
+        background: 'rgba(0,122,255,0.1)', border: '1px solid rgba(0,122,255,0.2)',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+      }}>
+        <BarChart2 size={20} color="#007AFF" />
+      </div>
+      <div style={{ flex: 1 }}>
+        <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 4 }}>
+          Analytics available with {TARGET} items
+        </div>
+        <div style={{ height: 4, background: 'rgba(255,255,255,0.08)', borderRadius: 99, overflow: 'hidden' }}>
+          <div style={{ height: '100%', width: `${pct}%`, background: '#007AFF', borderRadius: 99, transition: 'width 0.6s ease' }} />
+        </div>
+        <div style={{ fontSize: 11, color: 'var(--text-tertiary)', marginTop: 4 }}>
+          {total} of {TARGET} items — add {TARGET - total} more to unlock charts
+        </div>
+      </div>
+      <button className="btn btn-glass btn-sm" onClick={() => navigate('/prompts')} style={{ flexShrink: 0, gap: 6 }}>
+        <Plus size={12} /> Add
+      </button>
+    </div>
+  )
+}
+
+// ── Activity Heatmap (GitHub style) ─────────────────────────
+function ActivityHeatmap({ heatmap }) {
+  const WEEKS = 52
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+
+  // Build a grid: 52 weeks × 7 days, starting from Monday 52 weeks ago
+  const startDay = new Date(today)
+  startDay.setDate(startDay.getDate() - (WEEKS * 7 - 1))
+  // Align to Monday
+  const dow = (startDay.getDay() + 6) % 7 // 0=Mon
+  startDay.setDate(startDay.getDate() - dow)
+
+  const weeks = []
+  for (let w = 0; w < WEEKS; w++) {
+    const days = []
+    for (let d = 0; d < 7; d++) {
+      const date = new Date(startDay)
+      date.setDate(startDay.getDate() + w * 7 + d)
+      const iso = date.toISOString().split('T')[0]
+      const count = heatmap[iso] || 0
+      days.push({ iso, count, future: date > today })
+    }
+    weeks.push(days)
+  }
+
+  const maxCount = Math.max(...Object.values(heatmap), 1)
+  const getColor = count => {
+    if (count === 0) return 'rgba(255,255,255,0.05)'
+    const intensity = Math.min(count / maxCount, 1)
+    if (intensity < 0.25) return 'rgba(0,122,255,0.25)'
+    if (intensity < 0.5)  return 'rgba(0,122,255,0.5)'
+    if (intensity < 0.75) return 'rgba(0,122,255,0.75)'
+    return '#007AFF'
+  }
+
+  const DAY_LABELS = ['L', '', 'X', '', 'V', '', '']
+  const totalItems = Object.values(heatmap).reduce((s, v) => s + v, 0)
+  const activeDays = Object.keys(heatmap).length
+
+  return (
+    <div className="glass-card" style={{ padding: 20 }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <TrendingUp size={15} color="#007AFF" />
+          <span style={{ fontSize: 14, fontWeight: 600 }}>Activity — last year</span>
+        </div>
+        <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)' }}>
+          {totalItems} items across {activeDays} day{activeDays !== 1 ? 's' : ''}
+        </span>
+      </div>
+      <div style={{ display: 'flex', gap: 3, overflowX: 'auto', paddingBottom: 4 }}>
+        {/* Day labels column */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 2, marginRight: 4, flexShrink: 0 }}>
+          {DAY_LABELS.map((l, i) => (
+            <div key={i} style={{ width: 10, height: 10, fontSize: 8, color: 'rgba(255,255,255,0.25)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{l}</div>
+          ))}
+        </div>
+        {/* Weeks */}
+        {weeks.map((week, wi) => (
+          <div key={wi} style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+            {week.map(day => (
+              <div
+                key={day.iso}
+                title={day.future ? '' : `${day.iso}: ${day.count} item${day.count !== 1 ? 's' : ''}`}
+                style={{
+                  width: 10, height: 10, borderRadius: 2, flexShrink: 0,
+                  background: day.future ? 'transparent' : getColor(day.count),
+                  transition: 'background 0.2s',
+                  cursor: day.count > 0 ? 'default' : 'default',
+                }}
+              />
+            ))}
+          </div>
+        ))}
+      </div>
+      {/* Legend */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginTop: 10, justifyContent: 'flex-end' }}>
+        <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.3)', marginRight: 4 }}>Less</span>
+        {['rgba(255,255,255,0.05)', 'rgba(0,122,255,0.25)', 'rgba(0,122,255,0.5)', 'rgba(0,122,255,0.75)', '#007AFF'].map((c, i) => (
+          <div key={i} style={{ width: 10, height: 10, borderRadius: 2, background: c }} />
+        ))}
+        <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.3)', marginLeft: 4 }}>More</span>
+      </div>
+    </div>
+  )
+}
+
+// ── Charts section ───────────────────────────────────────────
+function ChartsSection({ stats }) {
+  const activityData = buildActivityData(stats?.activity)
+  const hasActivity = activityData.some(d => d.prompts + d.skills + d.steering + d.mcp + d.commands > 0)
+  const hasTopUsed = stats?.top_used?.length > 0
+  const hasByCategory = stats?.by_category?.length > 0
+
+  // Show only last 14 days labels to avoid crowding
+  const tickFormatter = (val, idx) => idx % 5 === 0 ? val : ''
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+      {/* Activity over time */}
+      {hasActivity && (
+        <div className="glass-card" style={{ padding: 20 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 20 }}>
+            <TrendingUp size={15} color="var(--blue)" />
+            <span style={{ fontSize: 14, fontWeight: 600 }}>Activity — last 30 days</span>
+          </div>
+          <ResponsiveContainer width="100%" height={160}>
+            <AreaChart data={activityData} margin={{ top: 4, right: 4, left: -24, bottom: 0 }}>
+              <defs>
+                {Object.entries(CHART_COLORS).map(([key, color]) => (
+                  <linearGradient key={key} id={`grad-${key}`} x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor={color} stopOpacity={0.3} />
+                    <stop offset="95%" stopColor={color} stopOpacity={0} />
+                  </linearGradient>
+                ))}
+              </defs>
+              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
+              <XAxis dataKey="day" tick={{ fontSize: 10, fill: 'rgba(255,255,255,0.3)' }} tickLine={false} axisLine={false} tickFormatter={tickFormatter} />
+              <YAxis tick={{ fontSize: 10, fill: 'rgba(255,255,255,0.3)' }} tickLine={false} axisLine={false} allowDecimals={false} />
+              <Tooltip content={<ChartTooltip />} cursor={{ stroke: 'rgba(255,255,255,0.1)', strokeWidth: 1 }} animationDuration={0} isAnimationActive={false} />
+              {Object.entries(CHART_COLORS).map(([key, color]) => (
+                <Area key={key} type="monotone" dataKey={key} stroke={color} strokeWidth={1.5}
+                  fill={`url(#grad-${key})`} dot={false} activeDot={{ r: 3, fill: color }}
+                  isAnimationActive={false} />
+              ))}
+            </AreaChart>
+          </ResponsiveContainer>
+          {/* Legend */}
+          <div style={{ display: 'flex', gap: 16, marginTop: 12, flexWrap: 'wrap' }}>
+            {Object.entries(CHART_COLORS).map(([key, color]) => (
+              <div key={key} style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+                <div style={{ width: 8, height: 8, borderRadius: '50%', background: color }} />
+                <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.45)', textTransform: 'capitalize' }}>{key}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Tokens section: donut distribution + top prompts by tokens */}
+      {(stats?.total_tokens?.prompts > 0 || stats?.total_tokens?.skills > 0 || stats?.total_tokens?.steering > 0) && (() => {
+        const tt = stats.total_tokens
+        const total = tt.prompts + tt.skills + tt.steering
+        const fmt = n => n >= 1000 ? `~${(n/1000).toFixed(1)}k` : `~${n}`
+        const pieData = [
+          { name: 'Prompts', value: tt.prompts, color: '#007AFF' },
+          { name: 'Skills', value: tt.skills, color: '#FF9500' },
+          { name: 'Steering', value: tt.steering, color: '#BF5AF2' },
+        ].filter(d => d.value > 0)
+
+        return (
+          <div className={stats?.top_tokens?.length > 0 ? 'dash-grid-2col' : undefined} style={{ display: 'grid', gap: 16 }}>
+            {/* Donut chart — tokens by type */}
+            <div className="glass-card" style={{ padding: 20 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
+                <Cpu size={15} color="#007AFF" />
+                <span style={{ fontSize: 14, fontWeight: 600 }}>Tokens by type</span>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
+                <div style={{ position: 'relative', flexShrink: 0 }}>
+                  <ResponsiveContainer width={120} height={120}>
+                    <PieChart>
+                      <Pie data={pieData} cx="50%" cy="50%" innerRadius={36} outerRadius={54}
+                        dataKey="value" paddingAngle={3} isAnimationActive={false}>
+                        {pieData.map(d => <Cell key={d.name} fill={d.color} />)}
+                      </Pie>
+                      <Tooltip content={<ChartTooltip />} animationDuration={0} isAnimationActive={false} />
+                    </PieChart>
+                  </ResponsiveContainer>
+                  <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', pointerEvents: 'none' }}>
+                    <div style={{ fontSize: 15, fontWeight: 700, letterSpacing: -0.5 }}>{fmt(total)}</div>
+                    <div style={{ fontSize: 9, color: 'rgba(255,255,255,0.4)' }}>total</div>
+                  </div>
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 10, flex: 1 }}>
+                  {pieData.map(d => (
+                    <div key={d.name}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                          <div style={{ width: 7, height: 7, borderRadius: '50%', background: d.color }} />
+                          <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.55)' }}>{d.name}</span>
+                        </div>
+                        <span style={{ fontSize: 11, fontWeight: 600, color: d.color }}>{fmt(d.value)}</span>
+                      </div>
+                      <div style={{ height: 3, background: 'rgba(255,255,255,0.07)', borderRadius: 99 }}>
+                        <div style={{ height: '100%', width: `${Math.round((d.value / total) * 100)}%`, background: d.color, borderRadius: 99 }} />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Top prompts by token count */}
+            {stats?.top_tokens?.length > 0 && (
+              <div className="glass-card" style={{ padding: 20 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
+                  <Cpu size={15} color="#FF9500" />
+                  <span style={{ fontSize: 14, fontWeight: 600 }}>Top prompts by tokens</span>
+                  <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)', marginLeft: 2 }}>~4 chars/token</span>
+                </div>
+                <ResponsiveContainer width="100%" height={Math.max(140, stats.top_tokens.length * 26)}>
+                  <BarChart data={stats.top_tokens} layout="vertical" margin={{ top: 0, right: 52, left: 0, bottom: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" horizontal={false} />
+                    <XAxis type="number" tick={{ fontSize: 10, fill: 'rgba(255,255,255,0.3)' }} tickLine={false} axisLine={false} allowDecimals={false} />
+                    <YAxis type="category" dataKey="title" tick={{ fontSize: 10, fill: 'rgba(255,255,255,0.45)' }} tickLine={false} axisLine={false} width={100}
+                      tickFormatter={v => v.length > 15 ? v.slice(0, 14) + '…' : v} />
+                    <Tooltip content={<ChartTooltip />} cursor={{ fill: 'rgba(255,255,255,0.04)' }} animationDuration={0} isAnimationActive={false} />
+                    <Bar dataKey="tokens" name="tokens" radius={[0, 4, 4, 0]} maxBarSize={16} isAnimationActive={false}
+                      label={{ position: 'right', fontSize: 10, fill: 'rgba(255,255,255,0.4)', formatter: v => v >= 1000 ? `~${(v/1000).toFixed(1)}k` : `~${v}` }}>
+                      {stats.top_tokens.map(row => {
+                        const c = getTokenColor(row.tokens).replace('var(--green)', '#30D158').replace('var(--teal)', '#5AC8FA').replace('var(--orange)', '#FF9500').replace('var(--pink)', '#FF375F')
+                        return <Cell key={row.title} fill={c} />
+                      })}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+                <div style={{ display: 'flex', gap: 14, marginTop: 10, flexWrap: 'wrap' }}>
+                  {[['< 500', '#30D158'], ['500–2k', '#5AC8FA'], ['2k–8k', '#FF9500'], ['> 8k', '#FF375F']].map(([label, color]) => (
+                    <div key={label} style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+                      <div style={{ width: 7, height: 7, borderRadius: '50%', background: color }} />
+                      <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.4)' }}>{label}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        )
+      })()}
+
+      {/* Top used + by category */}
+      <div className={hasTopUsed && hasByCategory ? 'dash-grid-2col' : undefined} style={{ display: 'grid', gap: 16 }}>
+        {hasTopUsed && (
+          <div className="glass-card" style={{ padding: 20 }}>
+            <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 16 }}>Most used prompts</div>
+            <ResponsiveContainer width="100%" height={160}>
+              <BarChart data={stats.top_used} layout="vertical" margin={{ top: 0, right: 8, left: 0, bottom: 0 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" horizontal={false} />
+                <XAxis type="number" tick={{ fontSize: 10, fill: 'rgba(255,255,255,0.3)' }} tickLine={false} axisLine={false} allowDecimals={false} />
+                <YAxis type="category" dataKey="title" tick={{ fontSize: 10, fill: 'rgba(255,255,255,0.45)' }} tickLine={false} axisLine={false} width={90}
+                  tickFormatter={v => v.length > 14 ? v.slice(0, 13) + '…' : v} />
+                <Tooltip content={<ChartTooltip />} cursor={{ fill: 'rgba(255,255,255,0.04)' }} animationDuration={0} isAnimationActive={false} />
+                <Bar dataKey="use_count" name="usos" radius={[0, 4, 4, 0]} maxBarSize={18} isAnimationActive={false}>
+                  {stats.top_used.map((_, i) => (
+                    <Cell key={i} fill={`rgba(0,122,255,${1 - i * 0.13})`} />
+                  ))}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        )}
+
+        {hasByCategory && (
+          <div className="glass-card" style={{ padding: 20 }}>
+            <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 16 }}>Prompts by category</div>
+            <ResponsiveContainer width="100%" height={160}>
+              <BarChart data={stats.by_category} margin={{ top: 0, right: 8, left: -24, bottom: 0 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
+                <XAxis dataKey="category" tick={{ fontSize: 9, fill: 'rgba(255,255,255,0.3)' }} tickLine={false} axisLine={false}
+                  tickFormatter={v => v.length > 8 ? v.slice(0, 7) + '…' : v} />
+                <YAxis tick={{ fontSize: 10, fill: 'rgba(255,255,255,0.3)' }} tickLine={false} axisLine={false} allowDecimals={false} />
+                <Tooltip content={<ChartTooltip />} cursor={{ fill: 'rgba(255,255,255,0.04)' }} animationDuration={0} isAnimationActive={false} />
+                <Bar dataKey="count" name="prompts" radius={[4, 4, 0, 0]} maxBarSize={28} isAnimationActive={false}>
+                  {stats.by_category.map((_, i) => (
+                    <Cell key={i} fill={CAT_COLORS[i % CAT_COLORS.length]} />
+                  ))}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        )}
+      </div>
+
+      {/* Model distribution + Favorites by type */}
+      {(() => {
+        const hasModels = stats?.model_distribution?.length > 0
+        const hasFavs = stats?.favorites_by_type?.some(f => f.count > 0)
+        if (!hasModels && !hasFavs) return null
+        return (
+          <div className={hasModels && hasFavs ? 'dash-grid-2col' : undefined} style={{ display: 'grid', gap: 16 }}>
+            {hasModels && (() => {
+              const total = stats.model_distribution.reduce((s, r) => s + r.count, 0)
+              const MODEL_COLORS = ['#007AFF','#BF5AF2','#FF9500','#30D158','#FF375F','#5AC8FA','#FFD60A','#FF6B35']
+              return (
+                <div className="glass-card" style={{ padding: 20 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#BF5AF2" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
+                    <span style={{ fontSize: 14, fontWeight: 600 }}>Models assigned</span>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
+                    <div style={{ flexShrink: 0 }}>
+                      <ResponsiveContainer width={110} height={110}>
+                        <PieChart>
+                          <Pie data={stats.model_distribution} cx="50%" cy="50%" innerRadius={32} outerRadius={50}
+                            dataKey="count" nameKey="model" paddingAngle={3} isAnimationActive={false}>
+                            {stats.model_distribution.map((_, i) => <Cell key={i} fill={MODEL_COLORS[i % MODEL_COLORS.length]} />)}
+                          </Pie>
+                          <Tooltip content={<ChartTooltip />} animationDuration={0} isAnimationActive={false} />
+                        </PieChart>
+                      </ResponsiveContainer>
+                    </div>
+                    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 8 }}>
+                      {stats.model_distribution.map((r, i) => (
+                        <div key={r.model}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 3 }}>
+                            <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.55)', maxWidth: 130, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.model}</span>
+                            <span style={{ fontSize: 11, fontWeight: 600, color: MODEL_COLORS[i % MODEL_COLORS.length] }}>{r.count}</span>
+                          </div>
+                          <div style={{ height: 3, background: 'rgba(255,255,255,0.07)', borderRadius: 99 }}>
+                            <div style={{ height: '100%', width: `${Math.round((r.count / total) * 100)}%`, background: MODEL_COLORS[i % MODEL_COLORS.length], borderRadius: 99 }} />
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )
+            })()}
+
+            {hasFavs && (
+              <div className="glass-card" style={{ padding: 20 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
+                  <Star size={15} color="var(--yellow)" fill="var(--yellow)" />
+                  <span style={{ fontSize: 14, fontWeight: 600 }}>Favorites by type</span>
+                </div>
+                <ResponsiveContainer width="100%" height={130}>
+                  <BarChart data={stats.favorites_by_type} margin={{ top: 4, right: 8, left: -24, bottom: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
+                    <XAxis dataKey="type" tick={{ fontSize: 11, fill: 'rgba(255,255,255,0.4)' }} tickLine={false} axisLine={false} />
+                    <YAxis tick={{ fontSize: 10, fill: 'rgba(255,255,255,0.3)' }} tickLine={false} axisLine={false} allowDecimals={false} />
+                    <Tooltip content={<ChartTooltip />} cursor={{ fill: 'rgba(255,255,255,0.04)' }} animationDuration={0} isAnimationActive={false} />
+                    <Bar dataKey="count" name="favoritos" radius={[4, 4, 0, 0]} maxBarSize={36} isAnimationActive={false}>
+                      {stats.favorites_by_type.map(r => <Cell key={r.type} fill={r.color} />)}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            )}
+          </div>
+        )
+      })()}
+
+      {/* Activity Heatmap — GitHub style */}
+      {stats?.activity_heatmap && Object.keys(stats.activity_heatmap).length > 0 && (
+        <ActivityHeatmap heatmap={stats.activity_heatmap} />
+      )}
+    </div>
+  )
+}
+
+// ── Main ─────────────────────────────────────────────────────
+export default function DashboardPage() {
+  const navigate = useNavigate()
+
+  const { data: stats, isLoading: statsLoading } = useQuery({
+    queryKey: ['stats'],
+    queryFn: () => settingsApi.stats(),
+    staleTime: 30000,
+  })
+
+  const { data: recentPrompts } = useQuery({
+    queryKey: ['prompts', { limit: 4, sort: 'updated_at' }],
+    queryFn: () => promptsApi.list({ limit: 4, sort: 'updated_at', order: 'desc' }),
+  })
+
+  const { data: recentCommands } = useQuery({
+    queryKey: ['commands', { limit: 4, sort: 'updated_at' }],
+    queryFn: () => commandsApi.list({ limit: 4, sort: 'updated_at', order: 'desc' }),
+    staleTime: 30000,
+  })
+
+  const { data: favoritePrompts } = useQuery({
+    queryKey: ['prompts', { favorite: true, limit: 4 }],
+    queryFn: () => promptsApi.list({ favorite: 'true', limit: 4 }),
+  })
+
+  const { data: favoriteCommands } = useQuery({
+    queryKey: ['commands', { favorite: true, limit: 4 }],
+    queryFn: () => commandsApi.list({ favorite: 'true', limit: 4 }),
+    staleTime: 30000,
+  })
+
+  const total = (stats?.prompts ?? 0) + (stats?.skills ?? 0) + (stats?.steering ?? 0) + (stats?.mcp_configs ?? 0) + (stats?.commands ?? 0)
+  const hasEnoughForCharts = total >= 5
+
+  const statCards = [
+    { label: 'Prompts', value: stats?.prompts ?? 0, icon: MessageSquare, color: '#007AFF', path: '/prompts' },
+    { label: 'Skills', value: stats?.skills ?? 0, icon: Zap, color: '#FF9500', path: '/skills' },
+    { label: 'Steering', value: stats?.steering ?? 0, icon: Navigation, color: '#BF5AF2', path: '/steering' },
+    { label: 'MCP Configs', value: stats?.mcp_configs ?? 0, icon: McpIcon, color: '#30D158', path: '/mcp' },
+    { label: 'Commands', value: stats?.commands ?? 0, icon: TerminalSquare, color: '#5AC8FA', path: '/commands' },
+  ]
+
+  return (
+    <div className="page-content">
+      {/* Welcome */}
+      <div style={{ marginBottom: 24 }} className="animate-fade-in-up">
+        <div style={{
+          background: 'linear-gradient(135deg, rgba(0,122,255,0.12) 0%, rgba(191,90,242,0.08) 100%)',
+          border: '1px solid rgba(255,255,255,0.08)',
+          borderRadius: 'var(--radius-2xl)',
+          padding: '24px 28px',
+          position: 'relative', overflow: 'hidden',
+        }}>
+          <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 1, background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent)' }} />
+          <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 14, flexWrap: 'wrap' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 14, flex: 1, minWidth: 0 }}>
+              <div style={{ width: 44, height: 44, borderRadius: 12, background: 'linear-gradient(145deg, #0D1117 0%, #161B22 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 8px 24px rgba(0,0,0,0.5)', border: '1px solid rgba(255,255,255,0.09)' }}>
+                <svg width="24" height="24" viewBox="0 0 20 20" fill="none">
+                  <rect x="2" y="2" width="16" height="16" rx="4" stroke="#00D4FF" strokeWidth="1.2" strokeOpacity="0.7"/>
+                  <rect x="5.5" y="5.5" width="3.5" height="3.5" rx="1" fill="#00D4FF" fillOpacity="0.85"/>
+                  <rect x="11" y="5.5" width="3.5" height="3.5" rx="1" fill="#00D4FF" fillOpacity="0.5"/>
+                  <rect x="5.5" y="11" width="3.5" height="3.5" rx="1" fill="#00D4FF" fillOpacity="0.5"/>
+                  <path d="M13.5 11.5L12.5 13.5L14.5 13L13 15" stroke="#00D4FF" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" strokeOpacity="0.9"/>
+                </svg>
+              </div>
+              <div>
+                <h1 style={{ fontSize: 22, fontWeight: 700, letterSpacing: -0.5, marginBottom: 2 }}>Welcome to Promptly</h1>
+                <p style={{ fontSize: 14, color: 'var(--text-secondary)' }}>Your AI prompts, skills, and configurations — all in one place.</p>
+              </div>
+            </div>
+            {/* Quick Actions inline in header */}
+            <div className="quick-actions">
+              {[
+                { label: 'Prompt', icon: MessageSquare, path: '/prompts', color: '#007AFF' },
+                { label: 'Skill', icon: Zap, path: '/skills', color: '#FF9500' },
+                { label: 'Steering', icon: Navigation, path: '/steering', color: '#BF5AF2' },
+                { label: 'MCP', icon: McpIcon, path: '/mcp', color: '#30D158' },
+                { label: 'Command', icon: TerminalSquare, path: '/commands', color: '#5AC8FA' },
+              ].map(({ label, icon: Icon, path, color }) => (
+                <button key={label} className="btn btn-glass btn-sm" onClick={() => navigate(path)} style={{ gap: 6 }}>
+                  <Icon size={13} color={color} />
+                  <span style={{ fontSize: 12 }}>+ {label}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Stat cards */}
+      <div className="stats-grid stagger-children" style={{ opacity: statsLoading ? 0.4 : 1, transition: 'opacity 0.3s' }}>
+        {statCards.map(({ label, value, icon: Icon, color, path }) => (
+          <div key={label} className="stat-card" style={{ cursor: 'pointer' }} onClick={() => navigate(path)}>
+            <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 1, background: `linear-gradient(90deg, transparent, ${color}40, transparent)` }} />
+            <div className="stat-value" style={{ color }}>{value}</div>
+            <div className="stat-label">{label}</div>
+            <div className="stat-icon"><Icon size={40} color={color} /></div>
+          </div>
+        ))}
+      </div>
+
+      {/* ── Analytics ── */}
+      <div style={{ marginTop: 20 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+          <BarChart2 size={14} color="rgba(255,255,255,0.3)" />
+          <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-tertiary)', letterSpacing: 0.5, textTransform: 'uppercase' }}>Analytics</span>
+        </div>
+        {statsLoading ? (
+          <div className="glass-card" style={{ padding: '48px 20px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <div style={{ fontSize: 13, color: 'var(--text-tertiary)' }}>Loading…</div>
+          </div>
+        ) : total === 0 ? (
+          <div className="glass-card" style={{ padding: 0, overflow: 'hidden' }}>
+            <EmptyDashboard navigate={navigate} />
+          </div>
+        ) : !hasEnoughForCharts ? (
+          <AnalyticsNudge total={total} navigate={navigate} />
+        ) : (
+          <ChartsSection stats={stats} />
+        )}
+      </div>
+
+      {/* ── Library ── */}
+      {!statsLoading && total > 0 && (
+        <div style={{ marginTop: 20 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+            <TrendingUp size={14} color="rgba(255,255,255,0.3)" />
+            <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-tertiary)', letterSpacing: 0.5, textTransform: 'uppercase' }}>Library</span>
+          </div>
+          <div className="dash-grid-2col">
+            {/* Recent items */}
+            <div className="glass-card" style={{ padding: 0, overflow: 'hidden' }}>
+              <div style={{ padding: '16px 20px 12px', borderBottom: '1px solid rgba(255,255,255,0.06)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <TrendingUp size={14} color="rgba(255,255,255,0.4)" />
+                  <span style={{ fontSize: 13, fontWeight: 600 }}>Recent</span>
+                </div>
+              </div>
+              <div style={{ padding: '6px 0' }}>
+                {(recentPrompts?.data?.length === 0 && (recentCommands?.data?.length ?? 0) === 0) && (
+                  <div style={{ padding: '24px 20px', textAlign: 'center', color: 'var(--text-tertiary)', fontSize: 13 }}>
+                    No items yet
+                  </div>
+                )}
+                {/* Merge and sort by updated_at, show top 6 */}
+                {[
+                  ...(recentPrompts?.data || []).map(p => ({ ...p, _type: 'prompt' })),
+                  ...(recentCommands?.data || []).map(c => ({ ...c, _type: 'command' })),
+                ]
+                  .sort((a, b) => (b.updated_at || '').localeCompare(a.updated_at || ''))
+                  .slice(0, 6)
+                  .map(item => item._type === 'prompt' ? (
+                    <div key={item.id} style={{ padding: '9px 20px', cursor: 'pointer', transition: 'background var(--duration-fast)', borderBottom: '1px solid rgba(255,255,255,0.04)' }}
+                      onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.04)'}
+                      onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                      onClick={() => navigate('/prompts')}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                        <MessageSquare size={11} color="#007AFF" />
+                        <span style={{ fontSize: 13, fontWeight: 500, flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.title}</span>
+                        <span style={{ fontSize: 10, color: 'rgba(0,122,255,0.5)', background: 'rgba(0,122,255,0.08)', padding: '1px 6px', borderRadius: 4, flexShrink: 0 }}>Prompt</span>
+                      </div>
+                      <div style={{ fontSize: 11, color: 'var(--text-tertiary)', marginTop: 2, paddingLeft: 17, display: 'flex', gap: 8 }}>
+                        {item.category && <span className={`category-badge ${item.category}`}>{item.category}</span>}
+                        {item.use_count > 0 && <span>{item.use_count} uses</span>}
+                      </div>
+                    </div>
+                  ) : (
+                    <div key={item.id} style={{ padding: '9px 20px', cursor: 'pointer', transition: 'background var(--duration-fast)', borderBottom: '1px solid rgba(255,255,255,0.04)' }}
+                      onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.04)'}
+                      onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                      onClick={() => navigate('/commands')}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                        <TerminalSquare size={11} color="#5AC8FA" />
+                        <span style={{ fontSize: 13, fontWeight: 500, flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.title}</span>
+                        <span style={{ fontSize: 10, color: 'rgba(91,200,250,0.5)', background: 'rgba(91,200,250,0.08)', padding: '1px 6px', borderRadius: 4, flexShrink: 0 }}>Command</span>
+                      </div>
+                      <div style={{ fontSize: 11, color: 'rgba(91,200,250,0.4)', marginTop: 2, paddingLeft: 17, fontFamily: 'monospace' }}>
+                        {item.command?.slice(0, 50)}{item.command?.length > 50 ? '…' : ''}
+                      </div>
+                    </div>
+                  ))
+                }
+              </div>
+            </div>
+
+            {/* Favorites */}
+            <div className="glass-card" style={{ padding: 0, overflow: 'hidden' }}>
+              <div style={{ padding: '16px 20px 12px', borderBottom: '1px solid rgba(255,255,255,0.06)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <Star size={14} color="var(--yellow)" fill="var(--yellow)" />
+                  <span style={{ fontSize: 13, fontWeight: 600 }}>Favoritos</span>
+                </div>
+                <div style={{ fontSize: 11, color: 'var(--text-tertiary)' }}>
+                  {(stats?.favorites?.prompts || 0) + (stats?.favorites?.skills || 0) + (stats?.favorites?.steering || 0) + (stats?.favorites?.mcp_configs || 0) + (stats?.favorites?.commands || 0)} total
+                </div>
+              </div>
+              <div style={{ padding: '6px 0' }}>
+                {(favoritePrompts?.data?.length === 0 && (favoriteCommands?.data?.length ?? 0) === 0) && (
+                  <div style={{ padding: '24px 20px', textAlign: 'center', color: 'var(--text-tertiary)', fontSize: 13 }}>
+                    Mark items with ★ to see them here
+                  </div>
+                )}
+                {favoritePrompts?.data?.map(prompt => (
+                  <div key={prompt.id} style={{ padding: '9px 20px', cursor: 'pointer', transition: 'background var(--duration-fast)', borderBottom: '1px solid rgba(255,255,255,0.04)' }}
+                    onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.04)'}
+                    onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                    onClick={() => navigate('/prompts')}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                      <Star size={11} color="var(--yellow)" fill="var(--yellow)" />
+                      <MessageSquare size={11} color="#007AFF" />
+                      <span style={{ fontSize: 13, fontWeight: 500 }}>{prompt.title}</span>
+                      <span style={{ marginLeft: 'auto', fontSize: 10, color: 'rgba(0,122,255,0.5)', background: 'rgba(0,122,255,0.08)', padding: '1px 6px', borderRadius: 4 }}>Prompt</span>
+                    </div>
+                    <div style={{ fontSize: 11, color: 'var(--text-tertiary)', marginTop: 2, paddingLeft: 22 }}>
+                      {prompt.content?.slice(0, 60)}{prompt.content?.length > 60 ? '…' : ''}
+                    </div>
+                  </div>
+                ))}
+                {favoriteCommands?.data?.map(cmd => (
+                  <div key={cmd.id} style={{ padding: '9px 20px', cursor: 'pointer', transition: 'background var(--duration-fast)', borderBottom: '1px solid rgba(255,255,255,0.04)' }}
+                    onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.04)'}
+                    onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                    onClick={() => navigate('/commands')}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                      <Star size={11} color="var(--yellow)" fill="var(--yellow)" />
+                      <TerminalSquare size={11} color="#5AC8FA" />
+                      <span style={{ fontSize: 13, fontWeight: 500 }}>{cmd.title}</span>
+                      <span style={{ marginLeft: 'auto', fontSize: 10, color: 'rgba(91,200,250,0.5)', background: 'rgba(91,200,250,0.08)', padding: '1px 6px', borderRadius: 4 }}>Command</span>
+                    </div>
+                    <div style={{ fontSize: 11, color: 'rgba(91,200,250,0.4)', marginTop: 2, paddingLeft: 22, fontFamily: 'monospace' }}>
+                      {cmd.command?.slice(0, 55)}{cmd.command?.length > 55 ? '…' : ''}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}

@@ -1,0 +1,670 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Promptly — AI Prompts Manager</title>
+  <meta name="description" content="A beautiful, self-hosted web app to manage your AI prompts, skills, steering configurations, MCP server setups, and shell commands. Built with Apple's Liquid Glass design." />
+  <meta property="og:title" content="Promptly — AI Prompts Manager" />
+  <meta property="og:description" content="Self-hosted AI library manager with Liquid Glass design. Prompts, Skills, Steering, MCP Configs, Commands — all in one place." />
+  <meta property="og:type" content="website" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --blue: #007AFF;
+      --cyan: #00D4FF;
+      --purple: #BF5AF2;
+      --green: #30D158;
+      --orange: #FF9F0A;
+      --pink: #FF375F;
+      --teal: #5AC8FA;
+      --font: 'Geist', -apple-system, system-ui, sans-serif;
+      --mono: 'Geist Mono', monospace;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: var(--font);
+      background: #000;
+      color: rgba(255,255,255,0.9);
+      min-height: 100vh;
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 80% 60% at 20% 10%, rgba(0,122,255,0.15) 0%, transparent 60%),
+        radial-gradient(ellipse 60% 50% at 80% 80%, rgba(191,90,242,0.12) 0%, transparent 60%),
+        radial-gradient(ellipse 50% 40% at 50% 50%, rgba(0,212,255,0.06) 0%, transparent 70%);
+      pointer-events: none;
+      z-index: 0;
+      animation: bgPulse 12s ease-in-out infinite alternate;
+    }
+
+    @keyframes bgPulse {
+      0% { opacity: 0.7; }
+      100% { opacity: 1; }
+    }
+
+    .container { max-width: 1100px; margin: 0 auto; padding: 0 24px; position: relative; z-index: 1; }
+
+    /* ── Nav ── */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      background: rgba(0,0,0,0.5);
+      backdrop-filter: blur(30px) saturate(180%);
+      border-bottom: 1px solid rgba(255,255,255,0.07);
+      padding: 0 24px;
+      height: 56px;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+
+    .nav-logo { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+    .nav-logo-icon {
+      width: 28px; height: 28px; border-radius: 7px;
+      background: linear-gradient(145deg, #0D1117, #161B22);
+      border: 1px solid rgba(255,255,255,0.1);
+      display: flex; align-items: center; justify-content: center;
+    }
+    .nav-logo-text { font-size: 16px; font-weight: 600; color: white; }
+
+    .nav-links { display: flex; align-items: center; gap: 8px; }
+    .nav-link {
+      color: rgba(255,255,255,0.6); text-decoration: none; font-size: 14px;
+      padding: 6px 12px; border-radius: 8px; transition: all 0.15s;
+    }
+    .nav-link:hover { color: white; background: rgba(255,255,255,0.07); }
+
+    .btn {
+      display: inline-flex; align-items: center; gap: 7px;
+      padding: 8px 18px; border-radius: 10px; font-size: 14px; font-weight: 500;
+      text-decoration: none; transition: all 0.2s; cursor: pointer; border: none;
+      font-family: var(--font);
+    }
+    .btn-primary {
+      background: var(--blue); color: white;
+      box-shadow: 0 4px 14px rgba(0,122,255,0.4);
+    }
+    .btn-primary:hover { background: #0A84FF; box-shadow: 0 6px 20px rgba(0,122,255,0.55); transform: translateY(-1px); }
+    .btn-glass {
+      background: rgba(255,255,255,0.07); color: white;
+      border: 1px solid rgba(255,255,255,0.12);
+      backdrop-filter: blur(20px);
+    }
+    .btn-glass:hover { background: rgba(255,255,255,0.12); }
+
+    /* ── Hero ── */
+    .hero { padding: 140px 0 80px; text-align: center; }
+
+    .hero-badge {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: rgba(0,212,255,0.1); border: 1px solid rgba(0,212,255,0.25);
+      color: var(--cyan); border-radius: 20px; padding: 4px 14px;
+      font-size: 12px; font-weight: 600; letter-spacing: 0.5px;
+      margin-bottom: 24px;
+    }
+
+    .hero h1 {
+      font-size: clamp(40px, 7vw, 72px);
+      font-weight: 700;
+      letter-spacing: -2px;
+      line-height: 1.05;
+      margin-bottom: 20px;
+      background: linear-gradient(135deg, #fff 0%, rgba(255,255,255,0.7) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .hero h1 span {
+      background: linear-gradient(135deg, var(--cyan), var(--blue));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .hero p {
+      font-size: clamp(16px, 2.5vw, 20px);
+      color: rgba(255,255,255,0.55);
+      max-width: 620px;
+      margin: 0 auto 36px;
+      line-height: 1.6;
+    }
+
+    .hero-actions { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin-bottom: 60px; }
+
+    .hero-stats {
+      display: flex; gap: 40px; justify-content: center; flex-wrap: wrap;
+      padding: 24px 0;
+      border-top: 1px solid rgba(255,255,255,0.07);
+    }
+
+    .stat { text-align: center; }
+    .stat-value { font-size: 28px; font-weight: 700; letter-spacing: -1px; color: white; }
+    .stat-label { font-size: 12px; color: rgba(255,255,255,0.4); margin-top: 2px; }
+
+    /* ── App Preview ── */
+    .preview {
+      margin: 0 auto 100px;
+      max-width: 900px;
+      border-radius: 20px;
+      overflow: hidden;
+      border: 1px solid rgba(255,255,255,0.1);
+      box-shadow: 0 40px 100px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.05) inset;
+      background: rgba(10,10,20,0.8);
+      backdrop-filter: blur(40px);
+    }
+
+    .preview-bar {
+      display: flex; align-items: center; gap: 8px;
+      padding: 14px 20px;
+      border-bottom: 1px solid rgba(255,255,255,0.07);
+      background: rgba(255,255,255,0.03);
+    }
+
+    .dot { width: 12px; height: 12px; border-radius: 50%; }
+    .dot-red { background: #FF5F57; }
+    .dot-yellow { background: #FFBD2E; }
+    .dot-green { background: #28C840; }
+
+    .preview-url {
+      flex: 1; text-align: center; font-size: 12px; color: rgba(255,255,255,0.3);
+      font-family: var(--mono);
+    }
+
+    .preview-content {
+      display: grid; grid-template-columns: 200px 1fr;
+      min-height: 420px;
+    }
+
+    .preview-sidebar {
+      background: rgba(0,0,0,0.4);
+      border-right: 1px solid rgba(255,255,255,0.06);
+      padding: 16px 12px;
+    }
+
+    .preview-logo {
+      display: flex; align-items: center; gap: 8px;
+      padding: 8px; margin-bottom: 16px;
+    }
+
+    .preview-logo-icon {
+      width: 24px; height: 24px; border-radius: 6px;
+      background: linear-gradient(145deg, #0D1117, #161B22);
+      border: 1px solid rgba(255,255,255,0.1);
+      display: flex; align-items: center; justify-content: center;
+    }
+
+    .preview-logo-text { font-size: 13px; font-weight: 600; }
+
+    .preview-nav-item {
+      display: flex; align-items: center; gap: 8px;
+      padding: 7px 10px; border-radius: 8px; margin-bottom: 2px;
+      font-size: 12px; color: rgba(255,255,255,0.5);
+    }
+
+    .preview-nav-item.active {
+      background: rgba(0,122,255,0.15);
+      color: #409CFF;
+      border: 1px solid rgba(0,122,255,0.2);
+    }
+
+    .preview-nav-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; flex-shrink: 0; }
+
+    .preview-main { padding: 20px; }
+
+    .preview-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+    .preview-card {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 14px; padding: 14px;
+    }
+
+    .preview-card-title { font-size: 12px; font-weight: 600; margin-bottom: 6px; }
+    .preview-card-text {
+      font-size: 10px; color: rgba(255,255,255,0.3);
+      font-family: var(--mono); line-height: 1.5;
+    }
+
+    .preview-card-badge {
+      display: inline-block; font-size: 9px; padding: 1px 6px;
+      border-radius: 10px; margin-top: 8px; font-weight: 500;
+    }
+
+    /* ── Features ── */
+    .section { padding: 80px 0; }
+    .section-label {
+      font-size: 11px; font-weight: 700; letter-spacing: 1.5px;
+      text-transform: uppercase; color: var(--cyan); margin-bottom: 12px;
+    }
+    .section-title {
+      font-size: clamp(28px, 4vw, 42px); font-weight: 700;
+      letter-spacing: -1px; margin-bottom: 16px;
+    }
+    .section-desc { font-size: 17px; color: rgba(255,255,255,0.5); max-width: 540px; line-height: 1.6; }
+
+    .features-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 16px; margin-top: 48px;
+    }
+
+    .feature-card {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 20px; padding: 24px;
+      transition: all 0.2s;
+      position: relative; overflow: hidden;
+    }
+
+    .feature-card::before {
+      content: '';
+      position: absolute; top: 0; left: 0; right: 0; height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.12), transparent);
+    }
+
+    .feature-card:hover {
+      background: rgba(255,255,255,0.07);
+      border-color: rgba(255,255,255,0.14);
+      transform: translateY(-2px);
+    }
+
+    .feature-icon {
+      width: 40px; height: 40px; border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 20px; margin-bottom: 14px;
+    }
+
+    .feature-title { font-size: 15px; font-weight: 600; margin-bottom: 8px; }
+    .feature-desc { font-size: 13px; color: rgba(255,255,255,0.5); line-height: 1.6; }
+
+    /* ── Highlights strip ── */
+    .highlights {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 12px; margin: 60px 0;
+    }
+
+    .highlight-item {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.07);
+      border-radius: 16px; padding: 20px;
+      display: flex; align-items: flex-start; gap: 14px;
+    }
+
+    .highlight-icon {
+      width: 36px; height: 36px; border-radius: 10px; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center; font-size: 17px;
+    }
+
+    .highlight-title { font-size: 13px; font-weight: 600; margin-bottom: 4px; }
+    .highlight-desc { font-size: 12px; color: rgba(255,255,255,0.4); line-height: 1.5; }
+
+    /* ── Docker section ── */
+    .docker-section {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 24px; padding: 48px;
+      margin: 80px 0;
+    }
+
+    .code-block {
+      background: rgba(0,0,0,0.5);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 12px; padding: 20px 24px;
+      font-family: var(--mono); font-size: 13px;
+      color: rgba(255,255,255,0.7); line-height: 1.8;
+      margin-top: 20px; overflow-x: auto;
+    }
+
+    .code-block .comment { color: rgba(255,255,255,0.3); }
+    .code-block .cmd { color: var(--cyan); }
+    .code-block .arg { color: var(--green); }
+
+    /* ── Sponsor ── */
+    .sponsor-section {
+      text-align: center; padding: 80px 0;
+      border-top: 1px solid rgba(255,255,255,0.07);
+    }
+
+    .sponsor-title { font-size: 28px; font-weight: 700; margin-bottom: 12px; }
+    .sponsor-desc { font-size: 16px; color: rgba(255,255,255,0.5); margin-bottom: 32px; }
+
+    .sponsor-buttons { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; }
+
+    .sponsor-btn {
+      display: inline-flex; align-items: center; gap: 10px;
+      padding: 14px 28px; border-radius: 14px; font-size: 15px; font-weight: 600;
+      text-decoration: none; transition: all 0.2s;
+    }
+
+    .sponsor-github {
+      background: linear-gradient(135deg, #ea4aaa, #c026d3);
+      color: white;
+      box-shadow: 0 8px 24px rgba(234,74,170,0.35);
+    }
+    .sponsor-github:hover { transform: translateY(-2px); box-shadow: 0 12px 32px rgba(234,74,170,0.5); }
+
+    .sponsor-coffee {
+      background: linear-gradient(135deg, #FFDD00, #FF9900);
+      color: #000;
+      box-shadow: 0 8px 24px rgba(255,221,0,0.3);
+    }
+    .sponsor-coffee:hover { transform: translateY(-2px); box-shadow: 0 12px 32px rgba(255,221,0,0.45); }
+
+    /* ── Footer ── */
+    footer {
+      border-top: 1px solid rgba(255,255,255,0.07);
+      padding: 32px 0;
+      text-align: center;
+      color: rgba(255,255,255,0.3);
+      font-size: 13px;
+    }
+
+    footer a { color: rgba(255,255,255,0.5); text-decoration: none; }
+    footer a:hover { color: white; }
+
+    @media (max-width: 768px) {
+      .preview-content { grid-template-columns: 1fr; }
+      .preview-sidebar { display: none; }
+      .docker-section { padding: 28px; }
+      .hero { padding: 100px 0 60px; }
+      .nav-link { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Nav -->
+<nav>
+  <a href="#" class="nav-logo">
+    <div class="nav-logo-icon">
+      <svg width="16" height="16" viewBox="0 0 20 20" fill="none">
+        <rect x="2" y="2" width="16" height="16" rx="4" stroke="#00D4FF" stroke-width="1.2" stroke-opacity="0.7"/>
+        <rect x="5.5" y="5.5" width="3.5" height="3.5" rx="1" fill="#00D4FF" fill-opacity="0.85"/>
+        <rect x="11" y="5.5" width="3.5" height="3.5" rx="1" fill="#00D4FF" fill-opacity="0.5"/>
+        <rect x="5.5" y="11" width="3.5" height="3.5" rx="1" fill="#00D4FF" fill-opacity="0.5"/>
+        <path d="M13.5 11.5L12.5 13.5L14.5 13L13 15" stroke="#00D4FF" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" stroke-opacity="0.9"/>
+      </svg>
+    </div>
+    <span class="nav-logo-text">Promptly</span>
+  </a>
+  <div class="nav-links">
+    <a href="#features" class="nav-link">Features</a>
+    <a href="#docker" class="nav-link">Docker</a>
+    <a href="https://github.com/YonierGomez/promptly" class="nav-link" target="_blank">GitHub</a>
+    <a href="https://github.com/YonierGomez/promptly/releases" class="btn btn-primary" target="_blank">Download</a>
+  </div>
+</nav>
+
+<!-- Hero -->
+<section class="hero">
+  <div class="container">
+    <div class="hero-badge">✦ Open Source · Self-Hosted · Free</div>
+    <h1>Your AI Library,<br /><span>Beautifully Organized</span></h1>
+    <p>A self-hosted manager for AI prompts, skills, steering configs, MCP servers, and shell commands — all in one place, built with Apple's Liquid Glass design.</p>
+    <div class="hero-actions">
+      <a href="https://github.com/YonierGomez/promptly" class="btn btn-primary" target="_blank">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+        View on GitHub
+      </a>
+      <a href="#docker" class="btn btn-glass">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M13.983 11.078h2.119a.186.186 0 00.186-.185V9.006a.186.186 0 00-.186-.186h-2.119a.185.185 0 00-.185.185v1.888c0 .102.083.185.185.185m-2.954-5.43h2.118a.186.186 0 00.186-.186V3.574a.186.186 0 00-.186-.185h-2.118a.185.185 0 00-.185.185v1.888c0 .102.082.185.185.185m0 2.716h2.118a.187.187 0 00.186-.186V6.29a.186.186 0 00-.186-.185h-2.118a.185.185 0 00-.185.185v1.887c0 .102.082.185.185.186m-2.93 0h2.12a.186.186 0 00.184-.186V6.29a.185.185 0 00-.185-.185H8.1a.185.185 0 00-.185.185v1.887c0 .102.083.185.185.186m-2.964 0h2.119a.186.186 0 00.185-.186V6.29a.185.185 0 00-.185-.185H5.136a.186.186 0 00-.186.185v1.887c0 .102.084.185.186.186m5.893 2.715h2.118a.186.186 0 00.186-.185V9.006a.186.186 0 00-.186-.186h-2.118a.185.185 0 00-.185.185v1.888c0 .102.082.185.185.185m-2.93 0h2.12a.185.185 0 00.184-.185V9.006a.185.185 0 00-.184-.186h-2.12a.185.185 0 00-.184.185v1.888c0 .102.083.185.185.185m-2.964 0h2.119a.185.185 0 00.185-.185V9.006a.185.185 0 00-.184-.186h-2.12a.186.186 0 00-.186.186v1.887c0 .102.084.185.186.185m-2.92 0h2.12a.186.186 0 00.184-.185V9.006a.185.185 0 00-.184-.186h-2.12a.185.185 0 00-.184.186v1.887c0 .102.082.185.185.185M23.763 9.89c-.065-.051-.672-.51-1.954-.51-.338.001-.676.03-1.01.087-.248-1.7-1.653-2.53-1.716-2.566l-.344-.199-.226.327c-.284.438-.49.922-.612 1.43-.23.97-.09 1.882.403 2.661-.595.332-1.55.413-1.744.42H.751a.751.751 0 00-.75.748 11.376 11.376 0 00.692 4.062c.545 1.428 1.355 2.48 2.41 3.124 1.18.723 3.1 1.137 5.275 1.137.983.003 1.963-.086 2.93-.266a12.248 12.248 0 003.823-1.389c.98-.567 1.86-1.288 2.61-2.136 1.252-1.418 1.998-2.997 2.553-4.4h.221c1.372 0 2.215-.549 2.68-1.009.309-.293.55-.65.707-1.046l.098-.288z"/></svg>
+        Docker Deploy
+      </a>
+    </div>
+
+    <div class="hero-stats">
+      <div class="stat"><div class="stat-value">70+</div><div class="stat-label">AI Models</div></div>
+      <div class="stat"><div class="stat-value">5</div><div class="stat-label">Sections</div></div>
+      <div class="stat"><div class="stat-value">1</div><div class="stat-label">Container</div></div>
+      <div class="stat"><div class="stat-value">∞</div><div class="stat-label">Prompts</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- App Preview -->
+<div class="container">
+  <div class="preview">
+    <div class="preview-bar">
+      <div class="dot dot-red"></div>
+      <div class="dot dot-yellow"></div>
+      <div class="dot dot-green"></div>
+      <div class="preview-url">localhost:3001/prompts</div>
+    </div>
+    <div class="preview-content">
+      <div class="preview-sidebar">
+        <div class="preview-logo">
+          <div class="preview-logo-icon">
+            <svg width="14" height="14" viewBox="0 0 20 20" fill="none">
+              <rect x="2" y="2" width="16" height="16" rx="4" stroke="#00D4FF" stroke-width="1.2" stroke-opacity="0.7"/>
+              <rect x="5.5" y="5.5" width="3.5" height="3.5" rx="1" fill="#00D4FF" fill-opacity="0.85"/>
+              <rect x="11" y="5.5" width="3.5" height="3.5" rx="1" fill="#00D4FF" fill-opacity="0.5"/>
+              <rect x="5.5" y="11" width="3.5" height="3.5" rx="1" fill="#00D4FF" fill-opacity="0.5"/>
+            </svg>
+          </div>
+          <span class="preview-logo-text">Promptly</span>
+        </div>
+        <div class="preview-nav-item">📊 Dashboard</div>
+        <div style="font-size:9px;color:rgba(255,255,255,0.25);padding:6px 10px 2px;letter-spacing:0.8px;text-transform:uppercase;font-weight:600;">Library</div>
+        <div class="preview-nav-item active"><div class="preview-nav-dot"></div> Prompts <span style="margin-left:auto;font-size:9px;background:rgba(0,122,255,0.2);color:#409CFF;padding:1px 6px;border-radius:8px;">24</span></div>
+        <div class="preview-nav-item"><div class="preview-nav-dot" style="background:#FF9500;"></div> Skills</div>
+        <div class="preview-nav-item"><div class="preview-nav-dot" style="background:#BF5AF2;"></div> Steering</div>
+        <div class="preview-nav-item"><div class="preview-nav-dot" style="background:#30D158;"></div> MCP Configs</div>
+        <div class="preview-nav-item"><div class="preview-nav-dot" style="background:#5AC8FA;"></div> Commands</div>
+        <div style="height:1px;background:rgba(255,255,255,0.06);margin:8px 0;"></div>
+        <div class="preview-nav-item">🗑️ Trash</div>
+        <div class="preview-nav-item">⚙️ Settings</div>
+      </div>
+      <div class="preview-main">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;">
+          <div style="flex:1;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);border-radius:20px;padding:7px 14px;font-size:11px;color:rgba(255,255,255,0.3);">🔍 Search prompts…</div>
+          <div style="background:#007AFF;color:white;border-radius:8px;padding:7px 14px;font-size:11px;font-weight:600;">+ New</div>
+        </div>
+        <div class="preview-cards">
+          <div class="preview-card">
+            <div class="preview-card-title">Code Review Assistant</div>
+            <div class="preview-card-text">Review this code for bugs, performance issues, and best practices...</div>
+            <div class="preview-card-badge" style="background:rgba(0,122,255,0.15);color:#409CFF;">coding</div>
+          </div>
+          <div class="preview-card">
+            <div class="preview-card-title">Spanish Translator</div>
+            <div class="preview-card-text">Translate the following text to Spanish maintaining the original tone...</div>
+            <div class="preview-card-badge" style="background:rgba(191,90,242,0.15);color:#BF5AF2;">writing</div>
+          </div>
+          <div class="preview-card">
+            <div class="preview-card-title">SQL Query Builder</div>
+            <div class="preview-card-text">Generate an optimized SQL query for the following requirements...</div>
+            <div class="preview-card-badge" style="background:rgba(90,200,250,0.15);color:#5AC8FA;">analysis</div>
+          </div>
+          <div class="preview-card">
+            <div class="preview-card-title">Unit Test Generator</div>
+            <div class="preview-card-text">Write comprehensive unit tests for the following function...</div>
+            <div class="preview-card-badge" style="background:rgba(48,209,88,0.15);color:#30D158;">testing</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Features -->
+<section class="section" id="features">
+  <div class="container">
+    <div class="section-label">Features</div>
+    <div class="section-title">Everything you need<br />to manage your AI library</div>
+    <div class="section-desc">A complete toolkit for AI power users — organized, searchable, and always at your fingertips.</div>
+
+    <div class="features-grid">
+      <div class="feature-card">
+        <div class="feature-icon" style="background:rgba(0,122,255,0.15);">📝</div>
+        <div class="feature-title">Prompts Library</div>
+        <div class="feature-desc">Store and organize AI prompt templates with categories, models, temperature settings, token counting, and a Markdown editor with live preview.</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon" style="background:rgba(255,159,10,0.15);">⚡</div>
+        <div class="feature-title">Skills</div>
+        <div class="feature-desc">Define reusable AI behaviors with trigger phrases. Toggle active/inactive without deleting. Perfect for recurring tasks.</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon" style="background:rgba(191,90,242,0.15);">🧭</div>
+        <div class="feature-title">Steering</div>
+        <div class="feature-desc">Manage behavioral guidance and system instructions with scope (global/project/session) and priority ordering.</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon" style="background:rgba(48,209,88,0.15);">🔌</div>
+        <div class="feature-title">MCP Configs</div>
+        <div class="feature-desc">Store Model Context Protocol server configurations with syntax-highlighted JSON viewer. Paste directly from Claude or Cursor's mcp.json.</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon" style="background:rgba(90,200,250,0.15);">💻</div>
+        <div class="feature-title">Commands</div>
+        <div class="feature-desc">Shell command library for bash, zsh, fish, PowerShell, and more. Filter by platform (macOS/Linux/Windows) and copy with one click.</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon" style="background:rgba(0,212,255,0.15);">📊</div>
+        <div class="feature-title">Dashboard</div>
+        <div class="feature-desc">Analytics overview with activity heatmap (GitHub-style), usage charts, model distribution, and a favorites quick-access library.</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon" style="background:rgba(255,214,10,0.15);">🗂️</div>
+        <div class="feature-title">Detail View</div>
+        <div class="feature-desc">Click any item to open a full read-only view with rendered Markdown or syntax-highlighted JSON. Maximizable to full screen.</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon" style="background:rgba(255,55,95,0.15);">🗑️</div>
+        <div class="feature-title">Trash & Recovery</div>
+        <div class="feature-desc">Soft delete with 5-day auto-purge. Restore accidentally deleted items with one click. Counters always accurate.</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon" style="background:rgba(255,159,10,0.15);">☁️</div>
+        <div class="feature-title">S3 Backup & Sync</div>
+        <div class="feature-desc">Compatible with AWS S3, Cloudflare R2, Backblaze B2, and MinIO. Auto-sync scheduling from 15 minutes to 2 days.</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon" style="background:rgba(94,92,230,0.15);">🏷️</div>
+        <div class="feature-title">Tags & Categories</div>
+        <div class="feature-desc">Custom tags and categories with full color picker. Build your own organization system across all library sections.</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon" style="background:rgba(0,212,255,0.15);">🎨</div>
+        <div class="feature-title">Liquid Glass UI</div>
+        <div class="feature-desc">Apple iOS 18-inspired glassmorphism design with animated gradient backgrounds, spring animations, and a fully responsive layout.</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon" style="background:rgba(48,209,88,0.15);">📱</div>
+        <div class="feature-title">Fully Responsive</div>
+        <div class="feature-desc">Optimized for every screen — desktop, tablet, and mobile. No horizontal scrolling, collapsible sidebar, touch-friendly controls.</div>
+      </div>
+    </div>
+
+    <!-- Highlights strip -->
+    <div class="highlights">
+      <div class="highlight-item">
+        <div class="highlight-icon" style="background:rgba(0,122,255,0.12);">⬆️</div>
+        <div>
+          <div class="highlight-title">Maximize any modal</div>
+          <div class="highlight-desc">Expand detail views and edit forms to full screen for long content.</div>
+        </div>
+      </div>
+      <div class="highlight-item">
+        <div class="highlight-icon" style="background:rgba(191,90,242,0.12);">✏️</div>
+        <div>
+          <div class="highlight-title">Markdown editor</div>
+          <div class="highlight-desc">Edit / Split / Preview modes with live rendering and syntax colors.</div>
+        </div>
+      </div>
+      <div class="highlight-item">
+        <div class="highlight-icon" style="background:rgba(48,209,88,0.12);">🔄</div>
+        <div>
+          <div class="highlight-title">Auto-sync to S3</div>
+          <div class="highlight-desc">Configurable intervals: 15m · 30m · 1h · 2h · 3h · 6h · 9h · 12h · 1d · 2d</div>
+        </div>
+      </div>
+      <div class="highlight-item">
+        <div class="highlight-icon" style="background:rgba(255,159,10,0.12);">📦</div>
+        <div>
+          <div class="highlight-title">Full backup coverage</div>
+          <div class="highlight-desc">Prompts, Skills, Steering, MCP, Commands, Tags and Categories — all backed up.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Docker -->
+<section class="section" id="docker">
+  <div class="container">
+    <div class="docker-section">
+      <div class="section-label">Docker</div>
+      <div class="section-title">Deploy in 30 seconds</div>
+      <div class="section-desc">One command to get started. PostgreSQL included. Your data persists in a named Docker volume.</div>
+
+      <div class="code-block">
+        <span class="comment"># Clone and start</span><br/>
+        <span class="cmd">git clone</span> <span class="arg">https://github.com/YonierGomez/promptly.git</span><br/>
+        <span class="cmd">cd</span> promptly<br/>
+        <span class="cmd">docker compose up -d</span><br/><br/>
+        <span class="comment"># Open in browser</span><br/>
+        <span class="cmd">open</span> <span class="arg">http://localhost:3001</span>
+      </div>
+
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-top:32px;">
+        <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:14px;padding:18px;">
+          <div style="font-size:11px;color:rgba(255,255,255,0.4);margin-bottom:6px;text-transform:uppercase;letter-spacing:0.5px;">Custom Port</div>
+          <div style="font-family:var(--mono);font-size:12px;color:var(--cyan);">PORT=8080 docker compose up -d</div>
+        </div>
+        <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:14px;padding:18px;">
+          <div style="font-size:11px;color:rgba(255,255,255,0.4);margin-bottom:6px;text-transform:uppercase;letter-spacing:0.5px;">View Logs</div>
+          <div style="font-family:var(--mono);font-size:12px;color:var(--cyan);">docker compose logs -f</div>
+        </div>
+        <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:14px;padding:18px;">
+          <div style="font-size:11px;color:rgba(255,255,255,0.4);margin-bottom:6px;text-transform:uppercase;letter-spacing:0.5px;">Backup DB</div>
+          <div style="font-family:var(--mono);font-size:12px;color:var(--cyan);">docker exec promptly_postgres pg_dump -U promptly promptly > backup.sql</div>
+        </div>
+        <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:14px;padding:18px;">
+          <div style="font-size:11px;color:rgba(255,255,255,0.4);margin-bottom:6px;text-transform:uppercase;letter-spacing:0.5px;">Rebuild</div>
+          <div style="font-family:var(--mono);font-size:12px;color:var(--cyan);">docker compose up -d --build</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Sponsor -->
+<section class="sponsor-section">
+  <div class="container">
+    <div class="sponsor-title">❤️ Support Promptly</div>
+    <div class="sponsor-desc">If Promptly saves you time and makes your AI workflow better,<br/>consider supporting its development.</div>
+    <div class="sponsor-buttons">
+      <a href="https://github.com/sponsors/YonierGomez" class="sponsor-btn sponsor-github" target="_blank">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+        Sponsor on GitHub
+      </a>
+      <a href="https://buymeacoffee.com/yoniergomez" class="sponsor-btn sponsor-coffee" target="_blank">
+        ☕ Buy Me a Coffee
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- Footer -->
+<footer>
+  <div class="container">
+    <p>
+      Made with ❤️ by <a href="https://github.com/YonierGomez" target="_blank">Yonier Gomez</a> ·
+      <a href="https://github.com/YonierGomez/promptly" target="_blank">GitHub</a> ·
+      MIT License
+    </p>
+  </div>
+</footer>
+
+</body>
+</html>

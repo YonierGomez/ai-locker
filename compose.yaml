@@ -1,0 +1,108 @@
+# ┌─────────────────────────────────────────────────────────────────┐
+# │  Promptly — docker-compose                                      │
+# │                                                                 │
+# │  Dos formas de conectar la base de datos:                       │
+# │                                                                 │
+# │  A) String de conexión   → DATABASE_URL                        │
+# │  B) Variables separadas  → DB_HOST / DB_NAME / DB_USER / etc.  │
+# │                                                                 │
+# │  Si no defines ninguna, se usa SQLite automáticamente.         │
+# └─────────────────────────────────────────────────────────────────┘
+
+services:
+
+  # ── Aplicación principal ────────────────────────────────────────
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: promptly
+    ports:
+      - "9090:3001"
+    environment:
+      NODE_ENV: production
+      PORT: 3001
+
+      # ── Opción A: string de conexión (descomentar una) ──────────
+      # PostgreSQL:
+      # DATABASE_URL: postgresql://promptly:secret@postgres-db:5432/promptly
+      # MySQL / MariaDB:
+      # DATABASE_URL: mysql://promptly:secret@mysql-db:3306/promptly
+
+      # ── Opción B: variables separadas ───────────────────────────
+      DB_HOST: postgres-db
+      DB_PORT: 5432
+      DB_NAME: promptly
+      DB_USER: promptly
+      DB_PASSWORD: secret
+      DB_TYPE: postgres
+
+      # ── SQLite (por defecto — sin DATABASE_URL ni DB_HOST) ──────
+      # DB_PATH: /data/prompts.db
+
+    volumes:
+      - promptly_data:/data
+    restart: unless-stopped
+    depends_on:
+      postgres-db:
+        condition: service_healthy
+      # mysql-db:
+      #   condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3001/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
+
+  # ── PostgreSQL ─────────────────────────────────────────────────
+  postgres-db:
+    image: postgres:18-alpine
+    container_name: promptly_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: promptly
+      POSTGRES_USER: promptly
+      POSTGRES_PASSWORD: secret
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5433:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U promptly -d promptly"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  # ── MySQL / MariaDB ────────────────────────────────────────────
+  # Descomentar para usar MySQL en lugar de PostgreSQL.
+  # También cambiar depends_on del servicio app arriba.
+  #
+  # mysql-db:
+  #   image: mysql:9-oracle
+  #   container_name: promptly_mysql
+  #   restart: unless-stopped
+  #   environment:
+  #     MYSQL_DATABASE: promptly
+  #     MYSQL_USER: promptly
+  #     MYSQL_PASSWORD: secret
+  #     MYSQL_ROOT_PASSWORD: rootsecret
+  #   volumes:
+  #     - mysql_data:/var/lib/mysql
+  #   ports:
+  #     - "3306:3306"
+  #   healthcheck:
+  #     test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-upromptly", "-psecret"]
+  #     interval: 10s
+  #     timeout: 5s
+  #     retries: 5
+  #     start_period: 15s
+
+volumes:
+  promptly_data:
+    driver: local
+  postgres_data:
+    driver: local
+  # mysql_data:
+  #   driver: local

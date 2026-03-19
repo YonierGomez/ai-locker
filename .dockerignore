@@ -1,0 +1,10 @@
+node_modules
+*/node_modules
+frontend/build
+data
+*.db
+.git
+.gitignore
+*.md
+.env
+.env.*
