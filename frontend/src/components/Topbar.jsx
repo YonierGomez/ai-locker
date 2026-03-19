@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useLocation } from 'react-router-dom'
-import { Menu } from 'lucide-react'
+import { Menu, Search, Sun, Moon } from 'lucide-react'
 
 const pageTitles = {
   '/dashboard': { title: 'Dashboard', subtitle: 'Overview of your AI library' },
@@ -8,19 +8,32 @@ const pageTitles = {
   '/skills': { title: 'Skills', subtitle: 'Reusable AI skill definitions' },
   '/steering': { title: 'Steering', subtitle: 'Behavioral guidance & system instructions' },
   '/mcp': { title: 'MCP Configs', subtitle: 'Model Context Protocol server configurations' },
+  '/commands': { title: 'Commands', subtitle: 'Shell commands & scripts' },
   '/settings': { title: 'Settings', subtitle: 'App preferences & configuration' },
   '/trash': { title: 'Trash', subtitle: 'Deleted items — auto-purged after 5 days' },
+  '/ai': { title: 'AI Chat', subtitle: 'Generate items with AI' },
 }
 
-export default function Topbar({ onMenuClick }) {
+export default function Topbar({ onMenuClick, onSearchClick }) {
   const location = useLocation()
   const [scrolled, setScrolled] = useState(false)
+  const [theme, setTheme] = useState(() => localStorage.getItem('promptly_theme') || 'dark')
 
   const pageInfo = pageTitles[location.pathname] || { title: 'Promptly', subtitle: '' }
 
+  // Apply theme to document
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme)
+    localStorage.setItem('promptly_theme', theme)
+  }, [theme])
+
+  // Init theme on mount
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme)
+  }, [])
+
   useEffect(() => {
     const handleScroll = () => {
-      // Listen to the main content scroll
       const mainContent = document.querySelector('.main-content')
       if (mainContent) {
         setScrolled(mainContent.scrollTop > 10)
@@ -28,7 +41,6 @@ export default function Topbar({ onMenuClick }) {
         setScrolled(window.scrollY > 10)
       }
     }
-
     const mainContent = document.querySelector('.main-content')
     if (mainContent) {
       mainContent.addEventListener('scroll', handleScroll, { passive: true })
@@ -38,6 +50,8 @@ export default function Topbar({ onMenuClick }) {
       return () => window.removeEventListener('scroll', handleScroll)
     }
   }, [])
+
+  const toggleTheme = () => setTheme(t => t === 'dark' ? 'light' : 'dark')
 
   return (
     <header className={`topbar ${scrolled ? 'scrolled' : ''}`}>
@@ -54,6 +68,29 @@ export default function Topbar({ onMenuClick }) {
         {pageInfo.subtitle && (
           <div className="topbar-subtitle">{pageInfo.subtitle}</div>
         )}
+      </div>
+
+      {/* Right actions */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+        {/* Cmd+K search trigger */}
+        <button
+          className="btn-icon search-trigger-btn"
+          onClick={onSearchClick}
+          title="Search (⌘K)"
+        >
+          <Search size={15} />
+          <span className="search-shortcut-badge">⌘K</span>
+        </button>
+
+        {/* Theme toggle */}
+        <button
+          className="btn-icon"
+          onClick={toggleTheme}
+          title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+          style={{ width: 34, height: 34 }}
+        >
+          {theme === 'dark' ? <Sun size={15} /> : <Moon size={15} />}
+        </button>
       </div>
     </header>
   )

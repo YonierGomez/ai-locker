@@ -5,6 +5,7 @@ import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import toast from 'react-hot-toast'
 import { estimateTokens, formatTokens, getTokenColor } from '../utils/tokens'
+import VariableFillModal, { extractVariables } from './VariableFillModal'
 
 // Detect if content has markdown
 function hasMarkdown(text) {
@@ -22,12 +23,22 @@ export default function ItemCard({
   extraActions,
   showStatus = false,
   showPriority = false,
+  selectable = false,
+  selected = false,
+  onSelect,
 }) {
   const [copied, setCopied] = useState(false)
   const [previewMd, setPreviewMd] = useState(false)
+  const [showVarModal, setShowVarModal] = useState(false)
+
+  const hasVars = item.content ? extractVariables(item.content).length > 0 : false
 
   const handleCopy = async (e) => {
     e.stopPropagation()
+    if (hasVars) {
+      setShowVarModal(true)
+      return
+    }
     try {
       await navigator.clipboard.writeText(item.content)
       setCopied(true)
@@ -72,8 +83,33 @@ export default function ItemCard({
   const tokenColor = getTokenColor(tokenCount)
 
   return (
-    <div className="item-card" onClick={() => onView ? onView(item) : onEdit?.(item)}>
+    <>
+    {showVarModal && (
+      <VariableFillModal content={item.content} onClose={() => setShowVarModal(false)} />
+    )}
+    <div
+      className="item-card"
+      onClick={() => selectable ? onSelect?.(item.id) : onView ? onView(item) : onEdit?.(item)}
+      style={selected ? { borderColor: 'color-mix(in srgb, var(--blue) 40%, transparent)', background: 'color-mix(in srgb, var(--blue) 8%, transparent)' } : undefined}
+    >
       <div className="item-card-header">
+        {/* Checkbox — inline in header when in select mode */}
+        {selectable && (
+          <div
+            onClick={e => { e.stopPropagation(); onSelect?.(item.id) }}
+            style={{ flexShrink: 0, marginRight: 2, cursor: 'pointer' }}
+          >
+            <div style={{
+              width: 17, height: 17, borderRadius: 5,
+              border: `2px solid ${selected ? 'var(--blue)' : 'rgba(255,255,255,0.25)'}`,
+              background: selected ? 'var(--blue)' : 'transparent',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              transition: 'all 0.15s',
+            }}>
+              {selected && <Check size={10} color="white" strokeWidth={3} />}
+            </div>
+          </div>
+        )}
         <div style={{ flex: 1, minWidth: 0 }}>
           <div className="item-card-title truncate">{item.title}</div>
           {item.description && (
@@ -104,9 +140,10 @@ export default function ItemCard({
 
       {/* Content preview */}
       {item.content && (
-        <div style={{ position: 'relative' }}>
+        <div>
           {previewMd && contentHasMd ? (
             <div
+              className="md-preview-box"
               onClick={e => e.stopPropagation()}
               style={{
                 background: 'rgba(0,0,0,0.25)',
@@ -132,7 +169,7 @@ export default function ItemCard({
                   ol: ({ children }) => <ol style={{ paddingLeft: 16, marginBottom: 6 }}>{children}</ol>,
                   li: ({ children }) => <li style={{ fontSize: 12, lineHeight: 1.6, color: 'var(--text-tertiary)', marginBottom: 2 }}>{children}</li>,
                   strong: ({ children }) => <strong style={{ color: 'var(--text-secondary)', fontWeight: 600 }}>{children}</strong>,
-                  blockquote: ({ children }) => <blockquote style={{ borderLeft: '2px solid rgba(47,128,237,0.4)', paddingLeft: 10, color: 'var(--text-quaternary)', fontStyle: 'italic' }}>{children}</blockquote>,
+                  blockquote: ({ children }) => <blockquote style={{ borderLeft: '2px solid rgba(0,122,255,0.4)', paddingLeft: 10, color: 'var(--text-quaternary)', fontStyle: 'italic' }}>{children}</blockquote>,
                 }}
               >
                 {item.content}
@@ -142,28 +179,6 @@ export default function ItemCard({
             <div className="item-card-content-preview">
               {item.content.slice(0, 200)}{item.content.length > 200 ? '…' : ''}
             </div>
-          )}
-
-          {/* Toggle preview button */}
-          {contentHasMd && (
-            <button
-              onClick={handleTogglePreview}
-              title={previewMd ? 'Show raw' : 'Preview markdown'}
-              style={{
-                position: 'absolute', top: 6, right: 6,
-                background: previewMd ? 'rgba(47,128,237,0.2)' : 'rgba(255,255,255,0.06)',
-                border: `1px solid ${previewMd ? 'rgba(47,128,237,0.3)' : 'rgba(255,255,255,0.08)'}`,
-                borderRadius: 6, padding: '2px 6px',
-                cursor: 'pointer',
-                display: 'flex', alignItems: 'center', gap: 4,
-                fontSize: 10, fontWeight: 500,
-                color: previewMd ? 'var(--blue-light)' : 'var(--text-tertiary)',
-                transition: 'all 0.15s',
-              }}
-            >
-              {previewMd ? <EyeOff size={10} /> : <Eye size={10} />}
-              {previewMd ? 'Raw' : 'MD'}
-            </button>
           )}
         </div>
       )}
@@ -193,6 +208,16 @@ export default function ItemCard({
 
         <div className="item-card-actions">
           {extraActions}
+          {contentHasMd && (
+            <button
+              className="btn-icon"
+              onClick={handleTogglePreview}
+              title={previewMd ? 'Show raw text' : 'Preview markdown'}
+              style={{ padding: 6, color: previewMd ? 'var(--blue-light)' : undefined }}
+            >
+              {previewMd ? <EyeOff size={13} /> : <Eye size={13} />}
+            </button>
+          )}
           <button className="btn-icon" onClick={handleCopy} title="Copy content" style={{ padding: 6 }}>
             {copied ? <Check size={13} color="var(--green)" /> : <Copy size={13} />}
           </button>
@@ -222,6 +247,11 @@ export default function ItemCard({
             {formatTokens(tokenCount)}
           </span>
         )}
+        {hasVars && (
+          <span style={{ fontSize: 10, color: 'var(--orange)', background: 'rgba(255,159,10,0.1)', border: '1px solid rgba(255,159,10,0.2)', borderRadius: 4, padding: '0px 5px', fontWeight: 500 }}>
+            {extractVariables(item.content).length} var{extractVariables(item.content).length !== 1 ? 's' : ''}
+          </span>
+        )}
         {timeAgo && (
           <span style={{ fontSize: 11, color: 'var(--text-quaternary)', marginLeft: 'auto' }}>
             {timeAgo}
@@ -229,5 +259,6 @@ export default function ItemCard({
         )}
       </div>
     </div>
+    </>
   )
 }

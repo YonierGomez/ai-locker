@@ -56,9 +56,9 @@ export default function CategorySelector({ value, onChange }) {
     <>
       <div ref={triggerRef} onClick={handleOpen} style={{
         display: 'flex', alignItems: 'center', gap: 8,
-        background: 'rgba(255,255,255,0.05)', border: `1px solid ${open ? 'rgba(47,128,237,0.5)' : 'rgba(255,255,255,0.09)'}`,
+        background: 'rgba(255,255,255,0.05)', border: `1px solid ${open ? 'rgba(0,122,255,0.5)' : 'rgba(255,255,255,0.09)'}`,
         borderRadius: 'var(--radius-md)', padding: '10px 14px', cursor: 'pointer',
-        boxShadow: open ? '0 0 0 3px rgba(47,128,237,0.12)' : 'none', minHeight: 42, userSelect: 'none',
+        boxShadow: open ? '0 0 0 3px rgba(0,122,255,0.12)' : 'none', minHeight: 42, userSelect: 'none',
       }}>
         {selectedCat && <div style={{ width: 8, height: 8, borderRadius: '50%', background: selectedCat.color, flexShrink: 0 }} />}
         <span style={{ flex: 1, fontSize: 14, color: value ? 'rgba(255,255,255,0.9)' : 'rgba(255,255,255,0.2)' }}>
@@ -79,7 +79,7 @@ export default function CategorySelector({ value, onChange }) {
             {categories.map(cat => (
               <div key={cat.id} onClick={() => { onChange(cat.name); setOpen(false) }} style={{
                 display: 'flex', alignItems: 'center', gap: 10, padding: '8px 14px', cursor: 'pointer',
-                background: value === cat.name ? 'rgba(47,128,237,0.15)' : 'transparent',
+                background: value === cat.name ? 'rgba(0,122,255,0.15)' : 'transparent',
                 transition: 'background 0.1s',
               }}
                 onMouseEnter={e => { if (value !== cat.name) e.currentTarget.style.background = 'rgba(255,255,255,0.06)' }}
@@ -115,7 +115,7 @@ export default function CategorySelector({ value, onChange }) {
                   <input type="color" value={newColor} onChange={e => setNewColor(e.target.value)} style={{ position: 'absolute', inset: 0, opacity: 0, cursor: 'pointer' }} />
                 </label>
               </div>
-              <button onClick={() => newCat.trim() && createMutation.mutate({ name: newCat.trim(), color: newColor })} disabled={!newCat.trim()} style={{ background: 'rgba(47,128,237,0.2)', border: '1px solid rgba(47,128,237,0.3)', borderRadius: 8, padding: '5px 10px', color: '#409CFF', fontSize: 12, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}>
+              <button onClick={() => newCat.trim() && createMutation.mutate({ name: newCat.trim(), color: newColor })} disabled={!newCat.trim()} style={{ background: 'rgba(0,122,255,0.2)', border: '1px solid rgba(0,122,255,0.3)', borderRadius: 8, padding: '5px 10px', color: '#409CFF', fontSize: 12, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}>
                 <Plus size={11} /> Add
               </button>
             </div>

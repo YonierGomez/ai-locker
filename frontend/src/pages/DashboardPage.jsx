@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
 import { settingsApi, promptsApi, commandsApi } from '../utils/api'
@@ -9,6 +10,18 @@ import {
   XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer, Cell,
 } from 'recharts'
+
+function useTheme() {
+  const [theme, setTheme] = useState(() => document.documentElement.getAttribute('data-theme') || 'dark')
+  useEffect(() => {
+    const obs = new MutationObserver(() =>
+      setTheme(document.documentElement.getAttribute('data-theme') || 'dark')
+    )
+    obs.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] })
+    return () => obs.disconnect()
+  }, [])
+  return theme
+}
 
 function McpIcon({ size = 16 }) {
   return (
@@ -24,16 +37,16 @@ function McpIcon({ size = 16 }) {
 function ChartTooltip({ active, payload, label }) {
   if (!active || !payload?.length) return null
   return (
-    <div style={{
+    <div className="chart-tooltip" style={{
       background: 'rgba(13,17,23,0.96)', border: '1px solid rgba(255,255,255,0.1)',
       borderRadius: 8, padding: '8px 12px', fontSize: 12,
     }}>
-      <div style={{ color: 'rgba(255,255,255,0.45)', marginBottom: 4 }}>{label}</div>
+      <div className="chart-tooltip-label" style={{ color: 'rgba(255,255,255,0.45)', marginBottom: 4 }}>{label}</div>
       {payload.map(p => (
         <div key={p.name} style={{ display: 'flex', gap: 8, alignItems: 'center', marginTop: 2 }}>
           <div style={{ width: 8, height: 8, borderRadius: '50%', background: p.color, flexShrink: 0 }} />
-          <span style={{ color: 'rgba(255,255,255,0.6)', textTransform: 'capitalize' }}>{p.name}</span>
-          <span style={{ color: '#fff', fontWeight: 600, marginLeft: 'auto' }}>{p.value}</span>
+          <span className="chart-tooltip-name" style={{ color: 'rgba(255,255,255,0.6)', textTransform: 'capitalize' }}>{p.name}</span>
+          <span className="chart-tooltip-value" style={{ color: '#fff', fontWeight: 600, marginLeft: 'auto' }}>{p.value}</span>
         </div>
       ))}
     </div>
@@ -81,11 +94,11 @@ function EmptyDashboard({ navigate }) {
     }}>
       <div style={{
         width: 80, height: 80, borderRadius: 20,
-        background: 'linear-gradient(145deg, rgba(255,255,255,0.05), rgba(255,255,255,0.02))',
-        border: '1px solid rgba(255,255,255,0.08)',
+        background: 'linear-gradient(145deg, rgba(0,122,255,0.15), rgba(191,90,242,0.1))',
+        border: '1px solid rgba(0,122,255,0.15)',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
       }}>
-        <BarChart2 size={36} color="rgba(47,128,237,0.7)" />
+        <BarChart2 size={36} color="rgba(0,122,255,0.7)" />
       </div>
       <div>
         <div style={{ fontSize: 18, fontWeight: 700, marginBottom: 8, letterSpacing: -0.3 }}>
@@ -115,7 +128,7 @@ function AnalyticsNudge({ total, navigate }) {
     <div className="glass-card" style={{ padding: 20, display: 'flex', alignItems: 'center', gap: 20 }}>
       <div style={{
         width: 44, height: 44, borderRadius: 12, flexShrink: 0,
-        background: 'rgba(47,128,237,0.1)', border: '1px solid rgba(47,128,237,0.2)',
+        background: 'rgba(0,122,255,0.1)', border: '1px solid rgba(0,122,255,0.2)',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
       }}>
         <BarChart2 size={20} color="#007AFF" />
@@ -124,7 +137,7 @@ function AnalyticsNudge({ total, navigate }) {
         <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 4 }}>
           Analytics available with {TARGET} items
         </div>
-        <div style={{ height: 4, background: 'rgba(255,255,255,0.08)', borderRadius: 99, overflow: 'hidden' }}>
+        <div style={{ height: 4, background: 'var(--glass-border)', borderRadius: 99, overflow: 'hidden' }}>
           <div style={{ height: '100%', width: `${pct}%`, background: '#007AFF', borderRadius: 99, transition: 'width 0.6s ease' }} />
         </div>
         <div style={{ fontSize: 11, color: 'var(--text-tertiary)', marginTop: 4 }}>
@@ -140,6 +153,9 @@ function AnalyticsNudge({ total, navigate }) {
 
 // ── Activity Heatmap (GitHub style) ─────────────────────────
 function ActivityHeatmap({ heatmap }) {
+  const theme = useTheme()
+  const isLight = theme === 'light'
+
   const WEEKS = 52
   const today = new Date()
   today.setHours(0, 0, 0, 0)
@@ -166,11 +182,11 @@ function ActivityHeatmap({ heatmap }) {
 
   const maxCount = Math.max(...Object.values(heatmap), 1)
   const getColor = count => {
-    if (count === 0) return 'rgba(255,255,255,0.05)'
+    if (count === 0) return isLight ? 'rgba(0,0,0,0.07)' : 'rgba(255,255,255,0.05)'
     const intensity = Math.min(count / maxCount, 1)
-    if (intensity < 0.25) return 'rgba(47,128,237,0.25)'
-    if (intensity < 0.5)  return 'rgba(47,128,237,0.5)'
-    if (intensity < 0.75) return 'rgba(47,128,237,0.75)'
+    if (intensity < 0.25) return 'rgba(0,122,255,0.25)'
+    if (intensity < 0.5)  return 'rgba(0,122,255,0.50)'
+    if (intensity < 0.75) return 'rgba(0,122,255,0.75)'
     return '#007AFF'
   }
 
@@ -185,7 +201,7 @@ function ActivityHeatmap({ heatmap }) {
           <TrendingUp size={15} color="#007AFF" />
           <span style={{ fontSize: 14, fontWeight: 600 }}>Activity — last year</span>
         </div>
-        <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)' }}>
+        <span style={{ fontSize: 11, color: isLight ? 'rgba(0,0,0,0.40)' : 'rgba(255,255,255,0.30)' }}>
           {totalItems} items across {activeDays} day{activeDays !== 1 ? 's' : ''}
         </span>
       </div>
@@ -193,7 +209,7 @@ function ActivityHeatmap({ heatmap }) {
         {/* Day labels column */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 2, marginRight: 4, flexShrink: 0 }}>
           {DAY_LABELS.map((l, i) => (
-            <div key={i} style={{ width: 10, height: 10, fontSize: 8, color: 'rgba(255,255,255,0.25)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{l}</div>
+            <div key={i} style={{ width: 10, height: 10, fontSize: 8, color: isLight ? 'rgba(0,0,0,0.35)' : 'rgba(255,255,255,0.25)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{l}</div>
           ))}
         </div>
         {/* Weeks */}
@@ -216,11 +232,14 @@ function ActivityHeatmap({ heatmap }) {
       </div>
       {/* Legend */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginTop: 10, justifyContent: 'flex-end' }}>
-        <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.3)', marginRight: 4 }}>Less</span>
-        {['rgba(255,255,255,0.05)', 'rgba(47,128,237,0.25)', 'rgba(47,128,237,0.5)', 'rgba(47,128,237,0.75)', '#007AFF'].map((c, i) => (
+        <span style={{ fontSize: 10, color: isLight ? 'rgba(0,0,0,0.38)' : 'rgba(255,255,255,0.30)', marginRight: 4 }}>Less</span>
+        {[
+          isLight ? 'rgba(0,0,0,0.07)' : 'rgba(255,255,255,0.05)',
+          'rgba(0,122,255,0.25)', 'rgba(0,122,255,0.5)', 'rgba(0,122,255,0.75)', '#007AFF'
+        ].map((c, i) => (
           <div key={i} style={{ width: 10, height: 10, borderRadius: 2, background: c }} />
         ))}
-        <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.3)', marginLeft: 4 }}>More</span>
+        <span style={{ fontSize: 10, color: isLight ? 'rgba(0,0,0,0.38)' : 'rgba(255,255,255,0.30)', marginLeft: 4 }}>More</span>
       </div>
     </div>
   )
@@ -228,6 +247,21 @@ function ActivityHeatmap({ heatmap }) {
 
 // ── Charts section ───────────────────────────────────────────
 function ChartsSection({ stats }) {
+  const theme = useTheme()
+  const isLight = theme === 'light'
+
+  // Theme-aware chart palette
+  const tickColor    = isLight ? 'rgba(0,0,0,0.38)'  : 'rgba(255,255,255,0.30)'
+  const tickColorAlt = isLight ? 'rgba(0,0,0,0.50)'  : 'rgba(255,255,255,0.45)'
+  const gridColor    = isLight ? 'rgba(0,0,0,0.06)'  : 'rgba(255,255,255,0.05)'
+  const cursorFill   = isLight ? 'rgba(0,0,0,0.04)'  : 'rgba(255,255,255,0.04)'
+  const cursorStroke = isLight ? 'rgba(0,0,0,0.10)'  : 'rgba(255,255,255,0.10)'
+  const barBg        = isLight ? 'rgba(0,0,0,0.07)'  : 'rgba(255,255,255,0.07)'
+  const mutedText    = isLight ? 'rgba(0,0,0,0.45)'  : 'rgba(255,255,255,0.45)'
+  const dimText      = isLight ? 'rgba(0,0,0,0.38)'  : 'rgba(255,255,255,0.40)'
+  const labelFill    = isLight ? 'rgba(0,0,0,0.40)'  : 'rgba(255,255,255,0.40)'
+  const subText      = isLight ? 'rgba(0,0,0,0.38)'  : 'rgba(255,255,255,0.30)'
+
   const activityData = buildActivityData(stats?.activity)
   const hasActivity = activityData.some(d => d.prompts + d.skills + d.steering + d.mcp + d.commands > 0)
   const hasTopUsed = stats?.top_used?.length > 0
@@ -255,10 +289,10 @@ function ChartsSection({ stats }) {
                   </linearGradient>
                 ))}
               </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
-              <XAxis dataKey="day" tick={{ fontSize: 10, fill: 'rgba(255,255,255,0.3)' }} tickLine={false} axisLine={false} tickFormatter={tickFormatter} />
-              <YAxis tick={{ fontSize: 10, fill: 'rgba(255,255,255,0.3)' }} tickLine={false} axisLine={false} allowDecimals={false} />
-              <Tooltip content={<ChartTooltip />} cursor={{ stroke: 'rgba(255,255,255,0.1)', strokeWidth: 1 }} animationDuration={0} isAnimationActive={false} />
+              <CartesianGrid strokeDasharray="3 3" stroke={gridColor} vertical={false} />
+              <XAxis dataKey="day" tick={{ fontSize: 10, fill: tickColor }} tickLine={false} axisLine={false} tickFormatter={tickFormatter} />
+              <YAxis tick={{ fontSize: 10, fill: tickColor }} tickLine={false} axisLine={false} allowDecimals={false} />
+              <Tooltip content={<ChartTooltip />} cursor={{ stroke: cursorStroke, strokeWidth: 1 }} animationDuration={0} isAnimationActive={false} />
               {Object.entries(CHART_COLORS).map(([key, color]) => (
                 <Area key={key} type="monotone" dataKey={key} stroke={color} strokeWidth={1.5}
                   fill={`url(#grad-${key})`} dot={false} activeDot={{ r: 3, fill: color }}
@@ -271,7 +305,7 @@ function ChartsSection({ stats }) {
             {Object.entries(CHART_COLORS).map(([key, color]) => (
               <div key={key} style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
                 <div style={{ width: 8, height: 8, borderRadius: '50%', background: color }} />
-                <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.45)', textTransform: 'capitalize' }}>{key}</span>
+                <span style={{ fontSize: 11, color: mutedText, textTransform: 'capitalize' }}>{key}</span>
               </div>
             ))}
           </div>
@@ -310,7 +344,7 @@ function ChartsSection({ stats }) {
                   </ResponsiveContainer>
                   <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', pointerEvents: 'none' }}>
                     <div style={{ fontSize: 15, fontWeight: 700, letterSpacing: -0.5 }}>{fmt(total)}</div>
-                    <div style={{ fontSize: 9, color: 'rgba(255,255,255,0.4)' }}>total</div>
+                    <div style={{ fontSize: 9, color: dimText }}>total</div>
                   </div>
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 10, flex: 1 }}>
@@ -319,11 +353,11 @@ function ChartsSection({ stats }) {
                       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                           <div style={{ width: 7, height: 7, borderRadius: '50%', background: d.color }} />
-                          <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.55)' }}>{d.name}</span>
+                          <span style={{ fontSize: 11, color: mutedText }}>{d.name}</span>
                         </div>
                         <span style={{ fontSize: 11, fontWeight: 600, color: d.color }}>{fmt(d.value)}</span>
                       </div>
-                      <div style={{ height: 3, background: 'rgba(255,255,255,0.07)', borderRadius: 99 }}>
+                      <div style={{ height: 3, background: barBg, borderRadius: 99 }}>
                         <div style={{ height: '100%', width: `${Math.round((d.value / total) * 100)}%`, background: d.color, borderRadius: 99 }} />
                       </div>
                     </div>
@@ -338,17 +372,17 @@ function ChartsSection({ stats }) {
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
                   <Cpu size={15} color="#FF9500" />
                   <span style={{ fontSize: 14, fontWeight: 600 }}>Top prompts by tokens</span>
-                  <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)', marginLeft: 2 }}>~4 chars/token</span>
+                  <span style={{ fontSize: 11, color: subText, marginLeft: 2 }}>~4 chars/token</span>
                 </div>
                 <ResponsiveContainer width="100%" height={Math.max(140, stats.top_tokens.length * 26)}>
                   <BarChart data={stats.top_tokens} layout="vertical" margin={{ top: 0, right: 52, left: 0, bottom: 0 }}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" horizontal={false} />
-                    <XAxis type="number" tick={{ fontSize: 10, fill: 'rgba(255,255,255,0.3)' }} tickLine={false} axisLine={false} allowDecimals={false} />
-                    <YAxis type="category" dataKey="title" tick={{ fontSize: 10, fill: 'rgba(255,255,255,0.45)' }} tickLine={false} axisLine={false} width={100}
+                    <CartesianGrid strokeDasharray="3 3" stroke={gridColor} horizontal={false} />
+                    <XAxis type="number" tick={{ fontSize: 10, fill: tickColor }} tickLine={false} axisLine={false} allowDecimals={false} />
+                    <YAxis type="category" dataKey="title" tick={{ fontSize: 10, fill: tickColorAlt }} tickLine={false} axisLine={false} width={100}
                       tickFormatter={v => v.length > 15 ? v.slice(0, 14) + '…' : v} />
-                    <Tooltip content={<ChartTooltip />} cursor={{ fill: 'rgba(255,255,255,0.04)' }} animationDuration={0} isAnimationActive={false} />
+                    <Tooltip content={<ChartTooltip />} cursor={{ fill: cursorFill }} animationDuration={0} isAnimationActive={false} />
                     <Bar dataKey="tokens" name="tokens" radius={[0, 4, 4, 0]} maxBarSize={16} isAnimationActive={false}
-                      label={{ position: 'right', fontSize: 10, fill: 'rgba(255,255,255,0.4)', formatter: v => v >= 1000 ? `~${(v/1000).toFixed(1)}k` : `~${v}` }}>
+                      label={{ position: 'right', fontSize: 10, fill: labelFill, formatter: v => v >= 1000 ? `~${(v/1000).toFixed(1)}k` : `~${v}` }}>
                       {stats.top_tokens.map(row => {
                         const c = getTokenColor(row.tokens).replace('var(--green)', '#30D158').replace('var(--teal)', '#5AC8FA').replace('var(--orange)', '#FF9500').replace('var(--pink)', '#FF375F')
                         return <Cell key={row.title} fill={c} />
@@ -360,7 +394,7 @@ function ChartsSection({ stats }) {
                   {[['< 500', '#30D158'], ['500–2k', '#5AC8FA'], ['2k–8k', '#FF9500'], ['> 8k', '#FF375F']].map(([label, color]) => (
                     <div key={label} style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
                       <div style={{ width: 7, height: 7, borderRadius: '50%', background: color }} />
-                      <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.4)' }}>{label}</span>
+                      <span style={{ fontSize: 10, color: dimText }}>{label}</span>
                     </div>
                   ))}
                 </div>
@@ -377,14 +411,14 @@ function ChartsSection({ stats }) {
             <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 16 }}>Most used prompts</div>
             <ResponsiveContainer width="100%" height={160}>
               <BarChart data={stats.top_used} layout="vertical" margin={{ top: 0, right: 8, left: 0, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" horizontal={false} />
-                <XAxis type="number" tick={{ fontSize: 10, fill: 'rgba(255,255,255,0.3)' }} tickLine={false} axisLine={false} allowDecimals={false} />
-                <YAxis type="category" dataKey="title" tick={{ fontSize: 10, fill: 'rgba(255,255,255,0.45)' }} tickLine={false} axisLine={false} width={90}
+                <CartesianGrid strokeDasharray="3 3" stroke={gridColor} horizontal={false} />
+                <XAxis type="number" tick={{ fontSize: 10, fill: tickColor }} tickLine={false} axisLine={false} allowDecimals={false} />
+                <YAxis type="category" dataKey="title" tick={{ fontSize: 10, fill: tickColorAlt }} tickLine={false} axisLine={false} width={90}
                   tickFormatter={v => v.length > 14 ? v.slice(0, 13) + '…' : v} />
-                <Tooltip content={<ChartTooltip />} cursor={{ fill: 'rgba(255,255,255,0.04)' }} animationDuration={0} isAnimationActive={false} />
+                <Tooltip content={<ChartTooltip />} cursor={{ fill: cursorFill }} animationDuration={0} isAnimationActive={false} />
                 <Bar dataKey="use_count" name="usos" radius={[0, 4, 4, 0]} maxBarSize={18} isAnimationActive={false}>
                   {stats.top_used.map((_, i) => (
-                    <Cell key={i} fill={`rgba(47,128,237,${1 - i * 0.13})`} />
+                    <Cell key={i} fill={`rgba(0,122,255,${1 - i * 0.13})`} />
                   ))}
                 </Bar>
               </BarChart>
@@ -397,11 +431,11 @@ function ChartsSection({ stats }) {
             <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 16 }}>Prompts by category</div>
             <ResponsiveContainer width="100%" height={160}>
               <BarChart data={stats.by_category} margin={{ top: 0, right: 8, left: -24, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
-                <XAxis dataKey="category" tick={{ fontSize: 9, fill: 'rgba(255,255,255,0.3)' }} tickLine={false} axisLine={false}
+                <CartesianGrid strokeDasharray="3 3" stroke={gridColor} vertical={false} />
+                <XAxis dataKey="category" tick={{ fontSize: 9, fill: tickColor }} tickLine={false} axisLine={false}
                   tickFormatter={v => v.length > 8 ? v.slice(0, 7) + '…' : v} />
-                <YAxis tick={{ fontSize: 10, fill: 'rgba(255,255,255,0.3)' }} tickLine={false} axisLine={false} allowDecimals={false} />
-                <Tooltip content={<ChartTooltip />} cursor={{ fill: 'rgba(255,255,255,0.04)' }} animationDuration={0} isAnimationActive={false} />
+                <YAxis tick={{ fontSize: 10, fill: tickColor }} tickLine={false} axisLine={false} allowDecimals={false} />
+                <Tooltip content={<ChartTooltip />} cursor={{ fill: cursorFill }} animationDuration={0} isAnimationActive={false} />
                 <Bar dataKey="count" name="prompts" radius={[4, 4, 0, 0]} maxBarSize={28} isAnimationActive={false}>
                   {stats.by_category.map((_, i) => (
                     <Cell key={i} fill={CAT_COLORS[i % CAT_COLORS.length]} />
@@ -445,10 +479,10 @@ function ChartsSection({ stats }) {
                       {stats.model_distribution.map((r, i) => (
                         <div key={r.model}>
                           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 3 }}>
-                            <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.55)', maxWidth: 130, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.model}</span>
+                            <span style={{ fontSize: 11, color: mutedText, maxWidth: 130, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.model}</span>
                             <span style={{ fontSize: 11, fontWeight: 600, color: MODEL_COLORS[i % MODEL_COLORS.length] }}>{r.count}</span>
                           </div>
-                          <div style={{ height: 3, background: 'rgba(255,255,255,0.07)', borderRadius: 99 }}>
+                          <div style={{ height: 3, background: barBg, borderRadius: 99 }}>
                             <div style={{ height: '100%', width: `${Math.round((r.count / total) * 100)}%`, background: MODEL_COLORS[i % MODEL_COLORS.length], borderRadius: 99 }} />
                           </div>
                         </div>
@@ -467,10 +501,10 @@ function ChartsSection({ stats }) {
                 </div>
                 <ResponsiveContainer width="100%" height={130}>
                   <BarChart data={stats.favorites_by_type} margin={{ top: 4, right: 8, left: -24, bottom: 0 }}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
-                    <XAxis dataKey="type" tick={{ fontSize: 11, fill: 'rgba(255,255,255,0.4)' }} tickLine={false} axisLine={false} />
-                    <YAxis tick={{ fontSize: 10, fill: 'rgba(255,255,255,0.3)' }} tickLine={false} axisLine={false} allowDecimals={false} />
-                    <Tooltip content={<ChartTooltip />} cursor={{ fill: 'rgba(255,255,255,0.04)' }} animationDuration={0} isAnimationActive={false} />
+                    <CartesianGrid strokeDasharray="3 3" stroke={gridColor} vertical={false} />
+                    <XAxis dataKey="type" tick={{ fontSize: 11, fill: tickColorAlt }} tickLine={false} axisLine={false} />
+                    <YAxis tick={{ fontSize: 10, fill: tickColor }} tickLine={false} axisLine={false} allowDecimals={false} />
+                    <Tooltip content={<ChartTooltip />} cursor={{ fill: cursorFill }} animationDuration={0} isAnimationActive={false} />
                     <Bar dataKey="count" name="favoritos" radius={[4, 4, 0, 0]} maxBarSize={36} isAnimationActive={false}>
                       {stats.favorites_by_type.map(r => <Cell key={r.type} fill={r.color} />)}
                     </Bar>
@@ -537,26 +571,26 @@ export default function DashboardPage() {
     <div className="page-content">
       {/* Welcome */}
       <div style={{ marginBottom: 24 }} className="animate-fade-in-up">
-        <div style={{
-          background: 'linear-gradient(135deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.02) 100%)',
-          border: '1px solid rgba(255,255,255,0.08)',
+        <div className="welcome-banner" style={{
+          background: 'linear-gradient(135deg, #1a1a24 0%, #08080c 100%)',
+          border: '1px solid rgba(255,255,255,0.10)',
           borderRadius: 'var(--radius-2xl)',
           padding: '24px 28px',
           position: 'relative', overflow: 'hidden',
         }}>
-          <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 1, background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent)' }} />
+          <div className="welcome-banner-line" style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 1, background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.07), transparent)' }} />
           <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 14, flexWrap: 'wrap' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 14, flex: 1, minWidth: 0 }}>
-              <div style={{ width: 44, height: 44, borderRadius: 12, background: 'linear-gradient(145deg, #0D1117 0%, #161B22 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 8px 24px rgba(0,0,0,0.5)', border: '1px solid rgba(255,255,255,0.09)' }}>
-                <svg width="24" height="24" viewBox="0 0 20 20" fill="none">
-                  <rect x="2" y="2" width="16" height="16" rx="4" stroke="#00D4FF" strokeWidth="1.2" strokeOpacity="0.7"/>
-                  <rect x="5.5" y="5.5" width="3.5" height="3.5" rx="1" fill="#00D4FF" fillOpacity="0.85"/>
-                  <rect x="11" y="5.5" width="3.5" height="3.5" rx="1" fill="#00D4FF" fillOpacity="0.5"/>
-                  <rect x="5.5" y="11" width="3.5" height="3.5" rx="1" fill="#00D4FF" fillOpacity="0.5"/>
-                  <path d="M13.5 11.5L12.5 13.5L14.5 13L13 15" stroke="#00D4FF" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" strokeOpacity="0.9"/>
-                </svg>
-              </div>
-              <div>
+              <div className="welcome-banner-icon" style={{ width: 44, height: 44, borderRadius: 12, background: 'linear-gradient(145deg, #0D1117 0%, #161B22 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 8px 24px rgba(0,0,0,0.5)', border: '1px solid rgba(255,255,255,0.09)' }}>
+              <svg width="24" height="24" viewBox="0 0 20 20" fill="none">
+                <rect x="2" y="2" width="16" height="16" rx="4" stroke="#00D4FF" strokeWidth="1.2" strokeOpacity="0.7"/>
+                <rect x="5.5" y="5.5" width="3.5" height="3.5" rx="1" fill="#00D4FF" fillOpacity="0.85"/>
+                <rect x="11" y="5.5" width="3.5" height="3.5" rx="1" fill="#00D4FF" fillOpacity="0.5"/>
+                <rect x="5.5" y="11" width="3.5" height="3.5" rx="1" fill="#00D4FF" fillOpacity="0.5"/>
+                <path d="M13.5 11.5L12.5 13.5L14.5 13L13 15" stroke="#00D4FF" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" strokeOpacity="0.9"/>
+              </svg>
+            </div>
+            <div>
                 <h1 style={{ fontSize: 22, fontWeight: 700, letterSpacing: -0.5, marginBottom: 2 }}>Welcome to Promptly</h1>
                 <p style={{ fontSize: 14, color: 'var(--text-secondary)' }}>Your AI prompts, skills, and configurations — all in one place.</p>
               </div>
@@ -583,7 +617,7 @@ export default function DashboardPage() {
       {/* Stat cards */}
       <div className="stats-grid stagger-children" style={{ opacity: statsLoading ? 0.4 : 1, transition: 'opacity 0.3s' }}>
         {statCards.map(({ label, value, icon: Icon, color, path }) => (
-          <div key={label} className="stat-card" style={{ cursor: 'pointer' }} onClick={() => navigate(path)}>
+          <div key={label} className="stat-card" style={{ cursor: 'pointer', '--card-color': color }} onClick={() => navigate(path)}>
             <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 1, background: `linear-gradient(90deg, transparent, ${color}40, transparent)` }} />
             <div className="stat-value" style={{ color }}>{value}</div>
             <div className="stat-label">{label}</div>
@@ -594,7 +628,7 @@ export default function DashboardPage() {
 
       {/* ── Analytics ── */}
       <div style={{ marginTop: 20 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+        <div className="dash-section-label" style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
           <BarChart2 size={14} color="rgba(255,255,255,0.3)" />
           <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-tertiary)', letterSpacing: 0.5, textTransform: 'uppercase' }}>Analytics</span>
         </div>
@@ -603,7 +637,7 @@ export default function DashboardPage() {
             <div style={{ fontSize: 13, color: 'var(--text-tertiary)' }}>Loading…</div>
           </div>
         ) : total === 0 ? (
-          <div className="glass-card" style={{ padding: 0, overflow: 'hidden' }}>
+        <div className="glass-card" style={{ padding: 0, overflow: 'hidden' }}>
             <EmptyDashboard navigate={navigate} />
           </div>
         ) : !hasEnoughForCharts ? (
@@ -611,20 +645,20 @@ export default function DashboardPage() {
         ) : (
           <ChartsSection stats={stats} />
         )}
-      </div>
+            </div>
 
       {/* ── Library ── */}
       {!statsLoading && total > 0 && (
         <div style={{ marginTop: 20 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+          <div className="dash-section-label" style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
             <TrendingUp size={14} color="rgba(255,255,255,0.3)" />
             <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-tertiary)', letterSpacing: 0.5, textTransform: 'uppercase' }}>Library</span>
           </div>
           <div className="dash-grid-2col">
             {/* Recent items */}
             <div className="glass-card" style={{ padding: 0, overflow: 'hidden' }}>
-              <div style={{ padding: '16px 20px 12px', borderBottom: '1px solid rgba(255,255,255,0.06)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <div className="dash-card-header" style={{ padding: '16px 20px 12px', borderBottom: '1px solid rgba(255,255,255,0.06)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <div className="dash-section-label" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                   <TrendingUp size={14} color="rgba(255,255,255,0.4)" />
                   <span style={{ fontSize: 13, fontWeight: 600 }}>Recent</span>
                 </div>
@@ -633,8 +667,8 @@ export default function DashboardPage() {
                 {(recentPrompts?.data?.length === 0 && (recentCommands?.data?.length ?? 0) === 0) && (
                   <div style={{ padding: '24px 20px', textAlign: 'center', color: 'var(--text-tertiary)', fontSize: 13 }}>
                     No items yet
-                  </div>
-                )}
+              </div>
+            )}
                 {/* Merge and sort by updated_at, show top 6 */}
                 {[
                   ...(recentPrompts?.data || []).map(p => ({ ...p, _type: 'prompt' })),
@@ -643,14 +677,14 @@ export default function DashboardPage() {
                   .sort((a, b) => (b.updated_at || '').localeCompare(a.updated_at || ''))
                   .slice(0, 6)
                   .map(item => item._type === 'prompt' ? (
-                    <div key={item.id} style={{ padding: '9px 20px', cursor: 'pointer', transition: 'background var(--duration-fast)', borderBottom: '1px solid rgba(255,255,255,0.04)' }}
+                    <div key={item.id} className="dash-list-row" style={{ padding: '9px 20px', cursor: 'pointer', transition: 'background var(--duration-fast)', borderBottom: '1px solid rgba(255,255,255,0.04)' }}
                       onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.04)'}
                       onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
                       onClick={() => navigate('/prompts')}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                         <MessageSquare size={11} color="#007AFF" />
                         <span style={{ fontSize: 13, fontWeight: 500, flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.title}</span>
-                        <span style={{ fontSize: 10, color: 'rgba(47,128,237,0.5)', background: 'rgba(47,128,237,0.08)', padding: '1px 6px', borderRadius: 4, flexShrink: 0 }}>Prompt</span>
+                        <span style={{ fontSize: 10, color: 'rgba(0,122,255,0.5)', background: 'rgba(0,122,255,0.08)', padding: '1px 6px', borderRadius: 4, flexShrink: 0 }}>Prompt</span>
                       </div>
                       <div style={{ fontSize: 11, color: 'var(--text-tertiary)', marginTop: 2, paddingLeft: 17, display: 'flex', gap: 8 }}>
                         {item.category && <span className={`category-badge ${item.category}`}>{item.category}</span>}
@@ -658,43 +692,43 @@ export default function DashboardPage() {
                       </div>
                     </div>
                   ) : (
-                    <div key={item.id} style={{ padding: '9px 20px', cursor: 'pointer', transition: 'background var(--duration-fast)', borderBottom: '1px solid rgba(255,255,255,0.04)' }}
-                      onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.04)'}
-                      onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                    <div key={item.id} className="dash-list-row" style={{ padding: '9px 20px', cursor: 'pointer', transition: 'background var(--duration-fast)', borderBottom: '1px solid rgba(255,255,255,0.04)' }}
+                onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.04)'}
+                onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
                       onClick={() => navigate('/commands')}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                         <TerminalSquare size={11} color="#5AC8FA" />
                         <span style={{ fontSize: 13, fontWeight: 500, flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.title}</span>
                         <span style={{ fontSize: 10, color: 'rgba(91,200,250,0.5)', background: 'rgba(91,200,250,0.08)', padding: '1px 6px', borderRadius: 4, flexShrink: 0 }}>Command</span>
                       </div>
-                      <div style={{ fontSize: 11, color: 'rgba(91,200,250,0.4)', marginTop: 2, paddingLeft: 17, fontFamily: 'monospace' }}>
+                      <div style={{ fontSize: 11, color: 'var(--text-tertiary)', marginTop: 2, paddingLeft: 17, fontFamily: 'monospace' }}>
                         {item.command?.slice(0, 50)}{item.command?.length > 50 ? '…' : ''}
-                      </div>
-                    </div>
+                </div>
+                </div>
                   ))
                 }
-              </div>
-            </div>
+          </div>
+        </div>
 
-            {/* Favorites */}
-            <div className="glass-card" style={{ padding: 0, overflow: 'hidden' }}>
-              <div style={{ padding: '16px 20px 12px', borderBottom: '1px solid rgba(255,255,255,0.06)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+        {/* Favorites */}
+        <div className="glass-card" style={{ padding: 0, overflow: 'hidden' }}>
+              <div className="dash-card-header" style={{ padding: '16px 20px 12px', borderBottom: '1px solid rgba(255,255,255,0.06)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                   <Star size={14} color="var(--yellow)" fill="var(--yellow)" />
                   <span style={{ fontSize: 13, fontWeight: 600 }}>Favoritos</span>
-                </div>
+            </div>
                 <div style={{ fontSize: 11, color: 'var(--text-tertiary)' }}>
                   {(stats?.favorites?.prompts || 0) + (stats?.favorites?.skills || 0) + (stats?.favorites?.steering || 0) + (stats?.favorites?.mcp_configs || 0) + (stats?.favorites?.commands || 0)} total
-                </div>
+          </div>
               </div>
               <div style={{ padding: '6px 0' }}>
                 {(favoritePrompts?.data?.length === 0 && (favoriteCommands?.data?.length ?? 0) === 0) && (
                   <div style={{ padding: '24px 20px', textAlign: 'center', color: 'var(--text-tertiary)', fontSize: 13 }}>
                     Mark items with ★ to see them here
-                  </div>
-                )}
-                {favoritePrompts?.data?.map(prompt => (
-                  <div key={prompt.id} style={{ padding: '9px 20px', cursor: 'pointer', transition: 'background var(--duration-fast)', borderBottom: '1px solid rgba(255,255,255,0.04)' }}
+              </div>
+            )}
+            {favoritePrompts?.data?.map(prompt => (
+                  <div key={prompt.id} className="dash-list-row" style={{ padding: '9px 20px', cursor: 'pointer', transition: 'background var(--duration-fast)', borderBottom: '1px solid rgba(255,255,255,0.04)' }}
                     onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.04)'}
                     onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
                     onClick={() => navigate('/prompts')}>
@@ -702,7 +736,7 @@ export default function DashboardPage() {
                       <Star size={11} color="var(--yellow)" fill="var(--yellow)" />
                       <MessageSquare size={11} color="#007AFF" />
                       <span style={{ fontSize: 13, fontWeight: 500 }}>{prompt.title}</span>
-                      <span style={{ marginLeft: 'auto', fontSize: 10, color: 'rgba(47,128,237,0.5)', background: 'rgba(47,128,237,0.08)', padding: '1px 6px', borderRadius: 4 }}>Prompt</span>
+                      <span style={{ marginLeft: 'auto', fontSize: 10, color: 'rgba(0,122,255,0.5)', background: 'rgba(0,122,255,0.08)', padding: '1px 6px', borderRadius: 4 }}>Prompt</span>
                     </div>
                     <div style={{ fontSize: 11, color: 'var(--text-tertiary)', marginTop: 2, paddingLeft: 22 }}>
                       {prompt.content?.slice(0, 60)}{prompt.content?.length > 60 ? '…' : ''}
@@ -710,24 +744,24 @@ export default function DashboardPage() {
                   </div>
                 ))}
                 {favoriteCommands?.data?.map(cmd => (
-                  <div key={cmd.id} style={{ padding: '9px 20px', cursor: 'pointer', transition: 'background var(--duration-fast)', borderBottom: '1px solid rgba(255,255,255,0.04)' }}
-                    onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.04)'}
-                    onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                  <div key={cmd.id} className="dash-list-row" style={{ padding: '9px 20px', cursor: 'pointer', transition: 'background var(--duration-fast)', borderBottom: '1px solid rgba(255,255,255,0.04)' }}
+                onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.04)'}
+                onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
                     onClick={() => navigate('/commands')}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                      <Star size={11} color="var(--yellow)" fill="var(--yellow)" />
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <Star size={11} color="var(--yellow)" fill="var(--yellow)" />
                       <TerminalSquare size={11} color="#5AC8FA" />
                       <span style={{ fontSize: 13, fontWeight: 500 }}>{cmd.title}</span>
                       <span style={{ marginLeft: 'auto', fontSize: 10, color: 'rgba(91,200,250,0.5)', background: 'rgba(91,200,250,0.08)', padding: '1px 6px', borderRadius: 4 }}>Command</span>
-                    </div>
-                    <div style={{ fontSize: 11, color: 'rgba(91,200,250,0.4)', marginTop: 2, paddingLeft: 22, fontFamily: 'monospace' }}>
+                </div>
+                    <div style={{ fontSize: 11, color: 'var(--text-tertiary)', marginTop: 2, paddingLeft: 22, fontFamily: 'monospace' }}>
                       {cmd.command?.slice(0, 55)}{cmd.command?.length > 55 ? '…' : ''}
-                    </div>
-                  </div>
-                ))}
+                </div>
               </div>
-            </div>
+            ))}
           </div>
+        </div>
+      </div>
         </div>
       )}
     </div>

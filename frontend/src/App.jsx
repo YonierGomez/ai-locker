@@ -1,7 +1,9 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Routes, Route, Navigate } from 'react-router-dom'
+import { useQuery } from '@tanstack/react-query'
 import Sidebar from './components/Sidebar'
 import Topbar from './components/Topbar'
+import CommandPalette from './components/CommandPalette'
 import PromptsPage from './pages/PromptsPage'
 import SkillsPage from './pages/SkillsPage'
 import SteeringPage from './pages/SteeringPage'
@@ -10,9 +12,39 @@ import DashboardPage from './pages/DashboardPage'
 import SettingsPage from './pages/SettingsPage'
 import TrashPage from './pages/TrashPage'
 import CommandsPage from './pages/CommandsPage'
+import AiSessionPage from './pages/AiSessionPage'
+import { settingsApi } from './utils/api'
 
 export default function App() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [paletteOpen, setPaletteOpen] = useState(false)
+
+  const { data: settings } = useQuery({
+    queryKey: ['settings'],
+    queryFn: () => settingsApi.get(),
+    staleTime: 60000,
+  })
+
+  // Apply accent color from saved settings
+  useEffect(() => {
+    if (settings?.accent_color) {
+      document.documentElement.style.setProperty('--blue', settings.accent_color)
+      document.documentElement.style.setProperty('--accent', settings.accent_color)
+    }
+  }, [settings?.accent_color])
+
+  // Global Cmd+K / Ctrl+K shortcut
+  const handleKeyDown = useCallback((e) => {
+    if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+      e.preventDefault()
+      setPaletteOpen(p => !p)
+    }
+  }, [])
+
+  useEffect(() => {
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [handleKeyDown])
 
   // Close sidebar on route change (mobile)
   useEffect(() => {
@@ -30,7 +62,10 @@ export default function App() {
       <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
       <div className="main-content">
-        <Topbar onMenuClick={() => setSidebarOpen(true)} />
+        <Topbar
+          onMenuClick={() => setSidebarOpen(true)}
+          onSearchClick={() => setPaletteOpen(true)}
+        />
 
         <Routes>
           <Route path="/" element={<Navigate to="/dashboard" replace />} />
@@ -42,8 +77,12 @@ export default function App() {
           <Route path="/commands" element={<CommandsPage />} />
           <Route path="/settings" element={<SettingsPage />} />
           <Route path="/trash" element={<TrashPage />} />
+          <Route path="/ai" element={<AiSessionPage />} />
         </Routes>
       </div>
+
+      {/* Global Command Palette */}
+      <CommandPalette isOpen={paletteOpen} onClose={() => setPaletteOpen(false)} />
     </div>
   )
 }

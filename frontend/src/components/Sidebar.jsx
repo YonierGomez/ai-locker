@@ -3,8 +3,22 @@ import { useQuery } from '@tanstack/react-query'
 import { settingsApi, trashApi } from '../utils/api'
 import {
   LayoutDashboard, MessageSquare, Zap, Navigation,
-  Settings, X, Sparkles, Trash2, TerminalSquare
+  Settings, X, Bot, Trash2, TerminalSquare
 } from 'lucide-react'
+
+function AiNavItem({ onClose }) {
+  return (
+    <NavLink
+      to="/ai"
+      className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}
+      onClick={onClose}
+      style={({ isActive }) => isActive ? {} : { color: 'var(--text-tertiary)' }}
+    >
+      <Bot size={16} className="nav-item-icon" style={{ color: '#5E5CE6' }} />
+      AI Chat
+    </NavLink>
+  )
+}
 
 function McpIcon({ size = 16 }) {
   return (
@@ -138,6 +152,7 @@ export default function Sidebar({ isOpen, onClose }) {
 
         <div className="divider" style={{ margin: '12px 0' }} />
 
+        <AiNavItem onClose={onClose} />
         <TrashNavItem onClose={onClose} />
 
         <NavLink

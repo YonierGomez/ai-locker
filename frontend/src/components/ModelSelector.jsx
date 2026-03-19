@@ -1,9 +1,59 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { createPortal } from 'react-dom'
 import { Search, Plus, ChevronDown, X, Check } from 'lucide-react'
-import { ALL_MODELS } from '../utils/models'
+import { ALL_MODELS, AI_MODELS_BY_GROUP } from '../utils/models'
 
-export default function ModelSelector({ value, onChange, placeholder = 'Any model' }) {
+// Per-provider curated model lists — March 2026 (shown when providerFilter is set)
+const PROVIDER_MODEL_GROUPS = {
+  openai: [
+    { group: 'GPT-5 (latest)',        models: [{ id: 'gpt-5.4', label: 'GPT-5.4' }, { id: 'gpt-5.4-mini', label: 'GPT-5.4 Mini' }] },
+    { group: 'GPT-4.1',               models: [{ id: 'gpt-4.1', label: 'GPT-4.1' }, { id: 'gpt-4.1-mini', label: 'GPT-4.1 Mini' }, { id: 'gpt-4.1-nano', label: 'GPT-4.1 Nano' }] },
+    { group: 'GPT-4o',                models: [{ id: 'gpt-4o', label: 'GPT-4o' }, { id: 'gpt-4o-mini', label: 'GPT-4o Mini' }] },
+    { group: 'Reasoning (o-series)',   models: [{ id: 'o3', label: 'o3' }, { id: 'o3-mini', label: 'o3-mini' }, { id: 'o1', label: 'o1' }, { id: 'o1-mini', label: 'o1-mini' }, { id: 'o1-pro', label: 'o1-pro' }] },
+  ],
+  anthropic: [
+    { group: 'Claude 4.6 (latest)',   models: [{ id: 'claude-opus-4-6', label: 'Claude Opus 4.6' }, { id: 'claude-sonnet-4-6', label: 'Claude Sonnet 4.6' }] },
+    { group: 'Claude 4.5',            models: [{ id: 'claude-opus-4-5', label: 'Claude Opus 4.5' }, { id: 'claude-sonnet-4-5', label: 'Claude Sonnet 4.5' }, { id: 'claude-haiku-4-5', label: 'Claude Haiku 4.5' }] },
+    { group: 'Claude 3.7',            models: [{ id: 'claude-3-7-sonnet-20250219', label: 'Claude 3.7 Sonnet' }, { id: 'claude-3-7-sonnet-20250219:thinking', label: 'Claude 3.7 Sonnet (Thinking)' }] },
+    { group: 'Claude 3.5',            models: [{ id: 'claude-3-5-sonnet-20241022', label: 'Claude 3.5 Sonnet' }, { id: 'claude-3-5-haiku-20241022', label: 'Claude 3.5 Haiku' }] },
+    { group: 'Claude 3',              models: [{ id: 'claude-3-opus-20240229', label: 'Claude 3 Opus' }, { id: 'claude-3-haiku-20240307', label: 'Claude 3 Haiku' }] },
+  ],
+  gemini: [
+    { group: 'Gemini 3 (latest)',      models: [{ id: 'gemini-3.1-pro-preview', label: 'Gemini 3.1 Pro' }, { id: 'gemini-3-flash-preview', label: 'Gemini 3 Flash' }, { id: 'gemini-3.1-flash-lite-preview', label: 'Gemini 3.1 Flash Lite' }] },
+    { group: 'Gemini 2.5',             models: [{ id: 'gemini-2.5-pro', label: 'Gemini 2.5 Pro' }, { id: 'gemini-2.5-flash', label: 'Gemini 2.5 Flash' }, { id: 'gemini-2.5-flash-lite', label: 'Gemini 2.5 Flash Lite' }] },
+    { group: 'Gemini 2.0 (deprecated)', models: [{ id: 'gemini-2.0-flash', label: 'Gemini 2.0 Flash' }, { id: 'gemini-2.0-flash-lite', label: 'Gemini 2.0 Flash Lite' }] },
+    { group: 'Gemini 1.5 (deprecated)', models: [{ id: 'gemini-1.5-pro', label: 'Gemini 1.5 Pro' }, { id: 'gemini-1.5-flash', label: 'Gemini 1.5 Flash' }, { id: 'gemini-1.5-flash-8b', label: 'Gemini 1.5 Flash 8B' }] },
+  ],
+  bedrock: [
+    { group: 'Anthropic Claude (latest)', models: [
+      { id: 'anthropic.claude-opus-4-6-v1:0',   label: 'Claude Opus 4.6' },
+      { id: 'anthropic.claude-sonnet-4-6-v1:0', label: 'Claude Sonnet 4.6' },
+      { id: 'anthropic.claude-3-7-sonnet-20250219-v1:0', label: 'Claude 3.7 Sonnet' },
+      { id: 'anthropic.claude-3-5-sonnet-20241022-v2:0', label: 'Claude 3.5 Sonnet v2' },
+      { id: 'anthropic.claude-3-5-haiku-20241022-v1:0',  label: 'Claude 3.5 Haiku' },
+    ]},
+    { group: 'Amazon Nova 2', models: [
+      { id: 'amazon.nova-2-lite-v1:0', label: 'Nova 2 Lite' },
+      { id: 'amazon.nova-2-pro-v1:0',  label: 'Nova 2 Pro (Preview)' },
+    ]},
+    { group: 'Amazon Nova 1', models: [
+      { id: 'amazon.nova-pro-v1:0',   label: 'Nova Pro' },
+      { id: 'amazon.nova-lite-v1:0',  label: 'Nova Lite' },
+      { id: 'amazon.nova-micro-v1:0', label: 'Nova Micro' },
+    ]},
+    { group: 'Meta Llama', models: [
+      { id: 'meta.llama3-70b-instruct-v1:0',    label: 'Llama 3 70B' },
+      { id: 'meta.llama3-8b-instruct-v1:0',     label: 'Llama 3 8B' },
+      { id: 'meta.llama3-2-90b-instruct-v1:0',  label: 'Llama 3.2 90B' },
+    ]},
+    { group: 'Mistral', models: [
+      { id: 'mistral.mistral-large-2402-v1:0',  label: 'Mistral Large' },
+      { id: 'mistral.mixtral-8x7b-instruct-v0:1', label: 'Mixtral 8x7B' },
+    ]},
+  ],
+}
+
+export default function ModelSelector({ value, onChange, placeholder = 'Any model', providerFilter }) {
   const [open, setOpen] = useState(false)
   const [query, setQuery] = useState('')
   const [dropdownPos, setDropdownPos] = useState({ top: 0, left: 0, width: 300 })
@@ -49,13 +99,19 @@ export default function ModelSelector({ value, onChange, placeholder = 'Any mode
     }
   }, [open, updatePos])
 
+  // Pick the model pool based on providerFilter
+  const baseGroups = (providerFilter && PROVIDER_MODEL_GROUPS[providerFilter])
+    ? PROVIDER_MODEL_GROUPS[providerFilter]
+    : AI_MODELS_BY_GROUP
+  const baseFlat = baseGroups.flatMap(g => g.models.map(m => ({ ...m, group: g.group })))
+
   const filtered = query.trim()
-    ? ALL_MODELS.filter(m =>
+    ? baseFlat.filter(m =>
         m.label.toLowerCase().includes(query.toLowerCase()) ||
         m.id.toLowerCase().includes(query.toLowerCase()) ||
         m.group.toLowerCase().includes(query.toLowerCase())
       )
-    : ALL_MODELS
+    : baseFlat
 
   // Group filtered results
   const grouped = filtered.reduce((acc, m) => {
@@ -64,7 +120,7 @@ export default function ModelSelector({ value, onChange, placeholder = 'Any mode
     return acc
   }, {})
 
-  const selectedModel = ALL_MODELS.find(m => m.id === value)
+  const selectedModel = baseFlat.find(m => m.id === value) || ALL_MODELS.find(m => m.id === value)
   const displayValue = selectedModel ? selectedModel.label : value || ''
 
   const handleSelect = (modelId) => {
@@ -146,7 +202,7 @@ export default function ModelSelector({ value, onChange, placeholder = 'Any mode
               onClick={handleAddCustom}
               style={{
                 display: 'flex', alignItems: 'center', gap: 6,
-                background: 'rgba(47,128,237,0.15)', border: '1px solid rgba(47,128,237,0.3)',
+                background: 'rgba(0,122,255,0.15)', border: '1px solid rgba(0,122,255,0.3)',
                 borderRadius: 10, padding: '7px 12px',
                 color: '#409CFF', fontSize: 13, cursor: 'pointer',
                 fontFamily: 'var(--font-mono)',
@@ -173,7 +229,7 @@ export default function ModelSelector({ value, onChange, placeholder = 'Any mode
                     display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                     padding: '8px 16px',
                     cursor: 'pointer',
-                    background: value === m.id ? 'rgba(47,128,237,0.15)' : 'transparent',
+                    background: value === m.id ? 'rgba(0,122,255,0.15)' : 'transparent',
                     transition: 'background 0.1s',
                     gap: 8,
                   }}
@@ -196,13 +252,13 @@ export default function ModelSelector({ value, onChange, placeholder = 'Any mode
         )}
 
         {/* Add custom option */}
-        {query.trim() && Object.keys(grouped).length > 0 && !ALL_MODELS.find(m => m.id === query.trim()) && (
+        {query.trim() && Object.keys(grouped).length > 0 && !baseFlat.find(m => m.id === query.trim()) && (
           <div style={{ borderTop: '1px solid rgba(255,255,255,0.07)', padding: '8px 16px' }}>
             <button
               onClick={handleAddCustom}
               style={{
                 display: 'flex', alignItems: 'center', gap: 6,
-                background: 'rgba(47,128,237,0.1)', border: '1px solid rgba(47,128,237,0.2)',
+                background: 'rgba(0,122,255,0.1)', border: '1px solid rgba(0,122,255,0.2)',
                 borderRadius: 8, padding: '5px 10px',
                 color: '#409CFF', fontSize: 12, cursor: 'pointer',
                 fontFamily: 'var(--font-mono)',
@@ -226,12 +282,12 @@ export default function ModelSelector({ value, onChange, placeholder = 'Any mode
         style={{
           display: 'flex', alignItems: 'center', gap: 8,
           background: 'rgba(255,255,255,0.05)',
-          border: `1px solid ${open ? 'rgba(47,128,237,0.5)' : 'rgba(255,255,255,0.09)'}`,
+          border: `1px solid ${open ? 'rgba(0,122,255,0.5)' : 'rgba(255,255,255,0.09)'}`,
           borderRadius: 'var(--radius-md)',
           padding: '10px 14px',
           cursor: 'pointer',
           transition: 'all 0.15s',
-          boxShadow: open ? '0 0 0 3px rgba(47,128,237,0.12)' : 'none',
+          boxShadow: open ? '0 0 0 3px rgba(0,122,255,0.12)' : 'none',
           minHeight: 42,
           userSelect: 'none',
         }}

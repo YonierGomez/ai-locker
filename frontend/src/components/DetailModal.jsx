@@ -73,7 +73,7 @@ export default function DetailModal({ item, onClose, onEdit, onDelete, onToggleF
           {String(children).replace(/\n$/, '')}
         </SyntaxHighlighter>
       ) : (
-        <code style={{ background: 'rgba(0,0,0,0.45)', borderRadius: 4, padding: '1px 6px', fontSize: 12, fontFamily: 'var(--font-mono)', color: '#00D4FF' }}>{children}</code>
+        <code style={{ background: 'var(--glass-bg-active)', borderRadius: 4, padding: '1px 6px', fontSize: 12, fontFamily: 'var(--font-mono)', color: 'var(--accent)' }}>{children}</code>
       )
     },
     ul: ({ children }) => <ul style={{ paddingLeft: 20, marginBottom: 10 }}>{children}</ul>,
@@ -82,13 +82,13 @@ export default function DetailModal({ item, onClose, onEdit, onDelete, onToggleF
     strong: ({ children }) => <strong style={{ color: 'var(--text-primary)', fontWeight: 600 }}>{children}</strong>,
     em: ({ children }) => <em style={{ color: 'var(--text-tertiary)', fontStyle: 'italic' }}>{children}</em>,
     blockquote: ({ children }) => (
-      <blockquote style={{ borderLeft: '3px solid rgba(47,128,237,0.5)', paddingLeft: 14, margin: '10px 0', color: 'var(--text-tertiary)', fontStyle: 'italic' }}>{children}</blockquote>
+      <blockquote style={{ borderLeft: '3px solid rgba(0,122,255,0.5)', paddingLeft: 14, margin: '10px 0', color: 'var(--text-tertiary)', fontStyle: 'italic' }}>{children}</blockquote>
     ),
-    hr: () => <hr style={{ border: 'none', borderTop: '1px solid rgba(255,255,255,0.08)', margin: '16px 0' }} />,
-    a: ({ href, children }) => <a href={href} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--blue)', textDecoration: 'underline', textDecorationColor: 'rgba(47,128,237,0.4)' }}>{children}</a>,
+    hr: () => <hr style={{ border: 'none', borderTop: '1px solid var(--glass-border)', margin: '16px 0' }} />,
+    a: ({ href, children }) => <a href={href} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--blue)', textDecoration: 'underline', textDecorationColor: 'rgba(0,122,255,0.4)' }}>{children}</a>,
     table: ({ children }) => <div style={{ overflowX: 'auto', marginBottom: 10 }}><table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>{children}</table></div>,
-    th: ({ children }) => <th style={{ padding: '6px 10px', textAlign: 'left', borderBottom: '1px solid rgba(255,255,255,0.1)', color: 'var(--text-secondary)', fontWeight: 600 }}>{children}</th>,
-    td: ({ children }) => <td style={{ padding: '6px 10px', borderBottom: '1px solid rgba(255,255,255,0.05)', color: 'var(--text-tertiary)' }}>{children}</td>,
+    th: ({ children }) => <th style={{ padding: '6px 10px', textAlign: 'left', borderBottom: '1px solid var(--glass-border)', color: 'var(--text-secondary)', fontWeight: 600 }}>{children}</th>,
+    td: ({ children }) => <td style={{ padding: '6px 10px', borderBottom: '1px solid var(--glass-border)', color: 'var(--text-tertiary)' }}>{children}</td>,
   }
 
   return (
@@ -97,13 +97,8 @@ export default function DetailModal({ item, onClose, onEdit, onDelete, onToggleF
       onClick={(e) => e.target === e.currentTarget && onClose?.()}
       style={{ alignItems: 'center' }}
     >
-      <div style={{
-        background: 'rgba(12,12,20,0.97)',
-        backdropFilter: 'blur(40px) saturate(180%)',
-        WebkitBackdropFilter: 'blur(40px) saturate(180%)',
-        border: '1px solid rgba(255,255,255,0.10)',
+      <div className="detail-modal-container" style={{
         borderRadius: maximized ? 0 : 'var(--radius-2xl)',
-        boxShadow: maximized ? 'none' : '0 32px 80px rgba(0,0,0,0.7)',
         width: maximized ? '100vw' : '100%',
         maxWidth: maximized ? '100vw' : (maxWidth || 780),
         height: maximized ? '100vh' : undefined,
@@ -115,12 +110,12 @@ export default function DetailModal({ item, onClose, onEdit, onDelete, onToggleF
         transition: 'border-radius 0.2s, box-shadow 0.2s',
       }}>
         {/* Top gradient line */}
-        <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 1, background: `linear-gradient(90deg, transparent, ${typeColor || 'rgba(47,128,237,0.6)'}, transparent)` }} />
+        <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 1, background: `linear-gradient(90deg, transparent, ${typeColor || 'rgba(0,122,255,0.6)'}, transparent)` }} />
 
         {/* Header */}
-        <div style={{
+        <div className="detail-modal-header" style={{
           padding: '20px 24px 16px',
-          borderBottom: '1px solid rgba(255,255,255,0.07)',
+          borderBottom: '1px solid var(--glass-border)',
           display: 'flex', alignItems: 'flex-start', gap: 14,
         }}>
           {TypeIcon && (
@@ -150,7 +145,7 @@ export default function DetailModal({ item, onClose, onEdit, onDelete, onToggleF
                 <span className={`category-badge ${item.category}`}>{item.category}</span>
               )}
               {item.is_active === false && (
-                <span style={{ fontSize: 10, color: 'var(--text-quaternary)', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 6, padding: '2px 8px' }}>
+                <span style={{ fontSize: 10, color: 'var(--text-quaternary)', background: 'var(--glass-bg)', border: '1px solid var(--glass-border)', borderRadius: 6, padding: '2px 8px' }}>
                   Inactive
                 </span>
               )}
@@ -166,8 +161,8 @@ export default function DetailModal({ item, onClose, onEdit, onDelete, onToggleF
             <button
               onClick={() => onToggleFavorite?.(item.id)}
               style={{
-                background: item.is_favorite ? 'rgba(255,214,10,0.12)' : 'rgba(255,255,255,0.06)',
-                border: `1px solid ${item.is_favorite ? 'rgba(255,214,10,0.3)' : 'rgba(255,255,255,0.08)'}`,
+                background: item.is_favorite ? 'rgba(255,214,10,0.12)' : 'var(--glass-bg)',
+                border: `1px solid ${item.is_favorite ? 'rgba(255,214,10,0.3)' : 'var(--glass-border)'}`,
                 borderRadius: 8, padding: '7px', cursor: 'pointer',
                 color: item.is_favorite ? '#FFD60A' : 'var(--text-tertiary)',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -211,8 +206,8 @@ export default function DetailModal({ item, onClose, onEdit, onDelete, onToggleF
                     <button
                       onClick={() => setRenderMd(p => !p)}
                       style={{
-                        background: renderMd ? 'rgba(47,128,237,0.15)' : 'rgba(255,255,255,0.06)',
-                        border: `1px solid ${renderMd ? 'rgba(47,128,237,0.3)' : 'rgba(255,255,255,0.08)'}`,
+                        background: renderMd ? 'rgba(0,122,255,0.15)' : 'var(--glass-bg)',
+                        border: `1px solid ${renderMd ? 'rgba(0,122,255,0.3)' : 'var(--glass-border)'}`,
                         borderRadius: 6, padding: '3px 8px', cursor: 'pointer',
                         fontSize: 11, fontWeight: 500,
                         color: renderMd ? 'var(--blue)' : 'var(--text-tertiary)',
@@ -319,9 +314,9 @@ export default function DetailModal({ item, onClose, onEdit, onDelete, onToggleF
         </div>
 
         {/* Footer actions */}
-        <div style={{
+        <div className="detail-modal-footer" style={{
           padding: '14px 24px',
-          borderTop: '1px solid rgba(255,255,255,0.07)',
+          borderTop: '1px solid var(--glass-border)',
           display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10,
           flexWrap: 'wrap',
         }}>
@@ -349,9 +344,9 @@ export default function DetailModal({ item, onClose, onEdit, onDelete, onToggleF
 
 function MetaChip({ icon: Icon, label, value, valueColor }) {
   return (
-    <div style={{
-      background: 'rgba(255,255,255,0.04)',
-      border: '1px solid rgba(255,255,255,0.07)',
+    <div className="meta-chip" style={{
+      background: 'var(--glass-bg)',
+      border: '1px solid var(--glass-border)',
       borderRadius: 'var(--radius-md)',
       padding: '8px 12px',
       display: 'flex', flexDirection: 'column', gap: 3,

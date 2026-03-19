@@ -2,8 +2,15 @@ import axios from 'axios'
 
 const api = axios.create({
   baseURL: '/api',
-  timeout: 30000,
+  timeout: 60000,
   headers: { 'Content-Type': 'application/json' },
+})
+
+// Attach optional API key from localStorage
+api.interceptors.request.use((config) => {
+  const key = localStorage.getItem('promptly_api_key')
+  if (key) config.headers.Authorization = `Bearer ${key}`
+  return config
 })
 
 api.interceptors.response.use(
@@ -112,6 +119,20 @@ export const backupApi = {
   s3Restore: (key, merge = false) => api.post('/backup/s3/restore', { key, merge }),
   s3Test: (config) => api.post('/backup/s3/test', config),
   s3Status: () => api.get('/backup/s3/status'),
+}
+
+// ── AI ──
+export const aiApi = {
+  generate: (message, history = []) => api.post('/ai/generate', { message, history }),
+  save: (type, item) => api.post('/ai/save', { type, item }),
+  bulkSave: (items) => api.post('/ai/bulk-save', { items }),
+  config: () => api.get('/ai/config'),
+}
+
+// ── Versions ──
+export const versionsApi = {
+  list: (itemType, itemId) => api.get(`/${itemType}s/${itemId}/versions`),
+  restore: (itemType, itemId, versionId) => api.post(`/${itemType}s/${itemId}/versions/${versionId}/restore`),
 }
 
 export default api

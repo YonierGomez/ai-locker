@@ -8,7 +8,6 @@ export const AI_MODELS_BY_GROUP = [
       // GPT-5 family (latest March 2026)
       { id: 'gpt-5.4', label: 'GPT-5.4' },
       { id: 'gpt-5.4-mini', label: 'GPT-5.4 Mini' },
-      { id: 'gpt-5.4-nano', label: 'GPT-5.4 Nano' },
       // GPT-4.1 family
       { id: 'gpt-4.1', label: 'GPT-4.1' },
       { id: 'gpt-4.1-mini', label: 'GPT-4.1 Mini' },
@@ -17,7 +16,6 @@ export const AI_MODELS_BY_GROUP = [
       { id: 'gpt-4o', label: 'GPT-4o' },
       { id: 'gpt-4o-mini', label: 'GPT-4o Mini' },
       // Reasoning models
-      { id: 'o4-mini', label: 'o4-mini' },
       { id: 'o3', label: 'o3' },
       { id: 'o3-mini', label: 'o3-mini' },
       { id: 'o1', label: 'o1' },
@@ -27,9 +25,12 @@ export const AI_MODELS_BY_GROUP = [
   {
     group: 'Anthropic',
     models: [
-      // Claude 4.x — latest March 2026 (official Anthropic docs)
+      // Claude 4.6 — latest March 2026 (official Anthropic API)
       { id: 'claude-opus-4-6', label: 'Claude Opus 4.6' },
       { id: 'claude-sonnet-4-6', label: 'Claude Sonnet 4.6' },
+      // Claude 4.5
+      { id: 'claude-opus-4-5', label: 'Claude Opus 4.5' },
+      { id: 'claude-sonnet-4-5', label: 'Claude Sonnet 4.5' },
       { id: 'claude-haiku-4-5', label: 'Claude Haiku 4.5' },
       // Claude 3.7
       { id: 'claude-3-7-sonnet-20250219', label: 'Claude 3.7 Sonnet' },
@@ -44,21 +45,20 @@ export const AI_MODELS_BY_GROUP = [
   {
     group: 'Google',
     models: [
-      // Gemini 3 family — latest March 2026 (official Google AI docs)
-      { id: 'gemini-3.1-pro', label: 'Gemini 3.1 Pro (New)' },
-      { id: 'gemini-3-flash', label: 'Gemini 3 Flash (New)' },
-      { id: 'gemini-3.1-flash-lite', label: 'Gemini 3.1 Flash-Lite (New)' },
-      // Gemini 2.5 family
-      { id: 'gemini-2.5-pro', label: 'Gemini 2.5 Pro' },
-      { id: 'gemini-2.5-flash', label: 'Gemini 2.5 Flash' },
-      { id: 'gemini-2.5-flash-lite', label: 'Gemini 2.5 Flash-Lite' },
-      // Gemini 2.0 family
-      { id: 'gemini-2.0-flash', label: 'Gemini 2.0 Flash' },
-      { id: 'gemini-2.0-flash-lite', label: 'Gemini 2.0 Flash-Lite' },
-      { id: 'gemini-2.0-pro-exp', label: 'Gemini 2.0 Pro (Exp)' },
-      // Gemini 1.5
-      { id: 'gemini-1.5-pro', label: 'Gemini 1.5 Pro' },
-      { id: 'gemini-1.5-flash', label: 'Gemini 1.5 Flash' },
+      // Gemini 3 — latest March 2026 (official Google AI API model codes)
+      { id: 'gemini-3.1-pro-preview',       label: 'Gemini 3.1 Pro' },
+      { id: 'gemini-3-flash-preview',        label: 'Gemini 3 Flash' },
+      { id: 'gemini-3.1-flash-lite-preview', label: 'Gemini 3.1 Flash Lite' },
+      // Gemini 2.5 family (stable)
+      { id: 'gemini-2.5-pro',       label: 'Gemini 2.5 Pro' },
+      { id: 'gemini-2.5-flash',     label: 'Gemini 2.5 Flash' },
+      { id: 'gemini-2.5-flash-lite', label: 'Gemini 2.5 Flash Lite' },
+      // Gemini 2.0 (deprecated)
+      { id: 'gemini-2.0-flash',     label: 'Gemini 2.0 Flash (deprecated)' },
+      { id: 'gemini-2.0-flash-lite', label: 'Gemini 2.0 Flash Lite (deprecated)' },
+      // Gemini 1.5 (deprecated)
+      { id: 'gemini-1.5-pro',   label: 'Gemini 1.5 Pro (deprecated)' },
+      { id: 'gemini-1.5-flash', label: 'Gemini 1.5 Flash (deprecated)' },
     ],
   },
   {

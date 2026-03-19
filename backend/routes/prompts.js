@@ -3,6 +3,27 @@ const router = express.Router();
 const { v4: uuidv4 } = require('uuid');
 const { getDb, toBool } = require('../config/database');
 
+const MAX_VERSIONS = 20; // Keep last 20 versions per prompt
+
+async function saveVersion(db, itemId, itemType, snapshot) {
+  await db('item_versions').insert({
+    id: uuidv4(),
+    item_id: itemId,
+    item_type: itemType,
+    snapshot: JSON.stringify(snapshot),
+    created_at: new Date().toISOString(),
+  });
+  // Prune old versions, keep only the latest MAX_VERSIONS
+  const rows = await db('item_versions')
+    .where({ item_id: itemId, item_type: itemType })
+    .orderBy('created_at', 'desc')
+    .select('id');
+  if (rows.length > MAX_VERSIONS) {
+    const toDelete = rows.slice(MAX_VERSIONS).map(r => r.id);
+    await db('item_versions').whereIn('id', toDelete).delete();
+  }
+}
+
 const VALID_SORTS = ['title', 'created_at', 'updated_at', 'use_count'];
 
 async function getTagsFor(db, itemId, itemType) {
@@ -70,6 +91,9 @@ router.put('/:id', async (req, res) => {
     const existing = await db('prompts').where({ id: req.params.id }).first();
     if (!existing) return res.status(404).json({ error: 'Prompt not found' });
 
+    // Save current state as a version before overwriting
+    await saveVersion(db, req.params.id, 'prompt', existing);
+
     const updates = { updated_at: new Date().toISOString() };
     if (title !== undefined) updates.title = title;
     if (content !== undefined) updates.content = content;
@@ -109,6 +133,43 @@ router.patch('/:id/use', async (req, res) => {
     const db = getDb();
     await db('prompts').where({ id: req.params.id }).increment('use_count', 1);
     res.json({ success: true });
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+router.get('/:id/versions', async (req, res) => {
+  try {
+    const db = getDb();
+    const versions = await db('item_versions')
+      .where({ item_id: req.params.id, item_type: 'prompt' })
+      .orderBy('created_at', 'desc')
+      .select('id', 'created_at', 'snapshot');
+    res.json(versions.map(v => ({ ...v, snapshot: JSON.parse(v.snapshot) })));
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+router.post('/:id/versions/:versionId/restore', async (req, res) => {
+  try {
+    const db = getDb();
+    const version = await db('item_versions').where({ id: req.params.versionId, item_id: req.params.id }).first();
+    if (!version) return res.status(404).json({ error: 'Version not found' });
+    const snap = JSON.parse(version.snapshot);
+    const existing = await db('prompts').where({ id: req.params.id }).first();
+    if (!existing) return res.status(404).json({ error: 'Prompt not found' });
+
+    await saveVersion(db, req.params.id, 'prompt', existing);
+    await db('prompts').where({ id: req.params.id }).update({
+      title: snap.title,
+      content: snap.content,
+      description: snap.description,
+      category: snap.category,
+      model: snap.model,
+      temperature: snap.temperature,
+      max_tokens: snap.max_tokens,
+      updated_at: new Date().toISOString(),
+    });
+    const prompt = await db('prompts').where({ id: req.params.id }).first();
+    const tags = await getTagsFor(db, req.params.id, 'prompt');
+    res.json(formatPrompt(prompt, tags));
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 

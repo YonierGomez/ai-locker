@@ -62,9 +62,9 @@ export default function TagsSelector({ value = [], onChange }) {
     <>
       <div ref={triggerRef} onClick={() => { updatePos(); setOpen(o => !o) }} style={{
         display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap',
-        background: 'rgba(255,255,255,0.05)', border: `1px solid ${open ? 'rgba(47,128,237,0.5)' : 'rgba(255,255,255,0.09)'}`,
+        background: 'rgba(255,255,255,0.05)', border: `1px solid ${open ? 'rgba(0,122,255,0.5)' : 'rgba(255,255,255,0.09)'}`,
         borderRadius: 'var(--radius-md)', padding: '8px 12px', cursor: 'pointer',
-        boxShadow: open ? '0 0 0 3px rgba(47,128,237,0.12)' : 'none', minHeight: 42,
+        boxShadow: open ? '0 0 0 3px rgba(0,122,255,0.12)' : 'none', minHeight: 42,
       }}>
         {selectedTags.length === 0 ? (
           <span style={{ fontSize: 14, color: 'rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', gap: 6 }}>
@@ -147,7 +147,7 @@ export default function TagsSelector({ value = [], onChange }) {
                   <input type="color" value={newColor} onChange={e => setNewColor(e.target.value)} style={{ position: 'absolute', inset: 0, opacity: 0, cursor: 'pointer' }} />
                 </label>
               </div>
-              <button onClick={() => newTag.trim() && createMutation.mutate({ name: newTag.trim(), color: newColor })} disabled={!newTag.trim()} style={{ background: 'rgba(47,128,237,0.2)', border: '1px solid rgba(47,128,237,0.3)', borderRadius: 8, padding: '5px 10px', color: '#409CFF', fontSize: 12, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}>
+              <button onClick={() => newTag.trim() && createMutation.mutate({ name: newTag.trim(), color: newColor })} disabled={!newTag.trim()} style={{ background: 'rgba(0,122,255,0.2)', border: '1px solid rgba(0,122,255,0.3)', borderRadius: 8, padding: '5px 10px', color: '#409CFF', fontSize: 12, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}>
                 <Plus size={11} /> Add
               </button>
             </div>

@@ -198,6 +198,15 @@ async function initDatabase() {
     t.string('updated_at');
   });
 
+  await ensure('item_versions', t => {
+    t.string('id').primary();
+    t.string('item_id').notNullable();
+    t.string('item_type').notNullable(); // prompt | skill | steering
+    t.text('snapshot').notNullable(); // full JSON snapshot of the item
+    t.string('created_at');
+    t.index(['item_id', 'item_type']);
+  });
+
   // Migrate existing SQLite DBs that might be missing deleted_at
   for (const table of ['prompts', 'skills', 'steering', 'mcp_configs']) {
     const has = await db.schema.hasColumn(table, 'deleted_at');
@@ -219,6 +228,13 @@ async function initDatabase() {
     { key: 's3_endpoint', value: '' },
     { key: 'sync_enabled', value: 'false' },
     { key: 'sync_interval', value: '60' },
+    { key: 'ai_provider', value: 'openrouter' },
+    { key: 'ai_api_key', value: '' },
+    { key: 'ai_base_url', value: 'https://openrouter.ai/api/v1' },
+    { key: 'ai_model', value: 'openai/gpt-4o-mini' },
+    { key: 'ai_aws_region', value: 'us-east-1' },
+    { key: 'ai_aws_access_key_id', value: '' },
+    { key: 'ai_aws_secret_access_key', value: '' },
   ];
   for (const s of defaults) {
     await db('settings').insert({ ...s, updated_at: now }).onConflict('key').ignore();

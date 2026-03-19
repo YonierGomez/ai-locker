@@ -393,7 +393,7 @@ export default function CommandsPage() {
         {allCategories.map(cat => (
           <button key={cat} onClick={() => setFilterCategory(filterCategory === cat ? '' : cat)}
             className={`filter-chip${filterCategory === cat ? ' active' : ''}`}
-            style={filterCategory === cat ? { background: 'rgba(47,128,237,0.12)', borderColor: 'rgba(47,128,237,0.35)', color: '#BF5AF2' } : {}}>
+            style={filterCategory === cat ? { background: 'rgba(191,90,242,0.12)', borderColor: 'rgba(191,90,242,0.35)', color: '#BF5AF2' } : {}}>
             {cat}
           </button>
         ))}
