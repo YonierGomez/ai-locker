@@ -19,6 +19,7 @@ const categoriesRouter = require('./routes/categories');
 const backupRouter = require('./routes/backup');
 const trashRouter = require('./routes/trash');
 const commandsRouter = require('./routes/commands');
+const notesRouter = require('./routes/notes');
 const aiRouter = require('./routes/ai');
 
 const app = express();
@@ -56,6 +57,7 @@ app.use('/api/categories', categoriesRouter);
 app.use('/api/backup', backupRouter);
 app.use('/api/trash', trashRouter);
 app.use('/api/commands', commandsRouter);
+app.use('/api/notes', notesRouter);
 app.use('/api/ai', aiRouter);
 
 // Health check

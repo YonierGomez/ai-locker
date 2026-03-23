@@ -168,6 +168,23 @@ async function initDatabase() {
     t.index(['platform']);
   });
 
+  await ensure('notes', t => {
+    t.string('id').primary();
+    t.string('title').notNullable();
+    t.text('content').defaultTo('');
+    t.text('description');
+    t.string('category').defaultTo('general');
+    t.string('color').defaultTo('#FFD60A');
+    t.integer('is_favorite').defaultTo(0);
+    t.integer('is_pinned').defaultTo(0);
+    t.string('created_at');
+    t.string('updated_at');
+    t.string('deleted_at');
+    t.index(['category']);
+    t.index(['is_favorite']);
+    t.index(['is_pinned']);
+  });
+
   await ensure('tags', t => {
     t.string('id').primary();
     t.string('name').notNullable().unique();
@@ -218,7 +235,7 @@ async function initDatabase() {
     { key: 'theme', value: 'dark' },
     { key: 'accent_color', value: '#007AFF' },
     { key: 'default_model', value: 'claude-sonnet-4-6' },
-    { key: 'app_name', value: 'Promptly' },
+    { key: 'app_name', value: 'AI Locker' },
     { key: 'app_logo', value: '' },
     { key: 's3_bucket', value: '' },
     { key: 's3_region', value: 'us-east-1' },

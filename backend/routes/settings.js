@@ -50,12 +50,14 @@ router.get('/stats', async (req, res) => {
     const [stc] = await db('steering').whereNull('deleted_at').count('id as count');
     const [mc] = await db('mcp_configs').whereNull('deleted_at').count('id as count');
     const [cc] = await db('commands').whereNull('deleted_at').count('id as count');
+    const [nc] = await db('notes').whereNull('deleted_at').count('id as count');
     const [tc] = await db('tags').count('id as count');
     const [fpc] = await db('prompts').whereNull('deleted_at').where('is_favorite', 1).count('id as count');
     const [fsc] = await db('skills').whereNull('deleted_at').where('is_favorite', 1).count('id as count');
     const [fstc] = await db('steering').whereNull('deleted_at').where('is_favorite', 1).count('id as count');
     const [fmc] = await db('mcp_configs').whereNull('deleted_at').where('is_favorite', 1).count('id as count');
     const [fcc] = await db('commands').whereNull('deleted_at').where('is_favorite', 1).count('id as count');
+    const [fnc] = await db('notes').whereNull('deleted_at').where('is_favorite', 1).count('id as count');
 
     // Activity last 30 days — computed in JS to avoid SQL dialect differences
     // Use local date helpers to avoid UTC-offset mismatches
@@ -134,6 +136,7 @@ router.get('/stats', async (req, res) => {
       { type: 'Steering', count: parseInt(fstc.count), color: '#BF5AF2' },
       { type: 'MCP',      count: parseInt(fmc.count),  color: '#30D158' },
       { type: 'Commands', count: parseInt(fcc.count),  color: '#5AC8FA' },
+      { type: 'Notes',    count: parseInt(fnc.count),  color: '#FFD60A' },
     ];
 
     // Activity heatmap — last 365 days (all content types combined)
@@ -157,6 +160,7 @@ router.get('/stats', async (req, res) => {
       steering: parseInt(stc.count),
       mcp_configs: parseInt(mc.count),
       commands: parseInt(cc.count),
+      notes: parseInt(nc.count),
       tags: parseInt(tc.count),
       favorites: {
         prompts: parseInt(fpc.count),
@@ -164,6 +168,7 @@ router.get('/stats', async (req, res) => {
         steering: parseInt(fstc.count),
         mcp_configs: parseInt(fmc.count),
         commands: parseInt(fcc.count),
+        notes: parseInt(fnc.count),
       },
       activity,
       top_used,

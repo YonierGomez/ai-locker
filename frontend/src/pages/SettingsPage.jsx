@@ -1043,7 +1043,7 @@ export default function SettingsPage() {
               )}
             </div>
             <div>
-              <div style={{ fontSize: 16, fontWeight: 700, letterSpacing: -0.3 }}>{currentSettings.app_name || 'Promptly'}</div>
+              <div style={{ fontSize: 16, fontWeight: 700, letterSpacing: -0.3 }}>{currentSettings.app_name || 'AI Locker'}</div>
               <div style={{ fontSize: 13, color: 'var(--text-tertiary)' }}>AI Prompts Manager · v1.0.0</div>
             </div>
           </div>

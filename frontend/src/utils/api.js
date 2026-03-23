@@ -77,6 +77,17 @@ export const commandsApi = {
   delete: (id) => api.delete(`/commands/${id}`),
 }
 
+// ── Notes ──
+export const notesApi = {
+  list: (params) => api.get('/notes', { params }),
+  get: (id) => api.get(`/notes/${id}`),
+  create: (data) => api.post('/notes', data),
+  update: (id, data) => api.put(`/notes/${id}`, data),
+  toggleFavorite: (id) => api.patch(`/notes/${id}/favorite`),
+  togglePin: (id) => api.patch(`/notes/${id}/pin`),
+  delete: (id) => api.delete(`/notes/${id}`),
+}
+
 // ── Tags ──
 export const tagsApi = {
   list: () => api.get('/tags'),

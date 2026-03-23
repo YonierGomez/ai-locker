@@ -1,0 +1,44 @@
+# Dependencies
+node_modules/
+
+# Build outputs
+frontend/build/
+dist/
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# SQLite databases
+*.db
+*.db-wal
+*.db-shm
+
+# Data directory (user data, not source)
+data/
+backend/data/
+
+# Vite cache
+.vite/
+**/.vite/
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# OS
+.DS_Store
+.DS_Store?
+Thumbs.db
+
+# Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Coverage
+coverage/

@@ -19,7 +19,7 @@ function hasMarkdown(text) {
   return /[#*`_\[\]>~\-]{1,}/.test(text)
 }
 
-export default function DetailModal({ item, onClose, onEdit, onDelete, onToggleFavorite, typeLabel, typeColor, typeIcon: TypeIcon, maxWidth }) {
+export default function DetailModal({ item, onClose, onEdit, onDelete, onToggleFavorite, typeLabel, typeColor, typeIcon: TypeIcon, maxWidth, showTokens = true }) {
   const [copied, setCopied] = useState(false)
   const [renderMd, setRenderMd] = useState(true)
   const [maximized, setMaximized] = useState(false)
@@ -197,7 +197,7 @@ export default function DetailModal({ item, onClose, onEdit, onDelete, onToggleF
                   {isJsonContent ? 'Config' : 'Content'}
                 </span>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                  {tokenCount > 0 && (
+                  {showTokens && tokenCount > 0 && (
                     <span style={{ fontSize: 11, fontFamily: 'var(--font-mono)', color: tokenColor, fontWeight: 600 }}>
                       {formatTokens(tokenCount)}
                     </span>
@@ -262,7 +262,7 @@ export default function DetailModal({ item, onClose, onEdit, onDelete, onToggleF
             {item.model && (
               <MetaChip icon={Cpu} label="Model" value={item.model} />
             )}
-            {tokenCount > 0 && (
+            {showTokens && tokenCount > 0 && (
               <MetaChip icon={Hash} label="Tokens" value={formatTokens(tokenCount)} valueColor={tokenColor} />
             )}
             {item.use_count > 0 && (

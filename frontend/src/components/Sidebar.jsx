@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query'
 import { settingsApi, trashApi } from '../utils/api'
 import {
   LayoutDashboard, MessageSquare, Zap, Navigation,
-  Settings, X, Bot, Trash2, TerminalSquare
+  Settings, X, Bot, Trash2, TerminalSquare, StickyNote
 } from 'lucide-react'
 
 function AiNavItem({ onClose }) {
@@ -65,6 +65,7 @@ const libraryItems = [
   { path: '/steering', icon: Navigation, label: 'Steering', statsKey: 'steering' },
   { path: '/mcp', icon: McpIcon, label: 'MCP Configs', statsKey: 'mcp_configs' },
   { path: '/commands', icon: TerminalSquare, label: 'Commands', statsKey: 'commands' },
+  { path: '/notes', icon: StickyNote, label: 'Notes', statsKey: 'notes' },
 ]
 
 export default function Sidebar({ isOpen, onClose }) {
@@ -80,7 +81,7 @@ export default function Sidebar({ isOpen, onClose }) {
     staleTime: 60000,
   })
 
-  const appName = settings?.app_name || 'Promptly'
+  const appName = settings?.app_name || 'AI Locker'
   const appLogo = settings?.app_logo || ''
 
   return (

@@ -180,6 +180,7 @@ export default function MarkdownEditor({
   itemId,
   itemType,
   onRestoreVersion,
+  showTokens = true,
 }) {
   const [mode, setMode] = useState('edit')
   const [showVersions, setShowVersions] = useState(false)
@@ -210,7 +211,7 @@ export default function MarkdownEditor({
               {label}
             </span>
           )}
-          {value && (
+          {value && showTokens && (
             <span style={{
               fontSize: 10, fontWeight: 600, color: tokenColor,
               background: `${tokenColor}18`, border: `1px solid ${tokenColor}30`,

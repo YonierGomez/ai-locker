@@ -591,7 +591,7 @@ export default function DashboardPage() {
               </svg>
             </div>
             <div>
-                <h1 style={{ fontSize: 22, fontWeight: 700, letterSpacing: -0.5, marginBottom: 2 }}>Welcome to Promptly</h1>
+                <h1 style={{ fontSize: 22, fontWeight: 700, letterSpacing: -0.5, marginBottom: 2 }}>Welcome to AI Locker</h1>
                 <p style={{ fontSize: 14, color: 'var(--text-secondary)' }}>Your AI prompts, skills, and configurations — all in one place.</p>
               </div>
             </div>

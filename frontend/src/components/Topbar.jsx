@@ -19,7 +19,7 @@ export default function Topbar({ onMenuClick, onSearchClick }) {
   const [scrolled, setScrolled] = useState(false)
   const [theme, setTheme] = useState(() => localStorage.getItem('promptly_theme') || 'dark')
 
-  const pageInfo = pageTitles[location.pathname] || { title: 'Promptly', subtitle: '' }
+  const pageInfo = pageTitles[location.pathname] || { title: 'AI Locker', subtitle: '' }
 
   // Apply theme to document
   useEffect(() => {

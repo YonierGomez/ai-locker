@@ -12,6 +12,7 @@ import DashboardPage from './pages/DashboardPage'
 import SettingsPage from './pages/SettingsPage'
 import TrashPage from './pages/TrashPage'
 import CommandsPage from './pages/CommandsPage'
+import NotesPage from './pages/NotesPage'
 import AiSessionPage from './pages/AiSessionPage'
 import { settingsApi } from './utils/api'
 
@@ -75,6 +76,7 @@ export default function App() {
           <Route path="/steering" element={<SteeringPage />} />
           <Route path="/mcp" element={<McpPage />} />
           <Route path="/commands" element={<CommandsPage />} />
+          <Route path="/notes" element={<NotesPage />} />
           <Route path="/settings" element={<SettingsPage />} />
           <Route path="/trash" element={<TrashPage />} />
           <Route path="/ai" element={<AiSessionPage />} />
