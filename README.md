@@ -1,8 +1,8 @@
 <div align="center">
 
-<img src="https://raw.githubusercontent.com/YonierGomez/promptly/main/docs/promptly.png" alt="Promptly — AI Prompts Manager" width="100%" style="max-width:900px;border-radius:12px;" />
+<img src="https://raw.githubusercontent.com/YonierGomez/ai-locker/main/docs/promptly.png" alt="AI Locker — AI Prompts Manager" width="100%" style="max-width:900px;border-radius:12px;" />
 
-# ✦ Promptly
+# ✦ AI Locker
 
 **AI Prompts Manager** — A beautiful, self-hosted web app to manage your AI prompts, skills, steering configurations, MCP server setups, and shell commands. **Includes built-in AI Chat** to generate prompts, skills, steering rules, MCP configs, and commands from natural language.
 
@@ -20,7 +20,7 @@ Built with a true-black glassmorphism design and multi-provider AI support.
 
 ### ☕ Support this project
 
-If Promptly saves you time, consider supporting its development:
+If AI Locker saves you time, consider supporting its development:
 
 [![GitHub Sponsors](https://img.shields.io/badge/Sponsor-%E2%9D%A4-ea4aaa?logo=github-sponsors)](https://github.com/sponsors/YonierGomez)
 [![Buy Me a Coffee](https://img.shields.io/badge/Buy%20Me%20a%20Coffee-FFDD00?logo=buy-me-a-coffee&logoColor=black)](https://buymeacoffee.com/yoniergomez)
@@ -63,7 +63,7 @@ No clone required. Includes PostgreSQL, persistent volumes, and automatic restar
 
 ```bash
 # Download the compose file
-curl -O https://raw.githubusercontent.com/YonierGomez/promptly/main/compose.yaml
+curl -O https://raw.githubusercontent.com/YonierGomez/ai-locker/main/compose.yaml
 
 # Start (pulls the image automatically from Docker Hub)
 docker compose up -d
@@ -181,7 +181,7 @@ docker compose down
 docker compose pull && docker compose up -d
 
 # Build from source instead of using the official image
-git clone https://github.com/YonierGomez/promptly.git && cd promptly
+git clone https://github.com/YonierGomez/ai-locker.git && cd ai-locker
 # Edit compose.yaml: replace `image:` with `build: .`, then:
 docker compose up -d --build
 
@@ -294,7 +294,7 @@ A dedicated library for shell commands:
 
 ## ☁️ Backup & Restore
 
-Your library is always safe. Promptly supports full backup and restore through S3-compatible storage and local JSON files.
+Your library is always safe. AI Locker supports full backup and restore through S3-compatible storage and local JSON files.
 
 ### S3 / Cloud storage
 
@@ -337,13 +337,13 @@ curl -X POST http://localhost:3001/api/backup/import/json \
   -d @backup.json
 ```
 
-> **Tip:** The prefix path is auto-normalized — if you enter `my-backups` without a trailing `/`, Promptly adds it automatically so S3 keys are always correct.
+> **Tip:** The prefix path is auto-normalized — if you enter `my-backups` without a trailing `/`, AI Locker adds it automatically so S3 keys are always correct.
 
 ---
 
 ## 🤖 AI Chat
 
-Promptly includes a built-in **AI Chat** that generates library items from natural language. Describe what you need and the AI creates prompts, skills, steering rules, MCP configs, or shell commands — ready to save to your library.
+AI Locker includes a built-in **AI Chat** that generates library items from natural language. Describe what you need and the AI creates prompts, skills, steering rules, MCP configs, or shell commands — ready to save to your library.
 
 ### Multi-provider support
 
@@ -361,7 +361,7 @@ Configure your preferred provider and API key in **Settings → AI Integration**
 
 ## 🤖 Supported AI Models (March 2026)
 
-Promptly ships with an up-to-date model list from all major providers:
+AI Locker ships with an up-to-date model list from all major providers:
 
 - **OpenAI**: GPT-5.4, GPT-4.1, o3, o1
 - **Anthropic**: Claude Opus 4.6, Sonnet 4.6, Haiku 4.5, Claude 3.7 Sonnet
