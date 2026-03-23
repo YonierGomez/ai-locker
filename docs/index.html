@@ -733,7 +733,7 @@
           <div class="t-line"><span class="t-prompt">~</span><span class="t-prompt">$</span><span class="t-cmd">curl</span><span class="t-arg">-O https://raw.githubusercontent.com/YonierGomez/ai-locker/main/compose.yaml</span></div>
           <div class="t-line" style="color:rgba(255,255,255,0.3);">  % Total    % Received ... 100  2748</div>
           <div class="t-line"><span class="t-prompt">~</span><span class="t-prompt">$</span><span class="t-cmd">docker compose up -d</span></div>
-          <div class="t-line" style="color:rgba(255,255,255,0.3);"> ✔ yoniergomez/promptly:latest  Pulled</div>
+          <div class="t-line" style="color:rgba(255,255,255,0.3);"> ✔ yoniergomez/ai-locker:latest  Pulled</div>
           <div class="t-line" style="color:rgba(255,255,255,0.3);"> ✔ Network promptly_default     Created</div>
           <div class="t-line" style="color:rgba(255,255,255,0.3);"> ✔ Container promptly_postgres  Started</div>
           <div class="t-line" style="color:rgba(255,255,255,0.3);"> ✔ Container promptly           Started</div>
@@ -777,7 +777,7 @@
         <div class="code-block" style="font-size:12px;line-height:1.8;">
 <span style="color:rgba(255,255,255,0.35);">services:</span><br/>
 <span style="color:rgba(255,255,255,0.35);">&nbsp;&nbsp;app:</span><br/>
-<span style="color:rgba(255,255,255,0.35);">&nbsp;&nbsp;&nbsp;&nbsp;image: </span><span class="arg">yoniergomez/promptly:latest</span><br/>
+<span style="color:rgba(255,255,255,0.35);">&nbsp;&nbsp;&nbsp;&nbsp;image: </span><span class="arg">yoniergomez/ai-locker:latest</span><br/>
 <span style="color:rgba(255,255,255,0.35);">&nbsp;&nbsp;&nbsp;&nbsp;ports: [</span><span class="arg">"9090:3001"</span><span style="color:rgba(255,255,255,0.35);">]</span><br/>
 <span style="color:rgba(255,255,255,0.35);">&nbsp;&nbsp;&nbsp;&nbsp;environment:</span><br/>
 <span style="color:rgba(255,255,255,0.35);">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;DB_HOST: </span><span class="arg">postgres-db</span><br/>
@@ -799,7 +799,7 @@
           &nbsp;&nbsp;-p <span class="arg">3001:3001</span> \<br/>
           &nbsp;&nbsp;-v <span class="arg">promptly_data:/data</span> \<br/>
           &nbsp;&nbsp;--restart unless-stopped \<br/>
-          &nbsp;&nbsp;<span class="arg">yoniergomez/promptly:latest</span><br/><br/>
+          &nbsp;&nbsp;<span class="arg">yoniergomez/ai-locker:latest</span><br/><br/>
           <span class="comment"># Open → http://localhost:3001</span>
         </div>
       </div>
@@ -815,7 +815,7 @@
           &nbsp;&nbsp;-v <span class="arg">promptly_data:/data</span> \<br/>
           &nbsp;&nbsp;-e <span class="arg">DATABASE_URL</span>=postgresql://<span class="arg">user:pass@host:5432/promptly</span> \<br/>
           &nbsp;&nbsp;--restart unless-stopped \<br/>
-          &nbsp;&nbsp;<span class="arg">yoniergomez/promptly:latest</span><br/><br/>
+          &nbsp;&nbsp;<span class="arg">yoniergomez/ai-locker:latest</span><br/><br/>
           <span class="comment"># Open → http://localhost:3001</span>
         </div>
       </div>

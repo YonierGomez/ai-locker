@@ -13,7 +13,7 @@ services:
 
   # ── Aplicación principal ────────────────────────────────────────
   app:
-    image: yoniergomez/promptly:latest
+    image: yoniergomez/ai-locker:latest
     # Para construir desde el código fuente en lugar de usar la imagen oficial:
     # build:
     #   context: .

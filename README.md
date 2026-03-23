@@ -8,7 +8,7 @@
 
 Built with a true-black glassmorphism design and multi-provider AI support.
 
-[![Docker](https://img.shields.io/badge/Docker-yoniergomez%2Fpromptly-2496ED?logo=docker&logoColor=white)](https://hub.docker.com/r/yoniergomez/promptly)
+[![Docker](https://img.shields.io/badge/Docker-yoniergomez%2Fpromptly-2496ED?logo=docker&logoColor=white)](https://hub.docker.com/r/yoniergomez/ai-locker)
 [![Node.js](https://img.shields.io/badge/Node.js-20+-339933?logo=node.js&logoColor=white)](https://nodejs.org)
 [![React](https://img.shields.io/badge/React-18-61DAFB?logo=react&logoColor=black)](https://react.dev)
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-4169E1?logo=postgresql&logoColor=white)](https://postgresql.org)
@@ -55,7 +55,7 @@ If AI Locker saves you time, consider supporting its development:
 
 ## 🐳 Deploy with Docker
 
-No local dependencies needed — just Docker. The official image is published on Docker Hub as **`yoniergomez/promptly`** and supports `amd64`, `arm64`, and `armv7`.
+No local dependencies needed — just Docker. The official image is published on Docker Hub as **`yoniergomez/ai-locker`** and supports `amd64`, `arm64`, and `armv7`.
 
 ### Option A: Docker Compose (recommended)
 
@@ -78,7 +78,7 @@ Open **http://localhost:9090** and you're done.
 services:
 
   app:
-    image: yoniergomez/promptly:latest
+    image: yoniergomez/ai-locker:latest
     container_name: promptly
     ports:
       - "9090:3001"
@@ -135,7 +135,7 @@ docker run -d \
   -p 3001:3001 \
   -v promptly_data:/data \
   --restart unless-stopped \
-  yoniergomez/promptly:latest
+  yoniergomez/ai-locker:latest
 ```
 
 Open **http://localhost:3001**.
@@ -153,7 +153,7 @@ docker run -d \
   -v promptly_data:/data \
   -e DATABASE_URL=postgresql://user:pass@host:5432/promptly \
   --restart unless-stopped \
-  yoniergomez/promptly:latest
+  yoniergomez/ai-locker:latest
 ```
 
 ---
