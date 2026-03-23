@@ -1,4 +1,4 @@
-# CI/CD Docker Multi-Arch para Promptly
+# CI/CD Docker Multi-Arch para AI Locker
 # - Build multi-arquitectura (amd64, arm64) con QEMU + Buildx (armv7 no soportado por node:alpine)
 # - Detecta versión desde package.json
 # - Genera releases con changelog desde commits
@@ -19,6 +19,8 @@ permissions:
 jobs:
   check_and_build:
     runs-on: ubuntu-latest
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
     steps:
       - uses: actions/checkout@v4
@@ -30,7 +32,7 @@ jobs:
         run: |
           VERSION=$(node -e "console.log(require('./package.json').version)")
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
-          echo "Promptly version: $VERSION"
+          echo "AI Locker version: $VERSION"
 
       - name: Get latest release tag from repo
         id: latest_release
@@ -80,8 +82,8 @@ jobs:
           platforms: linux/amd64,linux/arm64
           push: true
           tags: |
-            ${{ secrets.USER_HUB }}/promptly:latest
-            ${{ secrets.USER_HUB }}/promptly:${{ steps.pkg_version.outputs.version }}
+            ${{ secrets.USER_HUB }}/ai-locker:latest
+            ${{ secrets.USER_HUB }}/ai-locker:${{ steps.pkg_version.outputs.version }}
 
       - name: Generate changelog from commits
         if: steps.compare.outputs.new_version == 'true'
@@ -105,10 +107,10 @@ jobs:
           TAG="v${{ steps.pkg_version.outputs.version }}"
           VERSION="${{ steps.pkg_version.outputs.version }}"
           CHANGELOG=$(cat /tmp/changelog.txt)
-          IMAGE="${{ secrets.USER_HUB }}/promptly"
+          IMAGE="${{ secrets.USER_HUB }}/ai-locker"
 
           cat > /tmp/release_notes.md << EOF
-          ## Promptly ${VERSION}
+          ## AI Locker ${VERSION}
 
           ### Cambios en esta versión
 
@@ -135,12 +137,12 @@ jobs:
           ### Uso rápido
 
           \`\`\`bash
-          docker run -d --name promptly -p 3001:3001 -v promptly_data:/data --restart unless-stopped ${IMAGE}:latest
+          docker run -d --name ai-locker -p 9090:3001 -v ai_locker_data:/data --restart unless-stopped ${IMAGE}:latest
           \`\`\`
 
           Abre **http://localhost:3001**
           EOF
 
           gh release create "$TAG" \
-            --title "Promptly $VERSION" \
+            --title "AI Locker $VERSION" \
             --notes-file /tmp/release_notes.md
