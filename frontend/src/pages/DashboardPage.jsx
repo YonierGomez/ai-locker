@@ -211,42 +211,6 @@ function ChartsSection({ stats }) {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-      {hasActivity && (
-        <div className="glass-card" style={{ padding: 20 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 20 }}>
-            <TrendingUp size={15} color="var(--blue)" />
-            <span style={{ fontSize: 14, fontWeight: 600 }}>Activity — last 30 days</span>
-          </div>
-          <ResponsiveContainer width="100%" height={160}>
-            <AreaChart data={activityData} margin={{ top: 4, right: 4, left: -24, bottom: 0 }}>
-              <defs>
-                {Object.entries(CHART_COLORS).map(([key, color]) => (
-                  <linearGradient key={key} id={`grad-${key}`} x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor={color} stopOpacity={0.3} />
-                    <stop offset="95%" stopColor={color} stopOpacity={0} />
-                  </linearGradient>
-                ))}
-              </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke={gridColor} vertical={false} />
-              <XAxis dataKey="day" tick={{ fontSize: 10, fill: tickColor }} tickLine={false} axisLine={false} tickFormatter={tickFormatter} />
-              <YAxis tick={{ fontSize: 10, fill: tickColor }} tickLine={false} axisLine={false} allowDecimals={false} />
-              <Tooltip content={<ChartTooltip />} cursor={{ stroke: cursorStroke, strokeWidth: 1 }} animationDuration={0} isAnimationActive={false} />
-              {Object.entries(CHART_COLORS).map(([key, color]) => (
-                <Area key={key} type="monotone" dataKey={key} stroke={color} strokeWidth={1.5} fill={`url(#grad-${key})`} dot={false} activeDot={{ r: 3, fill: color }} isAnimationActive={false} />
-              ))}
-            </AreaChart>
-          </ResponsiveContainer>
-          <div style={{ display: 'flex', gap: 16, marginTop: 12, flexWrap: 'wrap' }}>
-            {Object.entries(CHART_COLORS).map(([key, color]) => (
-              <div key={key} style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-                <div style={{ width: 8, height: 8, borderRadius: '50%', background: color }} />
-                <span style={{ fontSize: 11, color: mutedText, textTransform: 'capitalize' }}>{key}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
       {(stats?.total_tokens?.prompts > 0 || stats?.total_tokens?.skills > 0 || stats?.total_tokens?.steering > 0) && (() => {
         const tt = stats.total_tokens
         const total = tt.prompts + tt.skills + tt.steering
@@ -586,11 +550,11 @@ export default function DashboardPage() {
         const tickFormatter = (val, idx) => idx % 5 === 0 ? val : ''
         return (
           <div style={{ marginTop: 20 }}>
+            <div className="dash-section-label" style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+              <TrendingUp size={14} color="rgba(255,255,255,0.3)" />
+              <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-tertiary)', letterSpacing: 0.5, textTransform: 'uppercase' }}>Activity — last 30 days</span>
+            </div>
             <div className="glass-card" style={{ padding: 20 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 20 }}>
-                <TrendingUp size={15} color="var(--blue)" />
-                <span style={{ fontSize: 14, fontWeight: 600 }}>Activity — last 30 days</span>
-              </div>
               <ResponsiveContainer width="100%" height={160}>
                 <AreaChart data={activityData} margin={{ top: 4, right: 4, left: -24, bottom: 0 }}>
                   <defs>
@@ -630,12 +594,9 @@ export default function DashboardPage() {
         const changePct = ws.change_pct
         const changeColor = changePct > 0 ? '#30D158' : changePct < 0 ? '#FF375F' : '#8E8E93'
         const ChangeIcon = changePct > 0 ? ArrowUp : changePct < 0 ? ArrowDown : Minus
-
-        // Build chart data for grouped bar chart
         const chartData = ws.by_type?.length > 0
           ? ws.by_type.map(t => ({ name: t.type, 'This week': t.this_week, 'Last week': t.prev_week, color: t.color }))
           : []
-
         return (
           <div style={{ marginTop: 20 }}>
             <div className="dash-section-label" style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
@@ -644,7 +605,6 @@ export default function DashboardPage() {
             </div>
             <div className="glass-card" style={{ padding: 20 }}>
               <div style={{ display: 'flex', gap: 20, flexWrap: 'wrap', alignItems: 'flex-start' }}>
-                {/* KPIs column */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 16, minWidth: 140 }}>
                   <div>
                     <div style={{ fontSize: 11, color: 'var(--text-quaternary)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 4 }}>This week</div>
@@ -673,8 +633,6 @@ export default function DashboardPage() {
                     </div>
                   </div>
                 </div>
-
-                {/* Grouped bar chart */}
                 {chartData.length > 0 && (
                   <div style={{ flex: 1, minWidth: 200 }}>
                     <div style={{ fontSize: 11, color: 'var(--text-quaternary)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 10 }}>By type</div>
@@ -693,7 +651,6 @@ export default function DashboardPage() {
                         </Bar>
                       </BarChart>
                     </ResponsiveContainer>
-                    {/* Legend */}
                     <div style={{ display: 'flex', gap: 14, marginTop: 8 }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
                         <div style={{ width: 12, height: 4, borderRadius: 99, background: 'rgba(255,255,255,0.5)' }} />
@@ -783,9 +740,7 @@ export default function DashboardPage() {
         const hasMcpActive = stats?.mcp_active_list?.length > 0
         const hasSkillsRecent = stats?.top_skills_recent?.length > 0
         if (!hasTopPrompts && !hasTopCmds && !hasMcpActive && !hasSkillsRecent) return null
-
         const MEDAL = ['🥇', '🥈', '🥉', '4', '5']
-
         return (
           <div style={{ marginTop: 20 }}>
             <div className="dash-section-label" style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
@@ -793,8 +748,6 @@ export default function DashboardPage() {
               <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-tertiary)', letterSpacing: 0.5, textTransform: 'uppercase' }}>Top Performers</span>
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(300px,100%), 1fr))', gap: 14 }}>
-
-              {/* Most used prompts */}
               {hasTopPrompts && (() => {
                 const maxUse = Math.max(...stats.top_used.map(p => p.use_count), 1)
                 return (
@@ -822,8 +775,6 @@ export default function DashboardPage() {
                   </div>
                 )
               })()}
-
-              {/* Most used commands */}
               {hasTopCmds && (() => {
                 const maxUse = Math.max(...stats.top_commands_used.map(c => c.use_count), 1)
                 return (
@@ -852,8 +803,6 @@ export default function DashboardPage() {
                   </div>
                 )
               })()}
-
-              {/* Active MCP servers */}
               {hasMcpActive && (
                 <div className="glass-card" style={{ padding: 18, borderTop: '2px solid rgba(48,209,88,0.3)' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
@@ -876,8 +825,6 @@ export default function DashboardPage() {
                   </div>
                 </div>
               )}
-
-              {/* Recent skills */}
               {hasSkillsRecent && (
                 <div className="glass-card" style={{ padding: 18, borderTop: '2px solid rgba(255,149,0,0.3)' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
@@ -933,7 +880,6 @@ export default function DashboardPage() {
             <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-tertiary)', letterSpacing: 0.5, textTransform: 'uppercase' }}>Library</span>
           </div>
           <div className="dash-grid-2col">
-            {/* Recent */}
             <div className="glass-card" style={{ padding: 0, overflow: 'hidden' }}>
               <div style={{ padding: '16px 20px 12px', borderBottom: '1px solid rgba(255,255,255,0.06)', display: 'flex', alignItems: 'center', gap: 8 }}>
                 <TrendingUp size={14} color="rgba(255,255,255,0.4)" />
@@ -945,8 +891,6 @@ export default function DashboardPage() {
                 ) : recentItems.map(renderRecentItem)}
               </div>
             </div>
-
-            {/* Favorites */}
             <div className="glass-card" style={{ padding: 0, overflow: 'hidden' }}>
               <div style={{ padding: '16px 20px 12px', borderBottom: '1px solid rgba(255,255,255,0.06)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
