@@ -577,6 +577,55 @@ export default function DashboardPage() {
         ))}
       </div>
 
+      {/* ── Activity — last 30 days (top) ── */}
+      {!statsLoading && total > 0 && hasEnoughForCharts && (() => {
+        const activityData = buildActivityData(stats?.activity)
+        const hasActivity = activityData.some(d => d.prompts + d.skills + d.steering + d.mcp + d.commands + d.notes > 0)
+        if (!hasActivity) return null
+        const tickColor = 'rgba(255,255,255,0.30)'
+        const gridColor = 'rgba(255,255,255,0.05)'
+        const cursorStroke = 'rgba(255,255,255,0.10)'
+        const mutedText = 'rgba(255,255,255,0.45)'
+        const tickFormatter = (val, idx) => idx % 5 === 0 ? val : ''
+        return (
+          <div style={{ marginTop: 20 }}>
+            <div className="glass-card" style={{ padding: 20 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 20 }}>
+                <TrendingUp size={15} color="var(--blue)" />
+                <span style={{ fontSize: 14, fontWeight: 600 }}>Activity — last 30 days</span>
+              </div>
+              <ResponsiveContainer width="100%" height={160}>
+                <AreaChart data={activityData} margin={{ top: 4, right: 4, left: -24, bottom: 0 }}>
+                  <defs>
+                    {Object.entries(CHART_COLORS).map(([key, color]) => (
+                      <linearGradient key={key} id={`top-grad-${key}`} x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor={color} stopOpacity={0.3} />
+                        <stop offset="95%" stopColor={color} stopOpacity={0} />
+                      </linearGradient>
+                    ))}
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" stroke={gridColor} vertical={false} />
+                  <XAxis dataKey="day" tick={{ fontSize: 10, fill: tickColor }} tickLine={false} axisLine={false} tickFormatter={tickFormatter} />
+                  <YAxis tick={{ fontSize: 10, fill: tickColor }} tickLine={false} axisLine={false} allowDecimals={false} />
+                  <Tooltip content={<ChartTooltip />} cursor={{ stroke: cursorStroke, strokeWidth: 1 }} animationDuration={0} isAnimationActive={false} />
+                  {Object.entries(CHART_COLORS).map(([key, color]) => (
+                    <Area key={key} type="monotone" dataKey={key} stroke={color} strokeWidth={1.5} fill={`url(#top-grad-${key})`} dot={false} activeDot={{ r: 3, fill: color }} isAnimationActive={false} />
+                  ))}
+                </AreaChart>
+              </ResponsiveContainer>
+              <div style={{ display: 'flex', gap: 16, marginTop: 12, flexWrap: 'wrap' }}>
+                {Object.entries(CHART_COLORS).map(([key, color]) => (
+                  <div key={key} style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+                    <div style={{ width: 8, height: 8, borderRadius: '50%', background: color }} />
+                    <span style={{ fontSize: 11, color: mutedText, textTransform: 'capitalize' }}>{key}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )
+      })()}
+
       {/* ── Dashboard 3: Weekly Summary ── */}
       {!statsLoading && stats?.weekly_summary && (() => {
         const ws = stats.weekly_summary
