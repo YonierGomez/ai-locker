@@ -309,8 +309,17 @@ export default function SkillsPage() {
         <div className={`cards-grid${!gridMounted.current ? ' stagger-children' : ''}`}
           ref={() => { gridMounted.current = true }}>
           {skills.map(skill => (
-            <ItemCard key={skill.id} item={skill} onView={setViewItem} onEdit={openEdit} onDelete={(id) => setDeleteConfirm(id)}
-              onToggleFavorite={(id) => favMutation.mutate(id)} onToggleActive={(id) => toggleMutation.mutate(id)} showStatus />
+            <ItemCard key={skill.id} item={skill}
+              onView={selectMode ? undefined : setViewItem}
+              onEdit={selectMode ? undefined : openEdit}
+              onDelete={selectMode ? undefined : (id) => setDeleteConfirm(id)}
+              onToggleFavorite={selectMode ? undefined : (id) => favMutation.mutate(id)}
+              onToggleActive={selectMode ? undefined : (id) => toggleMutation.mutate(id)}
+              showStatus
+              selectable={selectMode || selectedIds.size > 0}
+              selected={selectedIds.has(skill.id)}
+              onSelect={(id) => { toggleSelect(id); setSelectMode(true) }}
+            />
           ))}
         </div>
       )}

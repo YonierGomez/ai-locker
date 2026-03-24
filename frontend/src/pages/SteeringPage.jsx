@@ -312,9 +312,17 @@ export default function SteeringPage() {
         <div className={`cards-grid${!gridMounted.current ? ' stagger-children' : ''}`}
           ref={() => { gridMounted.current = true }}>
           {items.map(item => (
-            <ItemCard key={item.id} item={item} onView={setViewItem} onEdit={openEdit} onDelete={(id) => setDeleteConfirm(id)}
-              onToggleFavorite={(id) => favMutation.mutate(id)} onToggleActive={(id) => toggleMutation.mutate(id)}
-              showStatus showPriority />
+            <ItemCard key={item.id} item={item}
+              onView={selectMode ? undefined : setViewItem}
+              onEdit={selectMode ? undefined : openEdit}
+              onDelete={selectMode ? undefined : (id) => setDeleteConfirm(id)}
+              onToggleFavorite={selectMode ? undefined : (id) => favMutation.mutate(id)}
+              onToggleActive={selectMode ? undefined : (id) => toggleMutation.mutate(id)}
+              showStatus showPriority
+              selectable={selectMode || selectedIds.size > 0}
+              selected={selectedIds.has(item.id)}
+              onSelect={(id) => { toggleSelect(id); setSelectMode(true) }}
+            />
           ))}
         </div>
       )}
