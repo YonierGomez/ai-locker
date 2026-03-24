@@ -786,73 +786,122 @@ export default function DashboardPage() {
         const hasMcpActive = stats?.mcp_active_list?.length > 0
         const hasSkillsRecent = stats?.top_skills_recent?.length > 0
         if (!hasTopPrompts && !hasTopCmds && !hasMcpActive && !hasSkillsRecent) return null
+
+        const MEDAL = ['🥇', '🥈', '🥉', '4', '5']
+
         return (
           <div style={{ marginTop: 20 }}>
             <div className="dash-section-label" style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
               <Trophy size={14} color="rgba(255,255,255,0.3)" />
               <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-tertiary)', letterSpacing: 0.5, textTransform: 'uppercase' }}>Top Performers</span>
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(280px,100%), 1fr))', gap: 14 }}>
-              {hasTopPrompts && (
-                <div className="glass-card" style={{ padding: 16 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 12 }}>
-                    <MessageSquare size={13} color="#007AFF" />
-                    <span style={{ fontSize: 13, fontWeight: 600 }}>Most used prompts</span>
-                  </div>
-                  {stats.top_used.slice(0, 5).map((p, i) => (
-                    <div key={p.title} onClick={() => navigate('/prompts')} style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-                      <span style={{ fontSize: 10, color: 'var(--text-quaternary)', width: 14, textAlign: 'right', flexShrink: 0 }}>{i + 1}</span>
-                      <span style={{ fontSize: 12, flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.title}</span>
-                      <span style={{ fontSize: 11, fontWeight: 600, color: '#007AFF', flexShrink: 0 }}>{p.use_count}×</span>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(300px,100%), 1fr))', gap: 14 }}>
+
+              {/* Most used prompts */}
+              {hasTopPrompts && (() => {
+                const maxUse = Math.max(...stats.top_used.map(p => p.use_count), 1)
+                return (
+                  <div className="glass-card" style={{ padding: 18, borderTop: '2px solid rgba(0,122,255,0.3)' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
+                      <div style={{ width: 28, height: 28, borderRadius: 8, background: 'rgba(0,122,255,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <MessageSquare size={14} color="#007AFF" />
+                      </div>
+                      <span style={{ fontSize: 13, fontWeight: 700 }}>Most used prompts</span>
                     </div>
-                  ))}
-                </div>
-              )}
-              {hasTopCmds && (
-                <div className="glass-card" style={{ padding: 16 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 12 }}>
-                    <TerminalSquare size={13} color="#5AC8FA" />
-                    <span style={{ fontSize: 13, fontWeight: 600 }}>Most used commands</span>
-                  </div>
-                  {stats.top_commands_used.map((c, i) => (
-                    <div key={c.title} onClick={() => navigate('/commands')} style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-                      <span style={{ fontSize: 10, color: 'var(--text-quaternary)', width: 14, textAlign: 'right', flexShrink: 0 }}>{i + 1}</span>
-                      <span style={{ fontSize: 12, flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{c.title}</span>
-                      <span style={{ fontSize: 10, color: 'rgba(90,200,250,0.6)', background: 'rgba(90,200,250,0.08)', padding: '1px 5px', borderRadius: 3, flexShrink: 0 }}>{c.shell}</span>
-                      <span style={{ fontSize: 11, fontWeight: 600, color: '#5AC8FA', flexShrink: 0 }}>{c.use_count}×</span>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                      {stats.top_used.slice(0, 5).map((p, i) => (
+                        <div key={p.title} onClick={() => navigate('/prompts')} style={{ cursor: 'pointer' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+                            <span style={{ fontSize: 13, minWidth: 20, textAlign: 'center', flexShrink: 0 }}>{MEDAL[i]}</span>
+                            <span style={{ fontSize: 12, fontWeight: 500, flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.title}</span>
+                            <span style={{ fontSize: 12, fontWeight: 700, color: '#007AFF', flexShrink: 0, background: 'rgba(0,122,255,0.1)', padding: '2px 8px', borderRadius: 6 }}>{p.use_count}×</span>
+                          </div>
+                          <div style={{ marginLeft: 28, height: 3, background: 'rgba(255,255,255,0.06)', borderRadius: 99, overflow: 'hidden' }}>
+                            <div style={{ height: '100%', width: `${Math.round((p.use_count / maxUse) * 100)}%`, background: `rgba(0,122,255,${0.9 - i * 0.15})`, borderRadius: 99 }} />
+                          </div>
+                        </div>
+                      ))}
                     </div>
-                  ))}
-                </div>
-              )}
+                  </div>
+                )
+              })()}
+
+              {/* Most used commands */}
+              {hasTopCmds && (() => {
+                const maxUse = Math.max(...stats.top_commands_used.map(c => c.use_count), 1)
+                return (
+                  <div className="glass-card" style={{ padding: 18, borderTop: '2px solid rgba(90,200,250,0.3)' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
+                      <div style={{ width: 28, height: 28, borderRadius: 8, background: 'rgba(90,200,250,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <TerminalSquare size={14} color="#5AC8FA" />
+                      </div>
+                      <span style={{ fontSize: 13, fontWeight: 700 }}>Most used commands</span>
+                    </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                      {stats.top_commands_used.map((c, i) => (
+                        <div key={c.title} onClick={() => navigate('/commands')} style={{ cursor: 'pointer' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+                            <span style={{ fontSize: 13, minWidth: 20, textAlign: 'center', flexShrink: 0 }}>{MEDAL[i]}</span>
+                            <span style={{ fontSize: 12, fontWeight: 500, flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{c.title}</span>
+                            <span style={{ fontSize: 10, color: '#5AC8FA', background: 'rgba(90,200,250,0.1)', padding: '1px 6px', borderRadius: 4, flexShrink: 0, fontFamily: 'monospace' }}>{c.shell}</span>
+                            <span style={{ fontSize: 12, fontWeight: 700, color: '#5AC8FA', flexShrink: 0, background: 'rgba(90,200,250,0.1)', padding: '2px 8px', borderRadius: 6 }}>{c.use_count}×</span>
+                          </div>
+                          <div style={{ marginLeft: 28, height: 3, background: 'rgba(255,255,255,0.06)', borderRadius: 99, overflow: 'hidden' }}>
+                            <div style={{ height: '100%', width: `${Math.round((c.use_count / maxUse) * 100)}%`, background: `rgba(90,200,250,${0.9 - i * 0.15})`, borderRadius: 99 }} />
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )
+              })()}
+
+              {/* Active MCP servers */}
               {hasMcpActive && (
-                <div className="glass-card" style={{ padding: 16 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 12 }}>
-                    <McpIcon size={13} color="#30D158" />
-                    <span style={{ fontSize: 13, fontWeight: 600 }}>Active MCP servers</span>
-                    <span style={{ fontSize: 11, color: '#30D158', background: 'rgba(48,209,88,0.1)', padding: '1px 6px', borderRadius: 4, marginLeft: 'auto' }}>{stats.mcp_active_list.length} active</span>
-                  </div>
-                  {stats.mcp_active_list.map(m => (
-                    <div key={m.title} onClick={() => navigate('/mcp')} style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-                      <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#30D158', flexShrink: 0 }} />
-                      <span style={{ fontSize: 12, flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{m.title}</span>
-                      <span style={{ fontSize: 10, color: 'rgba(90,200,250,0.5)', background: 'rgba(90,200,250,0.07)', padding: '1px 5px', borderRadius: 3, flexShrink: 0 }}>{m.transport}</span>
+                <div className="glass-card" style={{ padding: 18, borderTop: '2px solid rgba(48,209,88,0.3)' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
+                    <div style={{ width: 28, height: 28, borderRadius: 8, background: 'rgba(48,209,88,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <McpIcon size={14} color="#30D158" />
                     </div>
-                  ))}
+                    <span style={{ fontSize: 13, fontWeight: 700 }}>Active MCP servers</span>
+                    <span style={{ marginLeft: 'auto', fontSize: 11, fontWeight: 700, color: '#30D158', background: 'rgba(48,209,88,0.12)', border: '1px solid rgba(48,209,88,0.2)', padding: '2px 8px', borderRadius: 6 }}>{stats.mcp_active_list.length} online</span>
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                    {stats.mcp_active_list.map(m => (
+                      <div key={m.title} onClick={() => navigate('/mcp')} style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 10, padding: '8px 10px', borderRadius: 8, background: 'rgba(48,209,88,0.04)', border: '1px solid rgba(48,209,88,0.1)', transition: 'background 0.15s' }}
+                        onMouseEnter={e => e.currentTarget.style.background = 'rgba(48,209,88,0.08)'}
+                        onMouseLeave={e => e.currentTarget.style.background = 'rgba(48,209,88,0.04)'}>
+                        <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#30D158', boxShadow: '0 0 6px rgba(48,209,88,0.6)', flexShrink: 0 }} />
+                        <span style={{ fontSize: 12, fontWeight: 500, flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{m.title}</span>
+                        <span style={{ fontSize: 10, color: 'rgba(90,200,250,0.7)', background: 'rgba(90,200,250,0.08)', padding: '2px 7px', borderRadius: 5, flexShrink: 0, fontFamily: 'monospace' }}>{m.transport}</span>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               )}
+
+              {/* Recent skills */}
               {hasSkillsRecent && (
-                <div className="glass-card" style={{ padding: 16 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 12 }}>
-                    <Zap size={13} color="#FF9500" />
-                    <span style={{ fontSize: 13, fontWeight: 600 }}>Recent skills</span>
-                  </div>
-                  {stats.top_skills_recent.map(s => (
-                    <div key={s.title} onClick={() => navigate('/skills')} style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-                      <div style={{ width: 6, height: 6, borderRadius: '50%', background: s.is_active ? '#30D158' : 'rgba(255,255,255,0.2)', flexShrink: 0 }} />
-                      <span style={{ fontSize: 12, flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{s.title}</span>
-                      {!s.is_active && <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.3)', flexShrink: 0 }}>inactive</span>}
+                <div className="glass-card" style={{ padding: 18, borderTop: '2px solid rgba(255,149,0,0.3)' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
+                    <div style={{ width: 28, height: 28, borderRadius: 8, background: 'rgba(255,149,0,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <Zap size={14} color="#FF9500" />
                     </div>
-                  ))}
+                    <span style={{ fontSize: 13, fontWeight: 700 }}>Recent skills</span>
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                    {stats.top_skills_recent.map(s => (
+                      <div key={s.title} onClick={() => navigate('/skills')} style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 10, padding: '8px 10px', borderRadius: 8, background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)', transition: 'background 0.15s' }}
+                        onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.06)'}
+                        onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,255,255,0.03)'}>
+                        <div style={{ width: 8, height: 8, borderRadius: '50%', background: s.is_active ? '#30D158' : 'rgba(255,255,255,0.2)', boxShadow: s.is_active ? '0 0 6px rgba(48,209,88,0.5)' : 'none', flexShrink: 0 }} />
+                        <span style={{ fontSize: 12, fontWeight: 500, flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{s.title}</span>
+                        <span style={{ fontSize: 10, color: s.is_active ? '#30D158' : 'rgba(255,255,255,0.25)', background: s.is_active ? 'rgba(48,209,88,0.1)' : 'rgba(255,255,255,0.05)', padding: '2px 7px', borderRadius: 5, flexShrink: 0 }}>
+                          {s.is_active ? 'active' : 'inactive'}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               )}
             </div>
