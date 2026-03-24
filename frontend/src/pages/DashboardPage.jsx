@@ -584,7 +584,11 @@ export default function DashboardPage() {
         const changePct = ws.change_pct
         const changeColor = changePct > 0 ? '#30D158' : changePct < 0 ? '#FF375F' : '#8E8E93'
         const ChangeIcon = changePct > 0 ? ArrowUp : changePct < 0 ? ArrowDown : Minus
-        const maxWeekVal = Math.max(ws.this_week, ws.prev_week, 1)
+
+        // Build chart data for grouped bar chart
+        const chartData = ws.by_type?.length > 0
+          ? ws.by_type.map(t => ({ name: t.type, 'This week': t.this_week, 'Last week': t.prev_week, color: t.color }))
+          : []
 
         return (
           <div style={{ marginTop: 20 }}>
@@ -593,94 +597,70 @@ export default function DashboardPage() {
               <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-tertiary)', letterSpacing: 0.5, textTransform: 'uppercase' }}>Weekly Summary</span>
             </div>
             <div className="glass-card" style={{ padding: 20 }}>
-              {/* Top row: big numbers */}
-              <div style={{ display: 'flex', gap: 12, marginBottom: 20, flexWrap: 'wrap' }}>
-                {/* This week */}
-                <div style={{ flex: 1, minWidth: 120, background: 'rgba(0,122,255,0.06)', border: '1px solid rgba(0,122,255,0.15)', borderRadius: 12, padding: '14px 16px' }}>
-                  <div style={{ fontSize: 11, color: 'rgba(0,122,255,0.7)', fontWeight: 600, marginBottom: 6, textTransform: 'uppercase', letterSpacing: 0.5 }}>This week</div>
-                  <div style={{ display: 'flex', alignItems: 'flex-end', gap: 8 }}>
-                    <span style={{ fontSize: 40, fontWeight: 800, color: '#007AFF', letterSpacing: -2, lineHeight: 1 }}>{ws.this_week}</span>
-                    {changePct !== null && (
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 3, marginBottom: 4, background: `${changeColor}15`, border: `1px solid ${changeColor}30`, borderRadius: 6, padding: '2px 7px' }}>
-                        <ChangeIcon size={10} color={changeColor} />
-                        <span style={{ fontSize: 11, color: changeColor, fontWeight: 700 }}>{Math.abs(changePct)}%</span>
-                      </div>
-                    )}
-                  </div>
-                  {/* Progress bar vs last week */}
-                  <div style={{ marginTop: 10, height: 4, background: 'rgba(0,122,255,0.12)', borderRadius: 99, overflow: 'hidden' }}>
-                    <div style={{ height: '100%', width: `${Math.round((ws.this_week / maxWeekVal) * 100)}%`, background: '#007AFF', borderRadius: 99, transition: 'width 0.6s ease' }} />
-                  </div>
-                </div>
-
-                {/* Last week */}
-                <div style={{ flex: 1, minWidth: 120, background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 12, padding: '14px 16px' }}>
-                  <div style={{ fontSize: 11, color: 'var(--text-quaternary)', fontWeight: 600, marginBottom: 6, textTransform: 'uppercase', letterSpacing: 0.5 }}>Last week</div>
-                  <span style={{ fontSize: 40, fontWeight: 800, color: 'rgba(255,255,255,0.25)', letterSpacing: -2, lineHeight: 1 }}>{ws.prev_week}</span>
-                  <div style={{ marginTop: 10, height: 4, background: 'rgba(255,255,255,0.06)', borderRadius: 99, overflow: 'hidden' }}>
-                    <div style={{ height: '100%', width: `${Math.round((ws.prev_week / maxWeekVal) * 100)}%`, background: 'rgba(255,255,255,0.2)', borderRadius: 99 }} />
-                  </div>
-                </div>
-
-                {/* Streak */}
-                <div style={{ flex: 1, minWidth: 120, background: ws.streak_days > 0 ? 'rgba(255,149,0,0.06)' : 'rgba(255,255,255,0.03)', border: `1px solid ${ws.streak_days > 0 ? 'rgba(255,149,0,0.2)' : 'rgba(255,255,255,0.07)'}`, borderRadius: 12, padding: '14px 16px' }}>
-                  <div style={{ fontSize: 11, color: ws.streak_days > 0 ? 'rgba(255,149,0,0.8)' : 'var(--text-quaternary)', fontWeight: 600, marginBottom: 6, textTransform: 'uppercase', letterSpacing: 0.5 }}>Day streak</div>
-                  <div style={{ display: 'flex', alignItems: 'flex-end', gap: 6 }}>
-                    <span style={{ fontSize: 40, fontWeight: 800, color: ws.streak_days > 0 ? '#FF9500' : 'rgba(255,255,255,0.2)', letterSpacing: -2, lineHeight: 1 }}>{ws.streak_days}</span>
-                    <Flame size={22} color={ws.streak_days > 0 ? '#FF9500' : 'rgba(255,255,255,0.15)'} fill={ws.streak_days > 0 ? '#FF9500' : 'none'} style={{ marginBottom: 4 }} />
-                  </div>
-                  <div style={{ marginTop: 10, fontSize: 10, color: ws.streak_days > 0 ? 'rgba(255,149,0,0.6)' : 'var(--text-quaternary)' }}>
-                    {ws.streak_days === 0 ? 'No activity today' : ws.streak_days === 1 ? 'Started today!' : `${ws.streak_days} days in a row`}
-                  </div>
-                </div>
-              </div>
-
-              {/* By type: horizontal comparison bars */}
-              {ws.by_type?.length > 0 && (
-                <div>
-                  <div style={{ fontSize: 11, color: 'var(--text-quaternary)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 10 }}>By type — this week vs last</div>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                    {ws.by_type.map(t => {
-                      const maxVal = Math.max(t.this_week, t.prev_week, 1)
-                      const diff = t.this_week - t.prev_week
-                      return (
-                        <div key={t.type}>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-                            <div style={{ width: 7, height: 7, borderRadius: '50%', background: t.color, flexShrink: 0 }} />
-                            <span style={{ fontSize: 12, color: 'var(--text-secondary)', flex: 1 }}>{t.type}</span>
-                            <span style={{ fontSize: 12, fontWeight: 700, color: t.color }}>{t.this_week}</span>
-                            {t.prev_week > 0 && (
-                              <span style={{ fontSize: 10, color: diff > 0 ? '#30D158' : diff < 0 ? '#FF375F' : 'var(--text-quaternary)', fontWeight: 600 }}>
-                                {diff > 0 ? `+${diff}` : diff < 0 ? `${diff}` : '='}
-                              </span>
-                            )}
-                          </div>
-                          <div style={{ display: 'flex', gap: 3, height: 5 }}>
-                            {/* This week bar */}
-                            <div style={{ flex: 1, background: 'rgba(255,255,255,0.05)', borderRadius: 99, overflow: 'hidden' }}>
-                              <div style={{ height: '100%', width: `${Math.round((t.this_week / maxVal) * 100)}%`, background: t.color, borderRadius: 99, transition: 'width 0.5s ease' }} />
-                            </div>
-                            {/* Last week bar */}
-                            <div style={{ flex: 1, background: 'rgba(255,255,255,0.05)', borderRadius: 99, overflow: 'hidden' }}>
-                              <div style={{ height: '100%', width: `${Math.round((t.prev_week / maxVal) * 100)}%`, background: t.color, opacity: 0.3, borderRadius: 99 }} />
-                            </div>
-                          </div>
+              <div style={{ display: 'flex', gap: 20, flexWrap: 'wrap', alignItems: 'flex-start' }}>
+                {/* KPIs column */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 16, minWidth: 140 }}>
+                  <div>
+                    <div style={{ fontSize: 11, color: 'var(--text-quaternary)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 4 }}>This week</div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <span style={{ fontSize: 38, fontWeight: 800, color: '#007AFF', letterSpacing: -2, lineHeight: 1 }}>{ws.this_week}</span>
+                      {changePct !== null && (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 3, background: `${changeColor}15`, border: `1px solid ${changeColor}25`, borderRadius: 6, padding: '3px 7px' }}>
+                          <ChangeIcon size={10} color={changeColor} />
+                          <span style={{ fontSize: 11, color: changeColor, fontWeight: 700 }}>{Math.abs(changePct)}%</span>
                         </div>
-                      )
-                    })}
-                    <div style={{ display: 'flex', gap: 3, marginTop: 4 }}>
-                      <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 4 }}>
-                        <div style={{ width: 20, height: 3, background: 'rgba(255,255,255,0.4)', borderRadius: 99 }} />
+                      )}
+                    </div>
+                  </div>
+                  <div>
+                    <div style={{ fontSize: 11, color: 'var(--text-quaternary)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 4 }}>Last week</div>
+                    <span style={{ fontSize: 38, fontWeight: 800, color: 'rgba(255,255,255,0.2)', letterSpacing: -2, lineHeight: 1 }}>{ws.prev_week}</span>
+                  </div>
+                  <div>
+                    <div style={{ fontSize: 11, color: 'var(--text-quaternary)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 4 }}>Streak</div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+                      <span style={{ fontSize: 38, fontWeight: 800, color: ws.streak_days > 0 ? '#FF9500' : 'rgba(255,255,255,0.2)', letterSpacing: -2, lineHeight: 1 }}>{ws.streak_days}</span>
+                      <Flame size={18} color={ws.streak_days > 0 ? '#FF9500' : 'rgba(255,255,255,0.15)'} fill={ws.streak_days > 0 ? '#FF9500' : 'none'} />
+                    </div>
+                    <div style={{ fontSize: 10, color: 'var(--text-quaternary)', marginTop: 2 }}>
+                      {ws.streak_days === 0 ? 'no streak' : `day${ws.streak_days !== 1 ? 's' : ''} in a row`}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Grouped bar chart */}
+                {chartData.length > 0 && (
+                  <div style={{ flex: 1, minWidth: 200 }}>
+                    <div style={{ fontSize: 11, color: 'var(--text-quaternary)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 10 }}>By type</div>
+                    <ResponsiveContainer width="100%" height={Math.max(120, chartData.length * 32)}>
+                      <BarChart data={chartData} layout="vertical" margin={{ top: 0, right: 32, left: 0, bottom: 0 }} barCategoryGap="30%">
+                        <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" horizontal={false} />
+                        <XAxis type="number" tick={{ fontSize: 10, fill: 'rgba(255,255,255,0.3)' }} tickLine={false} axisLine={false} allowDecimals={false} />
+                        <YAxis type="category" dataKey="name" tick={{ fontSize: 11, fill: 'rgba(255,255,255,0.45)' }} tickLine={false} axisLine={false} width={62} />
+                        <Tooltip content={<ChartTooltip />} cursor={{ fill: 'rgba(255,255,255,0.03)' }} animationDuration={0} isAnimationActive={false} />
+                        <Bar dataKey="This week" radius={[0, 3, 3, 0]} maxBarSize={10} isAnimationActive={false}
+                          label={{ position: 'right', fontSize: 10, fill: 'rgba(255,255,255,0.4)', formatter: v => v > 0 ? v : '' }}>
+                          {chartData.map(d => <Cell key={d.name} fill={d.color} />)}
+                        </Bar>
+                        <Bar dataKey="Last week" radius={[0, 3, 3, 0]} maxBarSize={10} isAnimationActive={false}>
+                          {chartData.map(d => <Cell key={d.name} fill={d.color} fillOpacity={0.25} />)}
+                        </Bar>
+                      </BarChart>
+                    </ResponsiveContainer>
+                    {/* Legend */}
+                    <div style={{ display: 'flex', gap: 14, marginTop: 8 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+                        <div style={{ width: 12, height: 4, borderRadius: 99, background: 'rgba(255,255,255,0.5)' }} />
                         <span style={{ fontSize: 10, color: 'var(--text-quaternary)' }}>this week</span>
                       </div>
-                      <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 4 }}>
-                        <div style={{ width: 20, height: 3, background: 'rgba(255,255,255,0.15)', borderRadius: 99 }} />
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+                        <div style={{ width: 12, height: 4, borderRadius: 99, background: 'rgba(255,255,255,0.2)' }} />
                         <span style={{ fontSize: 10, color: 'var(--text-quaternary)' }}>last week</span>
                       </div>
                     </div>
                   </div>
-                </div>
-              )}
+                )}
+              </div>
             </div>
           </div>
         )
