@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { mcpApi } from '../utils/api'
 import Modal from '../components/Modal'
 import DetailModal from '../components/DetailModal'
-import { Plus, Search, Star, Copy, Edit2, Trash2, Check, Download, LayoutGrid, AlignJustify, List, Server, FileJson } from 'lucide-react'
+import { Plus, Search, Star, Copy, Edit2, Trash2, Check, Download, LayoutGrid, AlignJustify, List, Server, FileJson, MousePointer } from 'lucide-react'
 
 function McpIcon({ size = 16 }) {
   return (
@@ -102,7 +102,31 @@ export default function McpPage() {
   const [copiedId, setCopiedId] = useState(null)
   const [viewItem, setViewItem] = useState(null)
   const [viewMode, setViewMode] = useState(() => localStorage.getItem('mcp_view') || 'cards')
-  const setView = (m) => { setViewMode(m); localStorage.setItem('mcp_view', m) }
+  const setView = (m) => { setViewMode(m); localStorage.setItem('mcp_view', m); setSelectedIds(new Set()); setSelectMode(false) }
+  const [selectMode, setSelectMode] = useState(false)
+  const [selectedIds, setSelectedIds] = useState(new Set())
+  const [bulkDeleting, setBulkDeleting] = useState(false)
+  const toggleSelect = (id) => setSelectedIds(prev => { const n = new Set(prev); n.has(id) ? n.delete(id) : n.add(id); return n })
+  const selectAll = () => setSelectedIds(new Set(items.map(i => i.id)))
+  const clearSelection = () => { setSelectedIds(new Set()); setSelectMode(false) }
+  const handleBulkDelete = async () => {
+    if (!selectedIds.size) return
+    setBulkDeleting(true)
+    try {
+      await Promise.all([...selectedIds].map(id => mcpApi.delete(id)))
+      qc.invalidateQueries({ queryKey: ['mcp'] }); qc.invalidateQueries({ queryKey: ['stats'] }); qc.invalidateQueries({ queryKey: ['trash-count'] })
+      toast.success(`${selectedIds.size} config${selectedIds.size !== 1 ? 's' : ''} deleted`)
+      setSelectedIds(new Set())
+    } catch (err) { toast.error(err.message) } finally { setBulkDeleting(false) }
+  }
+  const handleBulkFavorite = async () => {
+    try {
+      await Promise.all([...selectedIds].map(id => mcpApi.toggleFavorite(id)))
+      qc.invalidateQueries({ queryKey: ['mcp'] })
+      toast.success(`Updated ${selectedIds.size}`)
+      setSelectedIds(new Set())
+    } catch (err) { toast.error(err.message) }
+  }
 
   const { data, isLoading } = useQuery({
     queryKey: ['mcp', { search, transport, favorite: showFavorites }],
@@ -266,8 +290,25 @@ export default function McpPage() {
             </button>
           ))}
         </div>
+        <button className={`btn btn-glass btn-sm ${(selectMode || selectedIds.size > 0) ? 'active' : ''}`}
+          onClick={() => { setSelectMode(m => !m); if (selectMode || selectedIds.size > 0) clearSelection() }}
+          style={(selectMode || selectedIds.size > 0) ? { borderColor: 'color-mix(in srgb, var(--blue) 40%, transparent)', color: 'var(--blue-light)' } : {}}>
+          <MousePointer size={13} /> Select
+        </button>
         <button className="btn btn-primary" onClick={openCreate}><Plus size={15} /> New Config</button>
       </div>
+
+      {selectedIds.size > 0 && (
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px', marginBottom: 14, background: 'color-mix(in srgb, var(--blue) 10%, transparent)', border: '1px solid color-mix(in srgb, var(--blue) 25%, transparent)', borderRadius: 12, flexWrap: 'wrap' }}>
+          <Check size={14} color="var(--blue-light)" />
+          <span style={{ fontSize: 13, fontWeight: 500, color: 'var(--blue-light)' }}>{selectedIds.size} selected</span>
+          <button className="btn btn-glass btn-sm" onClick={selectAll} style={{ gap: 5 }}>Select all {items.length}</button>
+          <div style={{ width: 1, height: 16, background: 'rgba(255,255,255,0.1)' }} />
+          <button className="btn btn-glass btn-sm" onClick={handleBulkFavorite} style={{ gap: 5 }}><Star size={12} /> Toggle favorite</button>
+          <button className="btn btn-sm" onClick={handleBulkDelete} disabled={bulkDeleting} style={{ gap: 5, background: 'rgba(255,55,95,0.15)', border: '1px solid rgba(255,55,95,0.3)', color: 'var(--pink)' }}><Trash2 size={12} /> Delete selected</button>
+          <button className="btn btn-glass btn-sm" onClick={clearSelection} style={{ marginLeft: 'auto', gap: 5 }}>Cancel</button>
+        </div>
+      )}
 
       <div className="filter-bar" style={{ marginBottom: 20 }}>
         <span style={{ fontSize: 12, color: 'var(--text-tertiary)', marginRight: 4 }}>Transport:</span>

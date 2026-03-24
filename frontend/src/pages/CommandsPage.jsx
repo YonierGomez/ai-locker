@@ -699,10 +699,36 @@ export default function CommandsPage() {
   const [viewMode, setViewMode] = useState(() => localStorage.getItem('commands-view') || 'grid')
   const [modal, setModal] = useState(null)
   const [viewCmd, setViewCmd] = useState(null)
+  const [selectMode, setSelectMode] = useState(false)
+  const [selectedIds, setSelectedIds] = useState(new Set())
+  const [bulkDeleting, setBulkDeleting] = useState(false)
 
   const setView = (mode) => {
     setViewMode(mode)
     localStorage.setItem('commands-view', mode)
+    setSelectedIds(new Set())
+    setSelectMode(false)
+  }
+  const toggleSelect = (id) => setSelectedIds(prev => { const n = new Set(prev); n.has(id) ? n.delete(id) : n.add(id); return n })
+  const selectAll = () => setSelectedIds(new Set(commands.map(c => c.id)))
+  const clearSelection = () => { setSelectedIds(new Set()); setSelectMode(false) }
+  const handleBulkDelete = async () => {
+    if (!selectedIds.size) return
+    setBulkDeleting(true)
+    try {
+      await Promise.all([...selectedIds].map(id => commandsApi.delete(id)))
+      invalidate(); qc.invalidateQueries({ queryKey: ['trash-count'] })
+      toast.success(`${selectedIds.size} command${selectedIds.size !== 1 ? 's' : ''} deleted`)
+      setSelectedIds(new Set())
+    } catch (err) { toast.error(err.message) } finally { setBulkDeleting(false) }
+  }
+  const handleBulkFavorite = async () => {
+    try {
+      await Promise.all([...selectedIds].map(id => commandsApi.toggleFavorite(id)))
+      invalidate()
+      toast.success(`Updated ${selectedIds.size}`)
+      setSelectedIds(new Set())
+    } catch (err) { toast.error(err.message) }
   }
 
   useEffect(() => {
@@ -805,11 +831,28 @@ export default function CommandsPage() {
               </button>
             ))}
           </div>
+          <button className={`btn btn-glass btn-sm ${(selectMode || selectedIds.size > 0) ? 'active' : ''}`}
+            onClick={() => { setSelectMode(m => !m); if (selectMode || selectedIds.size > 0) clearSelection() }}
+            style={(selectMode || selectedIds.size > 0) ? { borderColor: 'color-mix(in srgb, var(--blue) 40%, transparent)', color: 'var(--blue-light)', gap: 5 } : { gap: 5 }}>
+            <Check size={13} /> Select
+          </button>
           <button className="btn btn-primary" onClick={() => setModal({})} style={{ gap: 7 }}>
             <Plus size={14} /> New command
           </button>
         </div>
       </div>
+
+      {selectedIds.size > 0 && (
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px', marginBottom: 14, background: 'color-mix(in srgb, var(--blue) 10%, transparent)', border: '1px solid color-mix(in srgb, var(--blue) 25%, transparent)', borderRadius: 12, flexWrap: 'wrap' }}>
+          <Check size={14} color="var(--blue-light)" />
+          <span style={{ fontSize: 13, fontWeight: 500, color: 'var(--blue-light)' }}>{selectedIds.size} selected</span>
+          <button className="btn btn-glass btn-sm" onClick={selectAll} style={{ gap: 5 }}>Select all {commands.length}</button>
+          <div style={{ width: 1, height: 16, background: 'rgba(255,255,255,0.1)' }} />
+          <button className="btn btn-glass btn-sm" onClick={handleBulkFavorite} style={{ gap: 5 }}><Star size={12} /> Toggle favorite</button>
+          <button className="btn btn-sm" onClick={handleBulkDelete} disabled={bulkDeleting} style={{ gap: 5, background: 'rgba(255,55,95,0.15)', border: '1px solid rgba(255,55,95,0.3)', color: 'var(--pink)' }}><Trash2 size={12} /> Delete selected</button>
+          <button className="btn btn-glass btn-sm" onClick={clearSelection} style={{ marginLeft: 'auto', gap: 5 }}>Cancel</button>
+        </div>
+      )}
 
       {/* Search bar */}
       <div className="search-bar" style={{ marginBottom: 12 }}>

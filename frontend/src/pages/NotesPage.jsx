@@ -8,7 +8,7 @@ import toast from 'react-hot-toast'
 import { formatDistanceToNow, format, isToday, isYesterday, isThisWeek, isThisMonth } from 'date-fns'
 import {
   StickyNote, Plus, Search, Star, Trash2, Edit3, X,
-  LayoutGrid, List, Pin, Maximize2, Minimize2, Kanban, Clock, Columns2,
+  LayoutGrid, List, Pin, Maximize2, Minimize2, Kanban, Clock, Columns2, Check, MousePointer,
 } from 'lucide-react'
 
 // ── Color presets ──────────────────────────────────────────────
@@ -825,7 +825,31 @@ export default function NotesPage() {
   const [viewItem, setViewItem] = useState(null)
   const [deleteConfirm, setDeleteConfirm] = useState(null)
 
-  const setView = (m) => { setViewMode(m); localStorage.setItem('notes_view', m) }
+  const setView = (m) => { setViewMode(m); localStorage.setItem('notes_view', m); setSelectedIds(new Set()); setSelectMode(false) }
+  const [selectMode, setSelectMode] = useState(false)
+  const [selectedIds, setSelectedIds] = useState(new Set())
+  const [bulkDeleting, setBulkDeleting] = useState(false)
+  const toggleSelect = (id) => setSelectedIds(prev => { const n = new Set(prev); n.has(id) ? n.delete(id) : n.add(id); return n })
+  const selectAll = () => setSelectedIds(new Set(notes.map(n => n.id)))
+  const clearSelection = () => { setSelectedIds(new Set()); setSelectMode(false) }
+  const handleBulkDelete = async () => {
+    if (!selectedIds.size) return
+    setBulkDeleting(true)
+    try {
+      await Promise.all([...selectedIds].map(id => notesApi.delete(id)))
+      qc.invalidateQueries({ queryKey: ['notes'] }); qc.invalidateQueries({ queryKey: ['stats'] }); qc.invalidateQueries({ queryKey: ['trash-count'] })
+      toast.success(`${selectedIds.size} note${selectedIds.size !== 1 ? 's' : ''} deleted`)
+      setSelectedIds(new Set())
+    } catch (err) { toast.error(err.message) } finally { setBulkDeleting(false) }
+  }
+  const handleBulkFavorite = async () => {
+    try {
+      await Promise.all([...selectedIds].map(id => notesApi.toggleFavorite(id)))
+      qc.invalidateQueries({ queryKey: ['notes'] })
+      toast.success(`Updated ${selectedIds.size}`)
+      setSelectedIds(new Set())
+    } catch (err) { toast.error(err.message) }
+  }
 
   const { data, isLoading } = useQuery({
     queryKey: ['notes', search, showFavorites],
@@ -906,10 +930,29 @@ export default function NotesPage() {
             <p style={{ fontSize: 12, color: 'var(--text-tertiary)', marginTop: 3 }}>{total} note{total !== 1 ? 's' : ''}</p>
           </div>
         </div>
-        <button className="btn btn-primary" onClick={openNew} style={{ gap: 7 }}>
-          <Plus size={14} /> New note
-        </button>
+        <div style={{ display: 'flex', gap: 8 }}>
+          <button className={`btn btn-glass btn-sm ${(selectMode || selectedIds.size > 0) ? 'active' : ''}`}
+            onClick={() => { setSelectMode(m => !m); if (selectMode || selectedIds.size > 0) clearSelection() }}
+            style={(selectMode || selectedIds.size > 0) ? { borderColor: 'color-mix(in srgb, var(--blue) 40%, transparent)', color: 'var(--blue-light)', gap: 5 } : { gap: 5 }}>
+            <Check size={13} /> Select
+          </button>
+          <button className="btn btn-primary" onClick={openNew} style={{ gap: 7 }}>
+            <Plus size={14} /> New note
+          </button>
+        </div>
       </div>
+
+      {selectedIds.size > 0 && (
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px', marginBottom: 14, background: 'color-mix(in srgb, var(--blue) 10%, transparent)', border: '1px solid color-mix(in srgb, var(--blue) 25%, transparent)', borderRadius: 12, flexWrap: 'wrap' }}>
+          <Check size={14} color="var(--blue-light)" />
+          <span style={{ fontSize: 13, fontWeight: 500, color: 'var(--blue-light)' }}>{selectedIds.size} selected</span>
+          <button className="btn btn-glass btn-sm" onClick={selectAll} style={{ gap: 5 }}>Select all {notes.length}</button>
+          <div style={{ width: 1, height: 16, background: 'rgba(255,255,255,0.1)' }} />
+          <button className="btn btn-glass btn-sm" onClick={handleBulkFavorite} style={{ gap: 5 }}><Star size={12} /> Toggle favorite</button>
+          <button className="btn btn-sm" onClick={handleBulkDelete} disabled={bulkDeleting} style={{ gap: 5, background: 'rgba(255,55,95,0.15)', border: '1px solid rgba(255,55,95,0.3)', color: 'var(--pink)' }}><Trash2 size={12} /> Delete selected</button>
+          <button className="btn btn-glass btn-sm" onClick={clearSelection} style={{ marginLeft: 'auto', gap: 5 }}>Cancel</button>
+        </div>
+      )}
 
       {/* Search */}
       <div className="search-bar" style={{ marginBottom: 12 }}>
