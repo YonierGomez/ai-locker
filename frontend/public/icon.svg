@@ -1,57 +1,178 @@
-<svg width="100%" viewBox="0 0 200 210" xmlns="http://www.w3.org/2000/svg">
+<svg width="200" height="200" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
   <defs>
-    <linearGradient id="cyan" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="#22D3EE"/>
-      <stop offset="100%" stop-color="#06B6D4"/>
+    <linearGradient id="bgGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#0D1117"/>
+      <stop offset="100%" stop-color="#0A0E1A"/>
     </linearGradient>
-    <filter id="glow">
-      <feGaussianBlur stdDeviation="2.5" result="b"/>
-      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    <linearGradient id="bodyGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#1E3A5F"/>
+      <stop offset="50%" stop-color="#162D4A"/>
+      <stop offset="100%" stop-color="#0F1F33"/>
+    </linearGradient>
+    <linearGradient id="doorGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#1A3352"/>
+      <stop offset="100%" stop-color="#0D1E30"/>
+    </linearGradient>
+    <linearGradient id="cyanGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#00E5FF"/>
+      <stop offset="100%" stop-color="#00B4D8"/>
+    </linearGradient>
+    <linearGradient id="handleGrad" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#00C8E8"/>
+      <stop offset="100%" stop-color="#0096B4"/>
+    </linearGradient>
+    <filter id="glowCyan" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="3" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
     </filter>
-    <filter id="glow-sm">
-      <feGaussianBlur stdDeviation="1.2" result="b"/>
-      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    <filter id="glowHandle" x="-60%" y="-60%" width="220%" height="220%">
+      <feGaussianBlur stdDeviation="4" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <filter id="bodyShadow" x="-15%" y="-10%" width="130%" height="130%">
+      <feDropShadow dx="0" dy="4" stdDeviation="6" flood-color="#000" flood-opacity="0.7"/>
     </filter>
   </defs>
 
-  <!-- Fondo negro redondeado -->
-  <rect x="0" y="0" width="200" height="200" rx="44" fill="#000" style="fill:rgb(0, 0, 0);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, &quot;system-ui&quot;, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
+  <!-- App icon background -->
+  <rect x="0" y="0" width="200" height="200" rx="42" fill="url(#bgGrad)"/>
 
-  <!-- Cuerpo casillero -->
-  <rect x="54" y="22" width="92" height="148" rx="12" fill="#111" stroke="#1E1E1E" stroke-width="1.5" style="fill:rgb(17, 17, 17);stroke:rgb(30, 30, 30);color:rgb(255, 255, 255);stroke-width:1.5px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, &quot;system-ui&quot;, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
+  <!-- LOCKER BODY -->
+  <rect x="42" y="28" width="116" height="144" rx="10"
+    fill="url(#bodyGrad)"
+    stroke="#2A5080"
+    stroke-width="1.5"
+    filter="url(#bodyShadow)"/>
 
-  <!-- Puerta interior -->
-  <rect x="63" y="31" width="74" height="130" rx="7" fill="#141414" stroke="#1A1A1A" stroke-width="1" style="fill:rgb(20, 20, 20);stroke:rgb(26, 26, 26);color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, &quot;system-ui&quot;, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
+  <!-- Top highlight edge -->
+  <rect x="42" y="28" width="116" height="3" rx="2"
+    fill="rgba(255,255,255,0.08)"/>
 
-  <!-- Ranuras ventilación -->
-  <line x1="72" y1="44" x2="128" y2="44" stroke="#242424" stroke-width="2" stroke-linecap="round" style="fill:rgb(0, 0, 0);stroke:rgb(36, 36, 36);color:rgb(255, 255, 255);stroke-width:2px;stroke-linecap:round;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, &quot;system-ui&quot;, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
-  <line x1="72" y1="52" x2="128" y2="52" stroke="#242424" stroke-width="2" stroke-linecap="round" style="fill:rgb(0, 0, 0);stroke:rgb(36, 36, 36);color:rgb(255, 255, 255);stroke-width:2px;stroke-linecap:round;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, &quot;system-ui&quot;, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
-  <line x1="72" y1="60" x2="128" y2="60" stroke="#242424" stroke-width="2" stroke-linecap="round" style="fill:rgb(0, 0, 0);stroke:rgb(36, 36, 36);color:rgb(255, 255, 255);stroke-width:2px;stroke-linecap:round;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, &quot;system-ui&quot;, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
+  <!-- DOOR PANEL -->
+  <rect x="52" y="38" width="96" height="124" rx="7"
+    fill="url(#doorGrad)"
+    stroke="#1E4070"
+    stroke-width="1"/>
 
-  <!-- Bisagras -->
-  <rect x="61" y="50" width="5" height="13" rx="2" fill="#1A1A1A" stroke="#222" stroke-width="0.5" style="fill:rgb(26, 26, 26);stroke:rgb(34, 34, 34);color:rgb(255, 255, 255);stroke-width:0.5px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, &quot;system-ui&quot;, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
-  <rect x="61" y="118" width="5" height="13" rx="2" fill="#1A1A1A" stroke="#222" stroke-width="0.5" style="fill:rgb(26, 26, 26);stroke:rgb(34, 34, 34);color:rgb(255, 255, 255);stroke-width:0.5px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, &quot;system-ui&quot;, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
+  <!-- Door panel inner bevel top -->
+  <rect x="52" y="38" width="96" height="2" rx="1"
+    fill="rgba(255,255,255,0.06)"/>
 
-  <!-- Panel central -->
-  <rect x="72" y="76" width="56" height="60" rx="6" fill="#0D0D0D" stroke="#181818" stroke-width="0.8" style="fill:rgb(13, 13, 13);stroke:rgb(24, 24, 24);color:rgb(255, 255, 255);stroke-width:0.8px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, &quot;system-ui&quot;, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
+  <!-- HINGE LEFT top -->
+  <rect x="40" y="58" width="8" height="18" rx="3"
+    fill="#1A3050"
+    stroke="#2A5080"
+    stroke-width="1"/>
+  <rect x="42" y="62" width="4" height="10" rx="2"
+    fill="#0F2040"/>
 
-  <!-- Manija cyan -->
-  <rect x="92" y="98" width="16" height="30" rx="8" fill="url(#cyan)" filter="url(#glow)" style="stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, &quot;system-ui&quot;, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
+  <!-- HINGE LEFT bottom -->
+  <rect x="40" y="106" width="8" height="18" rx="3"
+    fill="#1A3050"
+    stroke="#2A5080"
+    stroke-width="1"/>
+  <rect x="42" y="110" width="4" height="10" rx="2"
+    fill="#0F2040"/>
 
-  <!-- Cerradura -->
-  <circle cx="100" cy="92" r="7" fill="#0A0A0A" stroke="#06B6D4" stroke-width="1.5" filter="url(#glow-sm)" style="fill:rgb(10, 10, 10);stroke:rgb(6, 182, 212);color:rgb(255, 255, 255);stroke-width:1.5px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, &quot;system-ui&quot;, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
-  <circle cx="100" cy="92" r="2.8" fill="#06B6D4" filter="url(#glow-sm)" style="fill:rgb(6, 182, 212);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, &quot;system-ui&quot;, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
+  <!-- VENTILATION SLOTS -->
+  <rect x="64" y="48" width="72" height="3" rx="1.5"
+    fill="rgba(0,0,0,0.5)"
+    stroke="rgba(0,180,216,0.2)"
+    stroke-width="0.5"/>
+  <rect x="64" y="55" width="72" height="3" rx="1.5"
+    fill="rgba(0,0,0,0.5)"
+    stroke="rgba(0,180,216,0.2)"
+    stroke-width="0.5"/>
+  <rect x="64" y="62" width="72" height="3" rx="1.5"
+    fill="rgba(0,0,0,0.5)"
+    stroke="rgba(0,180,216,0.2)"
+    stroke-width="0.5"/>
 
-  <!-- Línea separadora -->
-  <line x1="63" y1="112" x2="137" y2="112" stroke="#181818" stroke-width="1" style="fill:rgb(0, 0, 0);stroke:rgb(24, 24, 24);color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, &quot;system-ui&quot;, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
+  <!-- CENTRAL LOCK PANEL -->
+  <rect x="62" y="78" width="76" height="72" rx="8"
+    fill="#0A1828"
+    stroke="#1E4070"
+    stroke-width="1.2"/>
 
-  <!-- Panel inferior archivos -->
-  <rect x="72" y="116" width="56" height="37" rx="4" fill="#0A0A0A" stroke="#161616" stroke-width="0.6" style="fill:rgb(10, 10, 10);stroke:rgb(22, 22, 22);color:rgb(255, 255, 255);stroke-width:0.6px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, &quot;system-ui&quot;, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
-  <rect x="80" y="124" width="28" height="3" rx="1.5" fill="#1C1C1C" style="fill:rgb(28, 28, 28);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, &quot;system-ui&quot;, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
-  <rect x="80" y="132" width="20" height="3" rx="1.5" fill="#181818" style="fill:rgb(24, 24, 24);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, &quot;system-ui&quot;, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
-  <rect x="80" y="140" width="24" height="3" rx="1.5" fill="#1A1A1A" style="fill:rgb(26, 26, 26);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, &quot;system-ui&quot;, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
+  <!-- Lock panel inner highlight -->
+  <rect x="62" y="78" width="76" height="2" rx="1"
+    fill="rgba(0,229,255,0.08)"/>
 
-  <!-- Pie del casillero -->
-  <rect x="50" y="170" width="100" height="7" rx="3.5" fill="#0E0E0E" stroke="#1A1A1A" stroke-width="1" style="fill:rgb(14, 14, 14);stroke:rgb(26, 26, 26);color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, &quot;system-ui&quot;, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
+  <!-- KEYHOLE outer ring -->
+  <circle cx="100" cy="100" r="14"
+    fill="#071220"
+    stroke="url(#cyanGrad)"
+    stroke-width="2"
+    filter="url(#glowCyan)"/>
+
+  <!-- KEYHOLE inner ring -->
+  <circle cx="100" cy="100" r="9"
+    fill="#050D18"
+    stroke="rgba(0,229,255,0.3)"
+    stroke-width="0.8"/>
+
+  <!-- Keyhole circle top -->
+  <circle cx="100" cy="97" r="4.5"
+    fill="url(#cyanGrad)"
+    filter="url(#glowCyan)"/>
+
+  <!-- Keyhole slot bottom -->
+  <rect x="97.5" y="99" width="5" height="8" rx="2.5"
+    fill="url(#cyanGrad)"
+    filter="url(#glowCyan)"/>
+
+  <!-- HANDLE -->
+  <rect x="88" y="118" width="24" height="10" rx="5"
+    fill="url(#handleGrad)"
+    stroke="rgba(0,229,255,0.4)"
+    stroke-width="0.8"
+    filter="url(#glowHandle)"/>
+
+  <!-- Handle highlight -->
+  <rect x="90" y="119.5" width="20" height="3" rx="1.5"
+    fill="rgba(255,255,255,0.2)"/>
+
+  <!-- BOTTOM SECTION - file lines -->
+  <rect x="62" y="156" width="76" height="38" rx="6"
+    fill="#0A1828"
+    stroke="#1A3A5A"
+    stroke-width="0.8"/>
+
+  <!-- File line 1 -->
+  <circle cx="68" cy="165.5" r="2" fill="rgba(0,229,255,0.6)"/>
+  <rect x="73" y="163" width="40" height="3" rx="1.5"
+    fill="rgba(0,180,216,0.4)"/>
+
+  <!-- File line 2 -->
+  <circle cx="68" cy="173.5" r="2" fill="rgba(0,229,255,0.4)"/>
+  <rect x="73" y="171" width="30" height="3" rx="1.5"
+    fill="rgba(0,180,216,0.3)"/>
+
+  <!-- File line 3 -->
+  <circle cx="68" cy="181.5" r="2" fill="rgba(0,229,255,0.3)"/>
+  <rect x="73" y="179" width="36" height="3" rx="1.5"
+    fill="rgba(0,180,216,0.2)"/>
+
+  <!-- BASE FEET -->
+  <rect x="52" y="170" width="14" height="6" rx="3"
+    fill="#0F2035"
+    stroke="#1A3A5A"
+    stroke-width="0.8"/>
+  <rect x="134" y="170" width="14" height="6" rx="3"
+    fill="#0F2035"
+    stroke="#1A3A5A"
+    stroke-width="0.8"/>
+
+  <!-- CYAN ACCENT STRIPE left edge -->
+  <rect x="42" y="38" width="3" height="124" rx="1.5"
+    fill="url(#cyanGrad)"
+    opacity="0.7"/>
 
 </svg>
