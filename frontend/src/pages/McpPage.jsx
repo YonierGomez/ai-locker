@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { mcpApi } from '../utils/api'
 import Modal from '../components/Modal'
 import DetailModal from '../components/DetailModal'
-import { Plus, Search, Star, Copy, Edit2, Trash2, Check, Download, LayoutGrid, AlignJustify, List } from 'lucide-react'
+import { Plus, Search, Star, Copy, Edit2, Trash2, Check, Download, LayoutGrid, AlignJustify, List, Server, FileJson } from 'lucide-react'
 
 function McpIcon({ size = 16 }) {
   return (
@@ -29,6 +29,62 @@ const defaultConfigText = JSON.stringify({
   args: ['-y', '@modelcontextprotocol/server-example'],
   env: { API_KEY: 'your-key-here' }
 }, null, 2)
+
+// ── JSON Tree Item ────────────────────────────────────────────
+function JsonTreeItem({ item, onView, onCopy, copiedId, onToggle }) {
+  const [expanded, setExpanded] = useState(true)
+  const configStr = JSON.stringify(item.config, null, 2)
+
+  return (
+    <div className="glass-card" style={{ padding: 0, overflow: 'hidden' }}>
+      {/* Header */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 0, cursor: 'pointer', background: 'rgba(255,255,255,0.02)' }}
+        onClick={() => setExpanded(e => !e)}>
+        <div style={{ width: 4, alignSelf: 'stretch', background: item.is_active ? '#30D158' : '#8E8E93', flexShrink: 0 }} />
+        <div style={{ padding: '10px 14px', display: 'flex', alignItems: 'center', gap: 10, flex: 1 }}>
+          <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.3)', fontFamily: 'monospace', userSelect: 'none' }}>{expanded ? '▼' : '▶'}</span>
+          <code style={{ fontSize: 13, color: '#5AC8FA', fontFamily: 'monospace', fontWeight: 600 }}>"{item.server_name}"</code>
+          <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.2)' }}>:</span>
+          <span style={{ fontSize: 11, color: 'var(--text-tertiary)' }}>{item.title}</span>
+          {item.is_favorite && <Star size={10} color="var(--yellow)" fill="var(--yellow)" />}
+          <span style={{ fontSize: 9, color: item.is_active ? '#30D158' : '#8E8E93', background: item.is_active ? 'rgba(48,209,88,0.1)' : 'rgba(255,255,255,0.05)', padding: '1px 6px', borderRadius: 4 }}>{item.is_active ? 'active' : 'inactive'}</span>
+          <span style={{ fontSize: 9, color: '#5AC8FA', background: 'rgba(90,200,250,0.1)', padding: '1px 6px', borderRadius: 4 }}>{item.transport}</span>
+        </div>
+        <div style={{ display: 'flex', gap: 4, padding: '0 12px', flexShrink: 0 }} onClick={e => e.stopPropagation()}>
+          <button className="btn-icon" style={{ width: 26, height: 26 }} onClick={() => onCopy(item)}>
+            {copiedId === item.id ? <Check size={11} color="#30D158" /> : <Copy size={11} color="rgba(255,255,255,0.4)" />}
+          </button>
+          <button className="btn-icon" style={{ width: 26, height: 26 }} onClick={() => onView(item)}>
+            <FileJson size={11} color="rgba(255,255,255,0.4)" />
+          </button>
+        </div>
+      </div>
+      {/* JSON content */}
+      {expanded && (
+        <div style={{ background: 'rgba(0,0,0,0.3)', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
+          <pre style={{ margin: 0, padding: '12px 16px 12px 28px', fontFamily: "'JetBrains Mono','Fira Code',monospace", fontSize: 12, lineHeight: 1.7, color: '#5AC8FA', whiteSpace: 'pre-wrap', wordBreak: 'break-all' }}>
+            {configStr.split('\n').map((line, i) => {
+              // Syntax highlight keys vs values
+              const keyMatch = line.match(/^(\s*)"([^"]+)"(\s*:\s*)(.*)$/)
+              if (keyMatch) {
+                return (
+                  <span key={i}>
+                    <span style={{ color: 'rgba(255,255,255,0.3)' }}>{keyMatch[1]}</span>
+                    <span style={{ color: '#BF5AF2' }}>"{keyMatch[2]}"</span>
+                    <span style={{ color: 'rgba(255,255,255,0.3)' }}>{keyMatch[3]}</span>
+                    <span style={{ color: line.includes('"') && !line.match(/:\s*"/) ? '#30D158' : '#FF9500' }}>{keyMatch[4]}</span>
+                    {'\n'}
+                  </span>
+                )
+              }
+              return <span key={i} style={{ color: 'rgba(255,255,255,0.4)' }}>{line}{'\n'}</span>
+            })}
+          </pre>
+        </div>
+      )}
+    </div>
+  )
+}
 
 export default function McpPage() {
   const qc = useQueryClient()
@@ -203,7 +259,7 @@ export default function McpPage() {
           <Download size={14} /> Export Active
         </button>
         <div style={{ display: 'flex', background: 'rgba(255,255,255,0.05)', borderRadius: 10, padding: 3, gap: 2 }}>
-          {[['cards', LayoutGrid], ['list', List], ['compact', AlignJustify]].map(([id, Icon]) => (
+          {[['cards', LayoutGrid], ['list', List], ['compact', AlignJustify], ['serverstatus', Server], ['jsontree', FileJson]].map(([id, Icon]) => (
             <button key={id} onClick={() => setView(id)} title={`${id} view`}
               style={{ padding: '5px 9px', borderRadius: 7, border: 'none', cursor: 'pointer', background: viewMode === id ? 'rgba(255,255,255,0.1)' : 'transparent', color: viewMode === id ? 'var(--text-primary)' : 'var(--text-tertiary)', transition: 'all 0.15s' }}>
               <Icon size={14} />
@@ -260,6 +316,71 @@ export default function McpPage() {
               <div style={{ fontSize: 10, color: 'var(--text-tertiary)', fontFamily: 'monospace', marginBottom: 6, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.server_name}</div>
               <span style={{ fontSize: 9, color: 'var(--teal)', background: 'rgba(90,200,250,0.1)', padding: '1px 5px', borderRadius: 3 }}>{item.transport}</span>
             </div>
+          ))}
+        </div>
+      ) : viewMode === 'serverstatus' ? (
+        /* ── Server Status — dashboard panel showing online/offline servers ── */
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+          {/* Summary bar */}
+          <div style={{ display: 'flex', gap: 12, marginBottom: 8 }}>
+            {[
+              { label: 'Online', count: items.filter(i => i.is_active).length, color: '#30D158' },
+              { label: 'Offline', count: items.filter(i => !i.is_active).length, color: '#8E8E93' },
+              { label: 'Total', count: items.length, color: '#5AC8FA' },
+            ].map(({ label, count, color }) => (
+              <div key={label} className="glass-card" style={{ padding: '10px 16px', display: 'flex', alignItems: 'center', gap: 10, flex: 1 }}>
+                <div style={{ width: 10, height: 10, borderRadius: '50%', background: color, boxShadow: label === 'Online' ? `0 0 8px ${color}` : 'none' }} />
+                <span style={{ fontSize: 22, fontWeight: 800, color, letterSpacing: -1 }}>{count}</span>
+                <span style={{ fontSize: 11, color: 'var(--text-tertiary)', textTransform: 'uppercase', letterSpacing: 0.5 }}>{label}</span>
+              </div>
+            ))}
+          </div>
+          {/* Server rows */}
+          {items.map(item => (
+            <div key={item.id} className="glass-card" style={{ padding: 0, overflow: 'hidden', cursor: 'pointer' }}
+              onClick={() => setViewItem(item)}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 0 }}>
+                {/* Status indicator */}
+                <div style={{ width: 4, alignSelf: 'stretch', background: item.is_active ? '#30D158' : '#8E8E93', flexShrink: 0 }} />
+                {/* Status dot + server name */}
+                <div style={{ width: 200, padding: '12px 16px', borderRight: '1px solid rgba(255,255,255,0.06)', flexShrink: 0 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 3 }}>
+                    <div style={{ width: 8, height: 8, borderRadius: '50%', background: item.is_active ? '#30D158' : '#8E8E93', boxShadow: item.is_active ? '0 0 6px #30D158' : 'none' }} />
+                    <code style={{ fontSize: 12, color: item.is_active ? '#30D158' : 'var(--text-tertiary)', fontFamily: 'monospace' }}>{item.server_name}</code>
+                  </div>
+                  <div style={{ fontSize: 10, color: item.is_active ? 'rgba(48,209,88,0.6)' : 'var(--text-quaternary)', paddingLeft: 16 }}>{item.is_active ? '● online' : '○ offline'}</div>
+                </div>
+                {/* Title + description */}
+                <div style={{ flex: 1, padding: '12px 16px', minWidth: 0 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 2 }}>
+                    <span style={{ fontSize: 13, fontWeight: 600 }}>{item.title}</span>
+                    {item.is_favorite && <Star size={10} color="var(--yellow)" fill="var(--yellow)" />}
+                  </div>
+                  {item.description && <p style={{ fontSize: 11, color: 'var(--text-tertiary)', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.description}</p>}
+                </div>
+                {/* Transport + command */}
+                <div style={{ width: 160, padding: '12px 16px', borderLeft: '1px solid rgba(255,255,255,0.06)', flexShrink: 0 }}>
+                  <div style={{ fontSize: 9, color: 'var(--text-quaternary)', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 4 }}>Transport</div>
+                  <span style={{ fontSize: 11, color: '#5AC8FA', background: 'rgba(90,200,250,0.1)', padding: '2px 7px', borderRadius: 4 }}>{item.transport}</span>
+                </div>
+                {/* Actions */}
+                <div style={{ width: 80, padding: '0 12px', display: 'flex', gap: 4, justifyContent: 'center', borderLeft: '1px solid rgba(255,255,255,0.06)', flexShrink: 0 }} onClick={e => e.stopPropagation()}>
+                  <button className="btn-icon" style={{ width: 28, height: 28 }} onClick={() => toggleMutation.mutate(item.id)} title="Toggle">
+                    <div style={{ width: 10, height: 10, borderRadius: '50%', background: item.is_active ? '#30D158' : '#8E8E93', border: '2px solid currentColor' }} />
+                  </button>
+                  <button className="btn-icon" style={{ width: 28, height: 28 }} onClick={() => handleCopy(item)}>
+                    {copiedId === item.id ? <Check size={12} color="#30D158" /> : <Copy size={12} color="rgba(255,255,255,0.4)" />}
+                  </button>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : viewMode === 'jsontree' ? (
+        /* ── JSON Tree — expandable config view per server ── */
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+          {items.map(item => (
+            <JsonTreeItem key={item.id} item={item} onView={setViewItem} onCopy={handleCopy} copiedId={copiedId} onToggle={() => toggleMutation.mutate(item.id)} />
           ))}
         </div>
       ) : (

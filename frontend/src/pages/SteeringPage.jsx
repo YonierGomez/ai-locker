@@ -4,7 +4,7 @@ import { steeringApi, categoriesApi } from '../utils/api'
 import ItemCard from '../components/ItemCard'
 import Modal from '../components/Modal'
 import DetailModal from '../components/DetailModal'
-import { Navigation, Plus, Search, Star, LayoutGrid, AlignJustify, List } from 'lucide-react'
+import { Navigation, Plus, Search, Star, LayoutGrid, AlignJustify, List, BarChart3, Columns2 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import MarkdownEditor from '../components/MarkdownEditor'
 import CategorySelector from '../components/CategorySelector'
@@ -120,7 +120,7 @@ export default function SteeringPage() {
           <Star size={12} fill={showFavorites ? 'currentColor' : 'none'} /> Favorites
         </button>
         <div style={{ display: 'flex', background: 'rgba(255,255,255,0.05)', borderRadius: 10, padding: 3, gap: 2 }}>
-          {[['cards', LayoutGrid], ['list', List], ['compact', AlignJustify]].map(([id, Icon]) => (
+          {[['cards', LayoutGrid], ['list', List], ['compact', AlignJustify], ['priority', BarChart3], ['scope', Columns2]].map(([id, Icon]) => (
             <button key={id} onClick={() => setView(id)} title={`${id} view`}
               style={{ padding: '5px 9px', borderRadius: 7, border: 'none', cursor: 'pointer', background: viewMode === id ? 'rgba(255,255,255,0.1)' : 'transparent', color: viewMode === id ? 'var(--text-primary)' : 'var(--text-tertiary)', transition: 'all 0.15s' }}>
               <Icon size={14} />
@@ -194,6 +194,78 @@ export default function SteeringPage() {
               </div>
             </div>
           ))}
+        </div>
+      ) : viewMode === 'priority' ? (
+        /* ── Priority Stack — sorted by priority with visual bar ── */
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+          {[...items].sort((a, b) => (b.priority || 0) - (a.priority || 0)).map(item => {
+            const pct = Math.min((item.priority || 0), 100)
+            const pColor = pct >= 70 ? '#FF375F' : pct >= 40 ? '#FF9500' : '#30D158'
+            return (
+              <div key={item.id} className="glass-card" style={{ padding: 0, overflow: 'hidden', cursor: 'pointer' }}
+                onClick={() => setViewItem(item)}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 0 }}>
+                  {/* Priority bar */}
+                  <div style={{ width: 4, alignSelf: 'stretch', background: pColor, opacity: 0.8, flexShrink: 0 }} />
+                  {/* Priority number */}
+                  <div style={{ width: 52, padding: '12px 10px', textAlign: 'center', flexShrink: 0, borderRight: '1px solid rgba(255,255,255,0.06)' }}>
+                    <div style={{ fontSize: 18, fontWeight: 800, color: pColor, letterSpacing: -1, lineHeight: 1 }}>{item.priority || 0}</div>
+                    <div style={{ fontSize: 8, color: 'var(--text-quaternary)', marginTop: 2 }}>priority</div>
+                  </div>
+                  {/* Content */}
+                  <div style={{ flex: 1, padding: '10px 14px', minWidth: 0 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 3 }}>
+                      <span style={{ fontSize: 13, fontWeight: 600 }}>{item.title}</span>
+                      {item.is_favorite && <Star size={10} color="var(--yellow)" fill="var(--yellow)" />}
+                      <span style={{ fontSize: 9, color: '#BF5AF2', background: 'rgba(191,90,242,0.1)', padding: '1px 5px', borderRadius: 3 }}>{item.scope}</span>
+                    </div>
+                    {item.description && <p style={{ fontSize: 11, color: 'var(--text-tertiary)', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.description}</p>}
+                  </div>
+                  {/* Priority bar visual */}
+                  <div style={{ width: 120, padding: '0 14px', flexShrink: 0 }}>
+                    <div style={{ height: 6, background: 'rgba(255,255,255,0.07)', borderRadius: 99, overflow: 'hidden' }}>
+                      <div style={{ height: '100%', width: `${pct}%`, background: pColor, borderRadius: 99, transition: 'width 0.4s' }} />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )
+          })}
+        </div>
+      ) : viewMode === 'scope' ? (
+        /* ── Scope Board — columns by scope ── */
+        <div style={{ display: 'flex', gap: 14, overflowX: 'auto', paddingBottom: 8, alignItems: 'flex-start' }}>
+          {SCOPES.map((scopeKey, si) => {
+            const SCOPE_COLORS = { global: '#007AFF', project: '#FF9500', session: '#30D158', task: '#BF5AF2' }
+            const color = SCOPE_COLORS[scopeKey] || '#8E8E93'
+            const group = items.filter(i => (i.scope || 'global') === scopeKey)
+            return (
+              <div key={scopeKey} style={{ minWidth: 260, maxWidth: 300, flex: '0 0 260px', display: 'flex', flexDirection: 'column', gap: 8 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 12px', background: `${color}12`, border: `1px solid ${color}25`, borderRadius: 10 }}>
+                  <div style={{ width: 8, height: 8, borderRadius: '50%', background: color }} />
+                  <span style={{ fontSize: 12, fontWeight: 700, color, textTransform: 'uppercase', letterSpacing: 0.5 }}>{scopeKey}</span>
+                  <span style={{ fontSize: 11, color: `${color}80`, marginLeft: 'auto', background: `${color}18`, padding: '1px 7px', borderRadius: 10 }}>{group.length}</span>
+                </div>
+                {group.map(item => (
+                  <div key={item.id} className="glass-card" style={{ padding: '10px 12px', cursor: 'pointer', borderLeft: `3px solid ${color}`, transition: 'transform 0.12s' }}
+                    onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-2px)'}
+                    onMouseLeave={e => e.currentTarget.style.transform = 'translateY(0)'}
+                    onClick={() => setViewItem(item)}>
+                    <div style={{ display: 'flex', alignItems: 'flex-start', gap: 6, marginBottom: item.description ? 6 : 0 }}>
+                      <span style={{ fontSize: 12, fontWeight: 600, flex: 1, lineHeight: 1.4 }}>{item.title}</span>
+                      {item.is_favorite && <Star size={9} color="var(--yellow)" fill="var(--yellow)" />}
+                    </div>
+                    {item.description && <p style={{ fontSize: 11, color: 'var(--text-tertiary)', margin: '0 0 6px', lineHeight: 1.4, overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>{item.description}</p>}
+                    <div style={{ display: 'flex', gap: 5, alignItems: 'center' }}>
+                      <span style={{ fontSize: 9, color: 'var(--text-quaternary)', background: 'rgba(255,255,255,0.05)', padding: '1px 5px', borderRadius: 3 }}>{item.category}</span>
+                      {(item.priority || 0) > 0 && <span style={{ fontSize: 9, color: color, background: `${color}15`, padding: '1px 5px', borderRadius: 3 }}>p{item.priority}</span>}
+                    </div>
+                  </div>
+                ))}
+                {group.length === 0 && <div style={{ padding: '20px', textAlign: 'center', color: 'var(--text-quaternary)', fontSize: 12, background: 'rgba(255,255,255,0.02)', borderRadius: 8 }}>No {scopeKey} steering</div>}
+              </div>
+            )
+          })}
         </div>
       ) : (
         <div className={`cards-grid${!gridMounted.current ? ' stagger-children' : ''}`}
