@@ -428,7 +428,9 @@ export default function McpPage() {
         <div className={`cards-grid${!gridMounted.current ? ' stagger-children' : ''}`}
           ref={() => { gridMounted.current = true }}>
           {items.map(item => (
-            <div key={item.id} className="item-card" onClick={() => setViewItem(item)} style={{ cursor: 'pointer' }}>
+            <div key={item.id} className={`item-card${selectedIds.has(item.id) ? ' selected' : ''}`}
+              onClick={() => selectMode || selectedIds.size > 0 ? (toggleSelect(item.id), setSelectMode(true)) : setViewItem(item)}
+              style={{ cursor: 'pointer', outline: selectedIds.has(item.id) ? '2px solid var(--blue)' : 'none', outlineOffset: 2 }}>
               <div className="item-card-header">
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
