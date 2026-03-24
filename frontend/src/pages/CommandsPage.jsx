@@ -5,7 +5,8 @@ import DetailModal from '../components/DetailModal'
 import toast from 'react-hot-toast'
 import {
   TerminalSquare, Plus, Search, Copy, Check, Star, Trash2,
-  X, ChevronDown, Filter, Edit3, RotateCcw, Maximize2, Minimize2
+  X, Filter, Edit3, RotateCcw, Maximize2, Minimize2,
+  LayoutGrid, List, Table2, Code2,
 } from 'lucide-react'
 
 // ── Shell/Platform config ─────────────────────────────────────
@@ -17,18 +18,31 @@ const SHELL_COLORS = {
 }
 const PLATFORM_ICONS = { all: '🌐', linux: '🐧', macos: '', windows: '🪟' }
 
-// ── Command Card ──────────────────────────────────────────────
-function CommandCard({ cmd, onCopy, onFavorite, onEdit, onDelete, onView }) {
-  const [copied, setCopied] = useState(false)
+// ── View modes ────────────────────────────────────────────────
+const VIEW_MODES = [
+  { id: 'grid', icon: LayoutGrid, label: 'Grid' },
+  { id: 'list', icon: List, label: 'List' },
+  { id: 'table', icon: Table2, label: 'Table' },
+  { id: 'code', icon: Code2, label: 'Code' },
+]
 
-  const handleCopy = () => {
-    navigator.clipboard.writeText(cmd.command).then(() => {
+// ── Copy button hook ──────────────────────────────────────────
+function useCopy(text, onCopy) {
+  const [copied, setCopied] = useState(false)
+  const handle = (e) => {
+    e?.stopPropagation()
+    navigator.clipboard.writeText(text).then(() => {
       setCopied(true)
       setTimeout(() => setCopied(false), 1800)
-      onCopy?.(cmd.id)
+      onCopy?.()
     })
   }
+  return { copied, handle }
+}
 
+// ── Grid Card (original) ──────────────────────────────────────
+function CommandCardGrid({ cmd, onCopy, onFavorite, onEdit, onDelete, onView }) {
+  const { copied, handle: handleCopy } = useCopy(cmd.command, () => onCopy?.(cmd.id))
   const shellColor = SHELL_COLORS[cmd.shell] || '#8E8E93'
 
   return (
@@ -36,8 +50,6 @@ function CommandCard({ cmd, onCopy, onFavorite, onEdit, onDelete, onView }) {
       onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-1px)'}
       onMouseLeave={e => e.currentTarget.style.transform = 'translateY(0)'}
       onClick={() => onView?.(cmd)}>
-
-      {/* Header */}
       <div style={{ padding: '12px 16px 10px', display: 'flex', alignItems: 'flex-start', gap: 10, borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
@@ -49,21 +61,18 @@ function CommandCard({ cmd, onCopy, onFavorite, onEdit, onDelete, onView }) {
           )}
         </div>
         <div style={{ display: 'flex', gap: 4, flexShrink: 0 }}>
-          <button className="btn-icon" style={{ width: 26, height: 26 }} onClick={(e) => { e.stopPropagation(); onFavorite(cmd.id) }} title="Favorite">
+          <button className="btn-icon" style={{ width: 26, height: 26 }} onClick={e => { e.stopPropagation(); onFavorite(cmd.id) }}>
             <Star size={12} color={cmd.is_favorite ? 'var(--yellow)' : 'rgba(255,255,255,0.3)'} fill={cmd.is_favorite ? 'var(--yellow)' : 'none'} />
           </button>
-          <button className="btn-icon" style={{ width: 26, height: 26 }} onClick={(e) => { e.stopPropagation(); onEdit(cmd) }} title="Edit">
+          <button className="btn-icon" style={{ width: 26, height: 26 }} onClick={e => { e.stopPropagation(); onEdit(cmd) }}>
             <Edit3 size={12} color="rgba(255,255,255,0.3)" />
           </button>
-          <button className="btn-icon" style={{ width: 26, height: 26 }} onClick={(e) => { e.stopPropagation(); onDelete(cmd.id) }} title="Delete">
+          <button className="btn-icon" style={{ width: 26, height: 26 }} onClick={e => { e.stopPropagation(); onDelete(cmd.id) }}>
             <Trash2 size={12} color="rgba(255,55,95,0.5)" />
           </button>
         </div>
       </div>
-
-      {/* Terminal block */}
       <div style={{ background: 'rgba(0,0,0,0.4)', padding: '10px 14px', position: 'relative' }}>
-        {/* Shell prompt bar */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 7 }}>
           <div style={{ display: 'flex', gap: 4 }}>
             {['#FF5F57','#FEBC2E','#28C840'].map((c, i) => (
@@ -74,46 +83,221 @@ function CommandCard({ cmd, onCopy, onFavorite, onEdit, onDelete, onView }) {
             {cmd.shell} {PLATFORM_ICONS[cmd.platform] || ''} {cmd.platform !== 'all' ? cmd.platform : ''}
           </span>
         </div>
-        {/* Command text */}
-        <pre style={{
-          margin: 0, fontFamily: "'JetBrains Mono', 'Fira Code', 'Cascadia Code', 'SF Mono', monospace",
-          fontSize: 12.5, lineHeight: 1.6, color: shellColor, whiteSpace: 'pre-wrap', wordBreak: 'break-all',
-          maxHeight: 120, overflowY: 'auto',
-        }}>
+        <pre style={{ margin: 0, fontFamily: "'JetBrains Mono','Fira Code','Cascadia Code','SF Mono',monospace", fontSize: 12.5, lineHeight: 1.6, color: shellColor, whiteSpace: 'pre-wrap', wordBreak: 'break-all', maxHeight: 120, overflowY: 'auto' }}>
           <span style={{ color: 'rgba(255,255,255,0.25)', userSelect: 'none' }}>$ </span>{cmd.command}
         </pre>
-
-        {/* Copy button */}
-        <button
-          onClick={(e) => { e.stopPropagation(); handleCopy() }}
-          style={{
-            position: 'absolute', right: 10, bottom: 10,
-            background: copied ? 'rgba(48,209,88,0.15)' : 'rgba(255,255,255,0.08)',
-            border: `1px solid ${copied ? 'rgba(48,209,88,0.3)' : 'rgba(255,255,255,0.1)'}`,
-            borderRadius: 6, padding: '4px 10px', cursor: 'pointer',
-            display: 'flex', alignItems: 'center', gap: 5, fontSize: 11, color: copied ? '#30D158' : 'rgba(255,255,255,0.6)',
-            transition: 'all 0.2s',
-          }}
-        >
+        <button onClick={handleCopy} style={{ position: 'absolute', right: 10, bottom: 10, background: copied ? 'rgba(48,209,88,0.15)' : 'rgba(255,255,255,0.08)', border: `1px solid ${copied ? 'rgba(48,209,88,0.3)' : 'rgba(255,255,255,0.1)'}`, borderRadius: 6, padding: '4px 10px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 5, fontSize: 11, color: copied ? '#30D158' : 'rgba(255,255,255,0.6)', transition: 'all 0.2s' }}>
           {copied ? <Check size={11} /> : <Copy size={11} />}
           {copied ? 'Copied' : 'Copy'}
         </button>
       </div>
-
-      {/* Footer meta */}
       <div style={{ padding: '7px 14px', display: 'flex', alignItems: 'center', gap: 8, background: 'rgba(255,255,255,0.015)' }}>
-        <span style={{ fontSize: 10, fontWeight: 600, color: shellColor, background: `${shellColor}18`, padding: '2px 7px', borderRadius: 4 }}>
-          {cmd.shell}
-        </span>
-        <span style={{ fontSize: 10, color: 'var(--text-quaternary)', background: 'rgba(255,255,255,0.05)', padding: '2px 7px', borderRadius: 4 }}>
-          {cmd.category}
-        </span>
-        {cmd.use_count > 0 && (
-          <span style={{ fontSize: 10, color: 'var(--text-quaternary)', marginLeft: 'auto' }}>
-            used {cmd.use_count}×
-          </span>
-        )}
+        <span style={{ fontSize: 10, fontWeight: 600, color: shellColor, background: `${shellColor}18`, padding: '2px 7px', borderRadius: 4 }}>{cmd.shell}</span>
+        <span style={{ fontSize: 10, color: 'var(--text-quaternary)', background: 'rgba(255,255,255,0.05)', padding: '2px 7px', borderRadius: 4 }}>{cmd.category}</span>
+        {cmd.use_count > 0 && <span style={{ fontSize: 10, color: 'var(--text-quaternary)', marginLeft: 'auto' }}>used {cmd.use_count}×</span>}
       </div>
+    </div>
+  )
+}
+
+// ── List Row ──────────────────────────────────────────────────
+function CommandRowList({ cmd, onCopy, onFavorite, onEdit, onDelete, onView }) {
+  const { copied, handle: handleCopy } = useCopy(cmd.command, () => onCopy?.(cmd.id))
+  const shellColor = SHELL_COLORS[cmd.shell] || '#8E8E93'
+
+  return (
+    <div className="glass-card" style={{ padding: '10px 16px', display: 'flex', alignItems: 'center', gap: 12, cursor: 'pointer', transition: 'background 0.15s' }}
+      onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.03)'}
+      onMouseLeave={e => e.currentTarget.style.background = ''}
+      onClick={() => onView?.(cmd)}>
+      {/* Shell badge */}
+      <div style={{ width: 32, height: 32, borderRadius: 8, background: `${shellColor}15`, border: `1px solid ${shellColor}30`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+        <TerminalSquare size={14} color={shellColor} />
+      </div>
+
+      {/* Title + command preview */}
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+          <span style={{ fontSize: 13, fontWeight: 600 }}>{cmd.title}</span>
+          {cmd.is_favorite && <Star size={10} color="var(--yellow)" fill="var(--yellow)" />}
+          <span style={{ fontSize: 10, color: shellColor, background: `${shellColor}15`, padding: '1px 6px', borderRadius: 4, flexShrink: 0 }}>{cmd.shell}</span>
+          {cmd.category && <span style={{ fontSize: 10, color: 'var(--text-quaternary)', background: 'rgba(255,255,255,0.05)', padding: '1px 6px', borderRadius: 4, flexShrink: 0 }}>{cmd.category}</span>}
+        </div>
+        <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.35)', fontFamily: 'monospace', marginTop: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+          $ {cmd.command}
+        </div>
+      </div>
+
+      {/* Use count */}
+      {cmd.use_count > 0 && (
+        <span style={{ fontSize: 10, color: 'var(--text-quaternary)', flexShrink: 0 }}>{cmd.use_count}×</span>
+      )}
+
+      {/* Actions */}
+      <div style={{ display: 'flex', gap: 3, flexShrink: 0 }} onClick={e => e.stopPropagation()}>
+        <button className="btn-icon" style={{ width: 28, height: 28 }} onClick={handleCopy} title="Copy">
+          {copied ? <Check size={12} color="#30D158" /> : <Copy size={12} color="rgba(255,255,255,0.3)" />}
+        </button>
+        <button className="btn-icon" style={{ width: 28, height: 28 }} onClick={() => onFavorite(cmd.id)}>
+          <Star size={12} color={cmd.is_favorite ? 'var(--yellow)' : 'rgba(255,255,255,0.3)'} fill={cmd.is_favorite ? 'var(--yellow)' : 'none'} />
+        </button>
+        <button className="btn-icon" style={{ width: 28, height: 28 }} onClick={() => onEdit(cmd)}>
+          <Edit3 size={12} color="rgba(255,255,255,0.3)" />
+        </button>
+        <button className="btn-icon" style={{ width: 28, height: 28 }} onClick={() => onDelete(cmd.id)}>
+          <Trash2 size={12} color="rgba(255,55,95,0.5)" />
+        </button>
+      </div>
+    </div>
+  )
+}
+
+// ── Table Row ─────────────────────────────────────────────────
+function CommandTable({ commands, onCopy, onFavorite, onEdit, onDelete, onView }) {
+  return (
+    <div className="glass-card" style={{ padding: 0, overflow: 'hidden' }}>
+      {/* Table header */}
+      <div style={{ display: 'grid', gridTemplateColumns: '2fr 3fr 80px 80px 100px 120px', gap: 0, padding: '8px 16px', borderBottom: '1px solid rgba(255,255,255,0.07)', background: 'rgba(255,255,255,0.02)' }}>
+        {['Title', 'Command', 'Shell', 'Platform', 'Category', ''].map((h, i) => (
+          <div key={i} style={{ fontSize: 10, fontWeight: 600, color: 'var(--text-quaternary)', letterSpacing: 0.5, textTransform: 'uppercase', padding: '0 8px' }}>{h}</div>
+        ))}
+      </div>
+      {/* Rows */}
+      {commands.map((cmd, idx) => (
+        <TableRow key={cmd.id} cmd={cmd} isLast={idx === commands.length - 1}
+          onCopy={onCopy} onFavorite={onFavorite} onEdit={onEdit} onDelete={onDelete} onView={onView} />
+      ))}
+    </div>
+  )
+}
+
+function TableRow({ cmd, isLast, onCopy, onFavorite, onEdit, onDelete, onView }) {
+  const { copied, handle: handleCopy } = useCopy(cmd.command, () => onCopy?.(cmd.id))
+  const shellColor = SHELL_COLORS[cmd.shell] || '#8E8E93'
+
+  return (
+    <div style={{ display: 'grid', gridTemplateColumns: '2fr 3fr 80px 80px 100px 120px', gap: 0, padding: '10px 16px', borderBottom: isLast ? 'none' : '1px solid rgba(255,255,255,0.04)', cursor: 'pointer', transition: 'background 0.12s', alignItems: 'center' }}
+      onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.025)'}
+      onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+      onClick={() => onView?.(cmd)}>
+      {/* Title */}
+      <div style={{ padding: '0 8px', display: 'flex', alignItems: 'center', gap: 6, minWidth: 0 }}>
+        {cmd.is_favorite && <Star size={10} color="var(--yellow)" fill="var(--yellow)" style={{ flexShrink: 0 }} />}
+        <span style={{ fontSize: 13, fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{cmd.title}</span>
+      </div>
+      {/* Command */}
+      <div style={{ padding: '0 8px', minWidth: 0 }}>
+        <span style={{ fontSize: 11, fontFamily: 'monospace', color: shellColor, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'block' }}>
+          {cmd.command}
+        </span>
+      </div>
+      {/* Shell */}
+      <div style={{ padding: '0 8px' }}>
+        <span style={{ fontSize: 10, fontWeight: 600, color: shellColor, background: `${shellColor}18`, padding: '2px 7px', borderRadius: 4 }}>{cmd.shell}</span>
+      </div>
+      {/* Platform */}
+      <div style={{ padding: '0 8px' }}>
+        <span style={{ fontSize: 11, color: 'var(--text-tertiary)' }}>{PLATFORM_ICONS[cmd.platform]} {cmd.platform !== 'all' ? cmd.platform : 'all'}</span>
+      </div>
+      {/* Category */}
+      <div style={{ padding: '0 8px' }}>
+        <span style={{ fontSize: 10, color: 'var(--text-quaternary)', background: 'rgba(255,255,255,0.05)', padding: '2px 7px', borderRadius: 4 }}>{cmd.category}</span>
+      </div>
+      {/* Actions */}
+      <div style={{ padding: '0 8px', display: 'flex', gap: 2, justifyContent: 'flex-end' }} onClick={e => e.stopPropagation()}>
+        <button className="btn-icon" style={{ width: 26, height: 26 }} onClick={handleCopy}>
+          {copied ? <Check size={11} color="#30D158" /> : <Copy size={11} color="rgba(255,255,255,0.3)" />}
+        </button>
+        <button className="btn-icon" style={{ width: 26, height: 26 }} onClick={() => onFavorite(cmd.id)}>
+          <Star size={11} color={cmd.is_favorite ? 'var(--yellow)' : 'rgba(255,255,255,0.3)'} fill={cmd.is_favorite ? 'var(--yellow)' : 'none'} />
+        </button>
+        <button className="btn-icon" style={{ width: 26, height: 26 }} onClick={() => onEdit(cmd)}>
+          <Edit3 size={11} color="rgba(255,255,255,0.3)" />
+        </button>
+        <button className="btn-icon" style={{ width: 26, height: 26 }} onClick={() => onDelete(cmd.id)}>
+          <Trash2 size={11} color="rgba(255,55,95,0.5)" />
+        </button>
+      </div>
+    </div>
+  )
+}
+
+// ── Code View ─────────────────────────────────────────────────
+function CommandCodeView({ commands, onCopy, onFavorite, onEdit, onDelete, onView }) {
+  // Group by category
+  const grouped = commands.reduce((acc, cmd) => {
+    const cat = cmd.category || 'general'
+    if (!acc[cat]) acc[cat] = []
+    acc[cat].push(cmd)
+    return acc
+  }, {})
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+      {Object.entries(grouped).map(([category, cmds]) => (
+        <div key={category}>
+          <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-quaternary)', letterSpacing: 0.5, textTransform: 'uppercase', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 8 }}>
+            <div style={{ height: 1, flex: 1, background: 'rgba(255,255,255,0.06)' }} />
+            {category}
+            <div style={{ height: 1, flex: 1, background: 'rgba(255,255,255,0.06)' }} />
+          </div>
+          <div className="glass-card" style={{ padding: 0, overflow: 'hidden' }}>
+            {cmds.map((cmd, idx) => (
+              <CodeRow key={cmd.id} cmd={cmd} isLast={idx === cmds.length - 1}
+                onCopy={onCopy} onFavorite={onFavorite} onEdit={onEdit} onDelete={onDelete} onView={onView} />
+            ))}
+          </div>
+        </div>
+      ))}
+    </div>
+  )
+}
+
+function CodeRow({ cmd, isLast, onCopy, onFavorite, onEdit, onDelete, onView }) {
+  const { copied, handle: handleCopy } = useCopy(cmd.command, () => onCopy?.(cmd.id))
+  const shellColor = SHELL_COLORS[cmd.shell] || '#8E8E93'
+  const [expanded, setExpanded] = useState(false)
+
+  return (
+    <div style={{ borderBottom: isLast ? 'none' : '1px solid rgba(255,255,255,0.05)' }}>
+      {/* Command line */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 0, background: 'rgba(0,0,0,0.35)', cursor: 'pointer' }}
+        onClick={() => { setExpanded(e => !e); onView?.(cmd) }}>
+        {/* Shell indicator */}
+        <div style={{ width: 4, alignSelf: 'stretch', background: shellColor, opacity: 0.6, flexShrink: 0 }} />
+        {/* Prompt */}
+        <div style={{ padding: '10px 14px', display: 'flex', alignItems: 'flex-start', gap: 8, flex: 1, minWidth: 0 }}>
+          <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.2)', fontFamily: 'monospace', userSelect: 'none', flexShrink: 0, marginTop: 1 }}>$</span>
+          <pre style={{ margin: 0, fontFamily: "'JetBrains Mono','Fira Code',monospace", fontSize: 12.5, color: shellColor, whiteSpace: 'pre-wrap', wordBreak: 'break-all', flex: 1, lineHeight: 1.5 }}>
+            {cmd.command}
+          </pre>
+        </div>
+        {/* Right side */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '0 12px', flexShrink: 0 }} onClick={e => e.stopPropagation()}>
+          {cmd.title && (
+            <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.3)', maxWidth: 140, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{cmd.title}</span>
+          )}
+          <span style={{ fontSize: 10, color: shellColor, background: `${shellColor}15`, padding: '1px 6px', borderRadius: 4 }}>{cmd.shell}</span>
+          <button className="btn-icon" style={{ width: 26, height: 26 }} onClick={handleCopy}>
+            {copied ? <Check size={11} color="#30D158" /> : <Copy size={11} color="rgba(255,255,255,0.3)" />}
+          </button>
+          <button className="btn-icon" style={{ width: 26, height: 26 }} onClick={() => onFavorite(cmd.id)}>
+            <Star size={11} color={cmd.is_favorite ? 'var(--yellow)' : 'rgba(255,255,255,0.3)'} fill={cmd.is_favorite ? 'var(--yellow)' : 'none'} />
+          </button>
+          <button className="btn-icon" style={{ width: 26, height: 26 }} onClick={() => onEdit(cmd)}>
+            <Edit3 size={11} color="rgba(255,255,255,0.3)" />
+          </button>
+          <button className="btn-icon" style={{ width: 26, height: 26 }} onClick={() => onDelete(cmd.id)}>
+            <Trash2 size={11} color="rgba(255,55,95,0.5)" />
+          </button>
+        </div>
+      </div>
+      {/* Description if any */}
+      {cmd.description && (
+        <div style={{ padding: '5px 14px 5px 26px', fontSize: 11, color: 'var(--text-quaternary)', background: 'rgba(255,255,255,0.01)', fontStyle: 'italic' }}>
+          # {cmd.description}
+        </div>
+      )}
     </div>
   )
 }
@@ -149,7 +333,6 @@ function CommandModal({ cmd, onClose, onSave, fullscreen: initialFullscreen = fa
     <div style={{ position: 'fixed', inset: 0, zIndex: 1000, display: 'flex', alignItems: maximized ? 'stretch' : 'center', justifyContent: 'center', padding: maximized ? 0 : 20, background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(8px)' }}
       onClick={e => e.target === e.currentTarget && onClose()}>
       <div style={{ background: 'var(--surface-2)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: maximized ? 0 : 16, width: '100%', maxWidth: maximized ? '100vw' : 560, boxShadow: maximized ? 'none' : '0 32px 80px rgba(0,0,0,0.6)', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
-        {/* Header */}
         <div style={{ padding: '18px 20px 14px', borderBottom: '1px solid rgba(255,255,255,0.07)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
             <div style={{ width: 32, height: 32, borderRadius: 8, background: 'rgba(48,209,88,0.12)', border: '1px solid rgba(48,209,88,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -158,7 +341,7 @@ function CommandModal({ cmd, onClose, onSave, fullscreen: initialFullscreen = fa
             <span style={{ fontWeight: 600, fontSize: 15 }}>{isEdit ? 'Edit command' : 'New command'}</span>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-            <button className="btn-icon" onClick={() => setMaximized(m => !m)} title={maximized ? 'Restore' : 'Maximize'}>
+            <button className="btn-icon" onClick={() => setMaximized(m => !m)}>
               {maximized ? <Minimize2 size={15} /> : <Maximize2 size={15} />}
             </button>
             <button className="btn-icon" onClick={onClose}><X size={16} /></button>
@@ -166,13 +349,10 @@ function CommandModal({ cmd, onClose, onSave, fullscreen: initialFullscreen = fa
         </div>
 
         <form onSubmit={handleSubmit} style={{ padding: 20, display: 'flex', flexDirection: 'column', gap: 14, flex: 1, overflowY: 'auto' }}>
-          {/* Title */}
           <div>
             <label style={{ fontSize: 11, color: 'var(--text-tertiary)', display: 'block', marginBottom: 6 }}>TITLE</label>
             <input className="form-input" placeholder="E.g.: List processes on port…" value={form.title} onChange={e => set('title', e.target.value)} />
           </div>
-
-          {/* Command */}
           <div>
             <label style={{ fontSize: 11, color: 'var(--text-tertiary)', display: 'block', marginBottom: 6 }}>COMMAND</label>
             <div style={{ background: 'rgba(0,0,0,0.5)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 10, overflow: 'hidden' }}>
@@ -193,8 +373,6 @@ function CommandModal({ cmd, onClose, onSave, fullscreen: initialFullscreen = fa
               </div>
             </div>
           </div>
-
-          {/* Shell + Platform */}
           <div className="form-grid-2col" style={{ gap: 12 }}>
             <div>
               <label style={{ fontSize: 11, color: 'var(--text-tertiary)', display: 'block', marginBottom: 6 }}>SHELL</label>
@@ -209,8 +387,6 @@ function CommandModal({ cmd, onClose, onSave, fullscreen: initialFullscreen = fa
               </select>
             </div>
           </div>
-
-          {/* Category + Description */}
           <div>
             <label style={{ fontSize: 11, color: 'var(--text-tertiary)', display: 'block', marginBottom: 6 }}>CATEGORY</label>
             <input className="form-input" placeholder="git, docker, npm, kubernetes…" value={form.category} onChange={e => set('category', e.target.value.toLowerCase().trim())} />
@@ -219,8 +395,6 @@ function CommandModal({ cmd, onClose, onSave, fullscreen: initialFullscreen = fa
             <label style={{ fontSize: 11, color: 'var(--text-tertiary)', display: 'block', marginBottom: 6 }}>DESCRIPTION <span style={{ color: 'var(--text-quaternary)' }}>(optional)</span></label>
             <input className="form-input" placeholder="What does this command do?" value={form.description} onChange={e => set('description', e.target.value)} />
           </div>
-
-          {/* Actions */}
           <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10, paddingTop: 4 }}>
             <button type="button" className="btn btn-glass" onClick={onClose}>Cancel</button>
             <button type="submit" className="btn btn-primary" style={{ gap: 7 }}>
@@ -243,10 +417,15 @@ export default function CommandsPage() {
   const [filterPlatform, setFilterPlatform] = useState('')
   const [filterCategory, setFilterCategory] = useState('')
   const [showFavOnly, setShowFavOnly] = useState(false)
-  const [modal, setModal] = useState(null) // null | { cmd?, fullscreen? }
+  const [viewMode, setViewMode] = useState(() => localStorage.getItem('commands-view') || 'grid')
+  const [modal, setModal] = useState(null)
   const [viewCmd, setViewCmd] = useState(null)
 
-  // Focus search on /
+  const setView = (mode) => {
+    setViewMode(mode)
+    localStorage.setItem('commands-view', mode)
+  }
+
   useEffect(() => {
     const handler = e => {
       if (e.key === '/' && !['INPUT','TEXTAREA'].includes(e.target.tagName)) {
@@ -287,9 +466,7 @@ export default function CommandsPage() {
       })
       return { prev }
     },
-    onError: (_err, _id, ctx) => {
-      if (ctx?.prev) ctx.prev.forEach(([key, val]) => qc.setQueryData(key, val))
-    },
+    onError: (_err, _id, ctx) => { if (ctx?.prev) ctx.prev.forEach(([key, val]) => qc.setQueryData(key, val)) },
     onSettled: invalidate,
   })
   const useMut = useMutation({
@@ -314,10 +491,17 @@ export default function CommandsPage() {
   const commands = data?.data || []
   const total = data?.total || 0
 
-  // Derive unique categories from current results for filter chips
   const { data: allData } = useQuery({ queryKey: ['commands', {}], queryFn: () => commandsApi.list({}), staleTime: 30000 })
   const allCategories = [...new Set((allData?.data || []).map(c => c.category))].filter(Boolean).sort()
   const allShells = [...new Set((allData?.data || []).map(c => c.shell))].filter(Boolean).sort()
+
+  const commonProps = {
+    onCopy: id => useMut.mutate(id),
+    onFavorite: id => favMut.mutate(id),
+    onEdit: cmd => setModal({ cmd }),
+    onDelete: id => deleteMut.mutate(id),
+    onView: setViewCmd,
+  }
 
   return (
     <div className="page-content">
@@ -332,9 +516,30 @@ export default function CommandsPage() {
             <p style={{ fontSize: 12, color: 'var(--text-tertiary)', marginTop: 3 }}>{total} command{total !== 1 ? 's' : ''} saved</p>
           </div>
         </div>
-        <button className="btn btn-primary" onClick={() => setModal({})} style={{ gap: 7 }}>
-          <Plus size={14} /> New command
-        </button>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          {/* View mode toggle */}
+          <div style={{ display: 'flex', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 8, padding: 2, gap: 1 }}>
+            {VIEW_MODES.map(({ id, icon: Icon, label }) => (
+              <button
+                key={id}
+                onClick={() => setView(id)}
+                title={label}
+                style={{
+                  width: 30, height: 28, borderRadius: 6, border: 'none', cursor: 'pointer',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  background: viewMode === id ? 'rgba(255,255,255,0.1)' : 'transparent',
+                  color: viewMode === id ? 'rgba(255,255,255,0.9)' : 'rgba(255,255,255,0.35)',
+                  transition: 'all 0.15s',
+                }}
+              >
+                <Icon size={14} />
+              </button>
+            ))}
+          </div>
+          <button className="btn btn-primary" onClick={() => setModal({})} style={{ gap: 7 }}>
+            <Plus size={14} /> New command
+          </button>
+        </div>
       </div>
 
       {/* Search bar */}
@@ -355,50 +560,29 @@ export default function CommandsPage() {
 
       {/* Filters */}
       <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 20, alignItems: 'center' }}>
-        {/* Favorite toggle */}
-        <button
-          onClick={() => setShowFavOnly(v => !v)}
-          className={`filter-chip${showFavOnly ? ' active' : ''}`}
-          style={showFavOnly ? { background: 'rgba(255,214,10,0.12)', borderColor: 'rgba(255,214,10,0.3)', color: '#FFD60A' } : {}}
-        >
+        <button onClick={() => setShowFavOnly(v => !v)} className={`filter-chip${showFavOnly ? ' active' : ''}`}
+          style={showFavOnly ? { background: 'rgba(255,214,10,0.12)', borderColor: 'rgba(255,214,10,0.3)', color: '#FFD60A' } : {}}>
           <Star size={11} fill={showFavOnly ? 'currentColor' : 'none'} /> Favorites
         </button>
-
-        {/* Shell filter */}
         {allShells.length > 1 && allShells.map(s => {
           const active = filterShell === s
           const color = SHELL_COLORS[s] || '#8E8E93'
           return (
-            <button key={s} onClick={() => setFilterShell(active ? '' : s)}
-              className={`filter-chip${active ? ' active' : ''}`}
-              style={active ? { background: `${color}18`, borderColor: `${color}50`, color } : {}}>
-              {s}
-            </button>
+            <button key={s} onClick={() => setFilterShell(active ? '' : s)} className={`filter-chip${active ? ' active' : ''}`}
+              style={active ? { background: `${color}18`, borderColor: `${color}50`, color } : {}}>{s}</button>
           )
         })}
-
-        {/* Separator if both shells and platforms */}
         {allShells.length > 1 && <div style={{ width: 1, height: 16, background: 'rgba(255,255,255,0.08)', margin: '0 2px' }} />}
-
-        {/* Platform filter */}
         {['linux', 'macos', 'windows'].map(p => (
-          <button key={p} onClick={() => setFilterPlatform(filterPlatform === p ? '' : p)}
-            className={`filter-chip${filterPlatform === p ? ' active' : ''}`}>
+          <button key={p} onClick={() => setFilterPlatform(filterPlatform === p ? '' : p)} className={`filter-chip${filterPlatform === p ? ' active' : ''}`}>
             {PLATFORM_ICONS[p]} {p}
           </button>
         ))}
-
-        {/* Category chips */}
         {allCategories.length > 0 && <div style={{ width: 1, height: 16, background: 'rgba(255,255,255,0.08)', margin: '0 2px' }} />}
         {allCategories.map(cat => (
-          <button key={cat} onClick={() => setFilterCategory(filterCategory === cat ? '' : cat)}
-            className={`filter-chip${filterCategory === cat ? ' active' : ''}`}
-            style={filterCategory === cat ? { background: 'rgba(191,90,242,0.12)', borderColor: 'rgba(191,90,242,0.35)', color: '#BF5AF2' } : {}}>
-            {cat}
-          </button>
+          <button key={cat} onClick={() => setFilterCategory(filterCategory === cat ? '' : cat)} className={`filter-chip${filterCategory === cat ? ' active' : ''}`}
+            style={filterCategory === cat ? { background: 'rgba(191,90,242,0.12)', borderColor: 'rgba(191,90,242,0.35)', color: '#BF5AF2' } : {}}>{cat}</button>
         ))}
-
-        {/* Clear filters */}
         {(filterShell || filterPlatform || filterCategory || showFavOnly) && (
           <button className="btn btn-glass btn-sm" onClick={() => { setFilterShell(''); setFilterPlatform(''); setFilterCategory(''); setShowFavOnly(false) }} style={{ gap: 5, marginLeft: 'auto' }}>
             <RotateCcw size={11} /> Clear
@@ -430,31 +614,37 @@ export default function CommandsPage() {
         </div>
       )}
 
-      {/* Commands grid */}
-      {commands.length > 0 && (
+      {/* Commands — Grid view */}
+      {commands.length > 0 && viewMode === 'grid' && (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(380px, 100%), 1fr))', gap: 14 }}>
           {commands.map(cmd => (
-            <CommandCard
-              key={cmd.id}
-              cmd={cmd}
-              onCopy={id => useMut.mutate(id)}
-              onFavorite={id => favMut.mutate(id)}
-              onEdit={cmd => setModal({ cmd })}
-              onDelete={id => deleteMut.mutate(id)}
-              onView={setViewCmd}
-            />
+            <CommandCardGrid key={cmd.id} cmd={cmd} {...commonProps} />
           ))}
         </div>
       )}
 
+      {/* Commands — List view */}
+      {commands.length > 0 && viewMode === 'list' && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+          {commands.map(cmd => (
+            <CommandRowList key={cmd.id} cmd={cmd} {...commonProps} />
+          ))}
+        </div>
+      )}
+
+      {/* Commands — Table view */}
+      {commands.length > 0 && viewMode === 'table' && (
+        <CommandTable commands={commands} {...commonProps} />
+      )}
+
+      {/* Commands — Code view */}
+      {commands.length > 0 && viewMode === 'code' && (
+        <CommandCodeView commands={commands} {...commonProps} />
+      )}
+
       {/* Edit Modal */}
       {modal !== null && (
-        <CommandModal
-          cmd={modal.cmd}
-          onClose={() => setModal(null)}
-          onSave={handleSave}
-          fullscreen={modal.fullscreen}
-        />
+        <CommandModal cmd={modal.cmd} onClose={() => setModal(null)} onSave={handleSave} fullscreen={modal.fullscreen} />
       )}
 
       {/* Detail view */}
