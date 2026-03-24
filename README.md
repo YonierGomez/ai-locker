@@ -8,7 +8,7 @@
 
 Built with a true-black glassmorphism design and multi-provider AI support.
 
-[![Docker](https://img.shields.io/badge/Docker-yoniergomez%2Fpromptly-2496ED?logo=docker&logoColor=white)](https://hub.docker.com/r/yoniergomez/ai-locker)
+[![Docker](https://img.shields.io/badge/Docker-yoniergomez%2Fai--locker-2496ED?logo=docker&logoColor=white)](https://hub.docker.com/r/yoniergomez/ai-locker)
 [![Node.js](https://img.shields.io/badge/Node.js-20+-339933?logo=node.js&logoColor=white)](https://nodejs.org)
 [![React](https://img.shields.io/badge/React-18-61DAFB?logo=react&logoColor=black)](https://react.dev)
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-4169E1?logo=postgresql&logoColor=white)](https://postgresql.org)
@@ -79,7 +79,7 @@ services:
 
   app:
     image: yoniergomez/ai-locker:latest
-    container_name: promptly
+    container_name: ai-locker
     ports:
       - "9090:3001"
     environment:
@@ -87,14 +87,14 @@ services:
       PORT: 3001
       DB_HOST: postgres-db
       DB_PORT: 5432
-      DB_NAME: promptly
-      DB_USER: promptly
+      DB_NAME: ai-locker
+      DB_USER: ai-locker
       DB_PASSWORD: secret
       DB_TYPE: postgres
       # Alternatively, use a connection string:
-      # DATABASE_URL: postgresql://promptly:secret@postgres-db:5432/promptly
+      # DATABASE_URL: postgresql://ai-locker:secret@postgres-db:5432/ai-locker
     volumes:
-      - promptly_data:/data
+      - ai_locker_data:/data
     restart: unless-stopped
     depends_on:
       postgres-db:
@@ -102,22 +102,22 @@ services:
 
   postgres-db:
     image: postgres:alpine
-    container_name: promptly_postgres
+    container_name: ai-locker_postgres
     restart: unless-stopped
     environment:
-      POSTGRES_DB: promptly
-      POSTGRES_USER: promptly
+      POSTGRES_DB: ai-locker
+      POSTGRES_USER: ai-locker
       POSTGRES_PASSWORD: secret
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U promptly -d promptly"]
+      test: ["CMD-SHELL", "pg_isready -U ai-locker -d ai-locker"]
       interval: 10s
       timeout: 5s
       retries: 5
 
 volumes:
-  promptly_data:
+  ai_locker_data:
   postgres_data:
 ```
 
@@ -125,15 +125,56 @@ volumes:
 
 ---
 
-### Option B: Docker run — SQLite
+### Option B: Docker Compose — SQLite (no database service)
+
+Minimal compose file — single container with built-in SQLite. No PostgreSQL required.
+
+```bash
+# Download the compose file
+curl -O https://raw.githubusercontent.com/YonierGomez/ai-locker/main/compose.yaml
+
+# Start
+docker compose up -d
+```
+
+<details>
+<summary><strong>compose.yaml (SQLite variant)</strong></summary>
+
+```yaml
+services:
+
+  app:
+    image: yoniergomez/ai-locker:latest
+    container_name: ai-locker
+    ports:
+      - "9090:3001"
+    environment:
+      NODE_ENV: production
+      PORT: 3001
+      DB_PATH: /data/ai-locker.db
+    volumes:
+      - ai_locker_data:/data
+    restart: unless-stopped
+
+volumes:
+  ai_locker_data:
+```
+
+</details>
+
+Open **http://localhost:9090**.
+
+---
+
+### Option C: Docker run — SQLite
 
 Single container with built-in SQLite. No extra services required.
 
 ```bash
 docker run -d \
-  --name promptly \
+  --name ai-locker \
   -p 3001:3001 \
-  -v promptly_data:/data \
+  -v ai_locker_data:/data \
   --restart unless-stopped \
   yoniergomez/ai-locker:latest
 ```
@@ -142,16 +183,16 @@ Open **http://localhost:3001**.
 
 ---
 
-### Option C: Docker run — External PostgreSQL
+### Option D: Docker run — External PostgreSQL
 
 Point to your own PostgreSQL instance via a connection string.
 
 ```bash
 docker run -d \
-  --name promptly \
+  --name ai-locker \
   -p 3001:3001 \
-  -v promptly_data:/data \
-  -e DATABASE_URL=postgresql://user:pass@host:5432/promptly \
+  -v ai_locker_data:/data \
+  -e DATABASE_URL=postgresql://user:pass@host:5432/ai-locker \
   --restart unless-stopped \
   yoniergomez/ai-locker:latest
 ```
@@ -186,10 +227,10 @@ git clone https://github.com/YonierGomez/ai-locker.git && cd ai-locker
 docker compose up -d --build
 
 # Backup PostgreSQL
-docker exec promptly_postgres pg_dump -U promptly promptly > backup-$(date +%Y%m%d).sql
+docker exec ai-locker_postgres pg_dump -U ai-locker ai-locker > backup-$(date +%Y%m%d).sql
 
 # Backup SQLite (docker run mode)
-docker cp promptly:/data/prompts.db ./backup-$(date +%Y%m%d).db
+docker cp ai-locker:/data/prompts.db ./backup-$(date +%Y%m%d).db
 
 # Custom port
 PORT=8080 docker compose up -d
@@ -214,7 +255,7 @@ npm run dev           # start backend + frontend in watch mode
 ##  Project Structure
 
 ```
-promptly/
+ai-locker/
 ├── backend/                 # Express.js API
 │   ├── config/
 │   │   └── database.js      # PostgreSQL / SQLite setup

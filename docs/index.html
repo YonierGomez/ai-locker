@@ -736,9 +736,9 @@
           <div class="t-line" style="color:rgba(255,255,255,0.3);">  % Total    % Received ... 100  2748</div>
           <div class="t-line"><span class="t-prompt">~</span><span class="t-prompt">$</span><span class="t-cmd">docker compose up -d</span></div>
           <div class="t-line" style="color:rgba(255,255,255,0.3);"> ✔ yoniergomez/ai-locker:latest  Pulled</div>
-          <div class="t-line" style="color:rgba(255,255,255,0.3);"> ✔ Network promptly_default     Created</div>
-          <div class="t-line" style="color:rgba(255,255,255,0.3);"> ✔ Container promptly_postgres  Started</div>
-          <div class="t-line" style="color:rgba(255,255,255,0.3);"> ✔ Container promptly           Started</div>
+          <div class="t-line" style="color:rgba(255,255,255,0.3);"> ✔ Network ai-locker_default    Created</div>
+          <div class="t-line" style="color:rgba(255,255,255,0.3);"> ✔ Container ai-locker_postgres Started</div>
+          <div class="t-line" style="color:rgba(255,255,255,0.3);"> ✔ Container ai-locker          Started</div>
           <div class="t-line"><span class="t-prompt">~</span><span class="t-prompt">$</span><span class="t-cmd">open</span><span class="t-url">http://localhost:9090</span></div>
           <div class="t-line"><span class="t-success">✦ AI Locker is running</span></div>
         </div>
@@ -751,14 +751,18 @@
       <div class="deploy-tab-bar" role="tablist">
         <button class="deploy-tab-btn active" style="--tab-color:var(--cyan)" onclick="switchTab(this,'tab-a')" role="tab">
           <span class="deploy-tab-label">Option A</span>
-          Docker Compose
+          Compose + PostgreSQL
         </button>
-        <button class="deploy-tab-btn" style="--tab-color:var(--green)" onclick="switchTab(this,'tab-b')" role="tab">
+        <button class="deploy-tab-btn" style="--tab-color:var(--orange)" onclick="switchTab(this,'tab-b')" role="tab">
           <span class="deploy-tab-label">Option B</span>
+          Compose · SQLite
+        </button>
+        <button class="deploy-tab-btn" style="--tab-color:var(--green)" onclick="switchTab(this,'tab-c')" role="tab">
+          <span class="deploy-tab-label">Option C</span>
           docker run · SQLite
         </button>
-        <button class="deploy-tab-btn" style="--tab-color:#9B8FF5" onclick="switchTab(this,'tab-c')" role="tab">
-          <span class="deploy-tab-label">Option C</span>
+        <button class="deploy-tab-btn" style="--tab-color:#9B8FF5" onclick="switchTab(this,'tab-d')" role="tab">
+          <span class="deploy-tab-label">Option D</span>
           docker run · PostgreSQL
         </button>
       </div>
@@ -793,29 +797,51 @@
 
       <!-- Panel B -->
       <div id="tab-b" class="deploy-tab-panel" role="tabpanel">
-        <p class="deploy-tab-desc">Single container, zero extra services. Data persists in a named Docker volume. Uses SQLite internally.</p>
+        <p class="deploy-tab-desc">Minimal compose file — single container with built-in SQLite. No PostgreSQL service required. Perfect for lightweight deployments.</p>
+        <div class="deploy-tab-heading">Commands</div>
+        <div class="code-block" style="font-size:12.5px;">
+          <span class="cmd">curl</span> -O <span class="arg">https://raw.githubusercontent.com/YonierGomez/ai-locker/main/compose.yaml</span><br/>
+          <span class="cmd">docker compose up -d</span><br/><br/>
+          <span class="comment"># Open → http://localhost:9090</span>
+        </div>
+        <div class="deploy-tab-heading">compose.yaml (SQLite variant)</div>
+        <div class="code-block" style="font-size:12px;line-height:1.8;">
+<span style="color:rgba(255,255,255,0.35);">services:</span><br/>
+<span style="color:rgba(255,255,255,0.35);">&nbsp;&nbsp;app:</span><br/>
+<span style="color:rgba(255,255,255,0.35);">&nbsp;&nbsp;&nbsp;&nbsp;image: </span><span class="arg">yoniergomez/ai-locker:latest</span><br/>
+<span style="color:rgba(255,255,255,0.35);">&nbsp;&nbsp;&nbsp;&nbsp;ports: [</span><span class="arg">"9090:3001"</span><span style="color:rgba(255,255,255,0.35);">]</span><br/>
+<span style="color:rgba(255,255,255,0.35);">&nbsp;&nbsp;&nbsp;&nbsp;environment:</span><br/>
+<span style="color:rgba(255,255,255,0.35);">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;DB_PATH: </span><span class="arg">/data/ai-locker.db</span><br/>
+<span style="color:rgba(255,255,255,0.35);">&nbsp;&nbsp;&nbsp;&nbsp;volumes: [</span><span class="arg">ai_locker_data:/data</span><span style="color:rgba(255,255,255,0.35);">]</span><br/>
+<span style="color:rgba(255,255,255,0.35);">&nbsp;&nbsp;&nbsp;&nbsp;restart: unless-stopped</span>
+        </div>
+      </div>
+
+      <!-- Panel C -->
+      <div id="tab-c" class="deploy-tab-panel" role="tabpanel">
+        <p class="deploy-tab-desc">Single container with built-in SQLite. No extra services required. Data persists in a named Docker volume.</p>
         <div class="deploy-tab-heading">Command</div>
         <div class="code-block" style="font-size:12.5px;">
           <span class="cmd">docker run</span> -d \<br/>
-          &nbsp;&nbsp;--name promptly \<br/>
+          &nbsp;&nbsp;--name ai-locker \<br/>
           &nbsp;&nbsp;-p <span class="arg">3001:3001</span> \<br/>
-          &nbsp;&nbsp;-v <span class="arg">promptly_data:/data</span> \<br/>
+          &nbsp;&nbsp;-v <span class="arg">ai_locker_data:/data</span> \<br/>
           &nbsp;&nbsp;--restart unless-stopped \<br/>
           &nbsp;&nbsp;<span class="arg">yoniergomez/ai-locker:latest</span><br/><br/>
           <span class="comment"># Open → http://localhost:3001</span>
         </div>
       </div>
 
-      <!-- Panel C -->
-      <div id="tab-c" class="deploy-tab-panel" role="tabpanel">
+      <!-- Panel D -->
+      <div id="tab-d" class="deploy-tab-panel" role="tabpanel">
         <p class="deploy-tab-desc">Single container that points to your own external PostgreSQL instance via a connection string.</p>
         <div class="deploy-tab-heading">Command</div>
         <div class="code-block" style="font-size:12.5px;">
           <span class="cmd">docker run</span> -d \<br/>
-          &nbsp;&nbsp;--name promptly \<br/>
+          &nbsp;&nbsp;--name ai-locker \<br/>
           &nbsp;&nbsp;-p <span class="arg">3001:3001</span> \<br/>
-          &nbsp;&nbsp;-v <span class="arg">promptly_data:/data</span> \<br/>
-          &nbsp;&nbsp;-e <span class="arg">DATABASE_URL</span>=postgresql://<span class="arg">user:pass@host:5432/promptly</span> \<br/>
+          &nbsp;&nbsp;-v <span class="arg">ai_locker_data:/data</span> \<br/>
+          &nbsp;&nbsp;-e <span class="arg">DATABASE_URL</span>=postgresql://<span class="arg">user:pass@host:5432/ai-locker</span> \<br/>
           &nbsp;&nbsp;--restart unless-stopped \<br/>
           &nbsp;&nbsp;<span class="arg">yoniergomez/ai-locker:latest</span><br/><br/>
           <span class="comment"># Open → http://localhost:3001</span>
@@ -840,7 +866,7 @@
       </div>
       <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:14px;padding:16px;transition:all 0.2s var(--spring);" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform=''">
         <div style="font-size:10px;color:rgba(255,255,255,0.35);margin-bottom:6px;text-transform:uppercase;letter-spacing:0.5px;">Backup DB</div>
-        <div style="font-family:var(--mono);font-size:11.5px;color:var(--cyan);">docker exec promptly_postgres pg_dump -U promptly promptly > backup.sql</div>
+        <div style="font-family:var(--mono);font-size:11.5px;color:var(--cyan);">docker exec ai-locker_postgres pg_dump -U ai-locker ai-locker > backup.sql</div>
       </div>
     </div>
   </div>
