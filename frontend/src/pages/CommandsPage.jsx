@@ -6,7 +6,7 @@ import toast from 'react-hot-toast'
 import {
   TerminalSquare, Plus, Search, Copy, Check, Star, Trash2,
   X, Edit3, RotateCcw, Maximize2, Minimize2,
-  LayoutGrid, AlignJustify, Code2, Monitor,
+  LayoutGrid, AlignJustify, Code2, Monitor, Columns2, Zap,
 } from 'lucide-react'
 
 // ── Shell/Platform config ─────────────────────────────────────
@@ -20,10 +20,12 @@ const PLATFORM_ICONS = { all: '🌐', linux: '🐧', macos: '', windows: '🪟' 
 
 // ── View modes ────────────────────────────────────────────────
 const VIEW_MODES = [
-  { id: 'grid',     icon: LayoutGrid,    label: 'Grid' },
-  { id: 'compact',  icon: AlignJustify,  label: 'Compact' },
-  { id: 'code',     icon: Code2,         label: 'Code' },
-  { id: 'terminal', icon: Monitor,       label: 'Terminal' },
+  { id: 'grid',      icon: LayoutGrid,   label: 'Grid' },
+  { id: 'compact',   icon: AlignJustify, label: 'Compact' },
+  { id: 'code',      icon: Code2,        label: 'Code' },
+  { id: 'terminal',  icon: Monitor,      label: 'Terminal' },
+  { id: 'kanban',    icon: Columns2,     label: 'Kanban' },
+  { id: 'spotlight', icon: Zap,          label: 'Spotlight' },
 ]
 
 // ── Copy hook ─────────────────────────────────────────────────
@@ -319,6 +321,259 @@ function TerminalLine({ cmd, idx, onCopy, onFavorite, onEdit, onDelete, onView }
             <button className="btn-icon" style={{ width: 24, height: 24 }} onClick={() => onDelete(cmd.id)}>
               <Trash2 size={11} color="rgba(255,55,95,0.5)" />
             </button>
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
+// ── 5. Kanban View ────────────────────────────────────────────
+// Columns by category, cards stacked vertically
+function CommandKanbanView({ commands, onCopy, onFavorite, onEdit, onDelete, onView }) {
+  const grouped = commands.reduce((acc, cmd) => {
+    const cat = cmd.category || 'general'
+    if (!acc[cat]) acc[cat] = []
+    acc[cat].push(cmd)
+    return acc
+  }, {})
+
+  const CAT_COLORS = ['#007AFF','#BF5AF2','#FF9500','#30D158','#FF375F','#5AC8FA','#FFD60A','#FF6B35']
+
+  return (
+    <div style={{ display: 'flex', gap: 14, overflowX: 'auto', paddingBottom: 8, alignItems: 'flex-start' }}>
+      {Object.entries(grouped).map(([category, cmds], colIdx) => {
+        const colColor = CAT_COLORS[colIdx % CAT_COLORS.length]
+        return (
+          <div key={category} style={{ minWidth: 280, maxWidth: 320, flex: '0 0 280px', display: 'flex', flexDirection: 'column', gap: 8 }}>
+            {/* Column header */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 12px', background: `${colColor}12`, border: `1px solid ${colColor}25`, borderRadius: 10 }}>
+              <div style={{ width: 8, height: 8, borderRadius: '50%', background: colColor, flexShrink: 0 }} />
+              <span style={{ fontSize: 12, fontWeight: 700, color: colColor, textTransform: 'uppercase', letterSpacing: 0.5 }}>{category}</span>
+              <span style={{ fontSize: 11, color: `${colColor}80`, marginLeft: 'auto', background: `${colColor}18`, padding: '1px 7px', borderRadius: 10 }}>{cmds.length}</span>
+            </div>
+            {/* Cards */}
+            {cmds.map(cmd => (
+              <KanbanCard key={cmd.id} cmd={cmd} colColor={colColor}
+                onCopy={onCopy} onFavorite={onFavorite} onEdit={onEdit} onDelete={onDelete} onView={onView} />
+            ))}
+          </div>
+        )
+      })}
+    </div>
+  )
+}
+
+function KanbanCard({ cmd, colColor, onCopy, onFavorite, onEdit, onDelete, onView }) {
+  const { copied, handle: handleCopy } = useCopy(cmd.command, () => onCopy?.(cmd.id))
+  const shellColor = SHELL_COLORS[cmd.shell] || '#8E8E93'
+
+  return (
+    <div className="glass-card" style={{ padding: 0, overflow: 'hidden', cursor: 'pointer', transition: 'transform 0.12s, box-shadow 0.12s' }}
+      onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = `0 4px 20px ${colColor}20` }}
+      onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = 'none' }}
+      onClick={() => onView?.(cmd)}>
+      {/* Left accent */}
+      <div style={{ display: 'flex' }}>
+        <div style={{ width: 3, background: colColor, opacity: 0.7, flexShrink: 0 }} />
+        <div style={{ flex: 1, padding: '10px 12px' }}>
+          {/* Title */}
+          <div style={{ display: 'flex', alignItems: 'flex-start', gap: 6, marginBottom: 8 }}>
+            <span style={{ fontSize: 12, fontWeight: 600, flex: 1, lineHeight: 1.4 }}>{cmd.title}</span>
+            {cmd.is_favorite && <Star size={10} color="var(--yellow)" fill="var(--yellow)" style={{ flexShrink: 0, marginTop: 2 }} />}
+          </div>
+          {/* Command preview */}
+          <div style={{ background: 'rgba(0,0,0,0.3)', borderRadius: 5, padding: '5px 8px', marginBottom: 8 }}>
+            <code style={{ fontSize: 10.5, color: shellColor, fontFamily: 'monospace', display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              $ {cmd.command}
+            </code>
+          </div>
+          {cmd.description && (
+            <p style={{ fontSize: 10, color: 'var(--text-quaternary)', marginBottom: 8, lineHeight: 1.4 }}>{cmd.description}</p>
+          )}
+          {/* Footer */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 4 }} onClick={e => e.stopPropagation()}>
+            <span style={{ fontSize: 9, color: shellColor, background: `${shellColor}15`, padding: '1px 5px', borderRadius: 3 }}>{cmd.shell}</span>
+            {cmd.use_count > 0 && <span style={{ fontSize: 9, color: 'var(--text-quaternary)' }}>{cmd.use_count}×</span>}
+            <div style={{ flex: 1 }} />
+            <button className="btn-icon" style={{ width: 22, height: 22 }} onClick={handleCopy}>
+              {copied ? <Check size={10} color="#30D158" /> : <Copy size={10} color="rgba(255,255,255,0.3)" />}
+            </button>
+            <button className="btn-icon" style={{ width: 22, height: 22 }} onClick={() => onFavorite(cmd.id)}>
+              <Star size={10} color={cmd.is_favorite ? 'var(--yellow)' : 'rgba(255,255,255,0.3)'} fill={cmd.is_favorite ? 'var(--yellow)' : 'none'} />
+            </button>
+            <button className="btn-icon" style={{ width: 22, height: 22 }} onClick={() => onEdit(cmd)}>
+              <Edit3 size={10} color="rgba(255,255,255,0.3)" />
+            </button>
+            <button className="btn-icon" style={{ width: 22, height: 22 }} onClick={() => onDelete(cmd.id)}>
+              <Trash2 size={10} color="rgba(255,55,95,0.5)" />
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ── 6. Spotlight View ─────────────────────────────────────────
+// macOS Spotlight-style: list on left, large preview on right
+function CommandSpotlightView({ commands, onCopy, onFavorite, onEdit, onDelete, onView }) {
+  const [selected, setSelected] = useState(commands[0] || null)
+  const [spotSearch, setSpotSearch] = useState('')
+  const inputRef = useRef(null)
+  const shellColor = selected ? (SHELL_COLORS[selected.shell] || '#30D158') : '#30D158'
+
+  useEffect(() => { inputRef.current?.focus() }, [])
+
+  const filtered = spotSearch
+    ? commands.filter(c =>
+        c.title?.toLowerCase().includes(spotSearch.toLowerCase()) ||
+        c.command?.toLowerCase().includes(spotSearch.toLowerCase()) ||
+        c.category?.toLowerCase().includes(spotSearch.toLowerCase())
+      )
+    : commands
+
+  useEffect(() => {
+    if (filtered.length > 0 && (!selected || !filtered.find(c => c.id === selected?.id))) {
+      setSelected(filtered[0])
+    }
+  }, [spotSearch])
+
+  const { copied, handle: handleCopy } = useCopy(selected?.command || '', () => onCopy?.(selected?.id))
+
+  const handleKey = (e) => {
+    if (!filtered.length) return
+    const idx = filtered.findIndex(c => c.id === selected?.id)
+    if (e.key === 'ArrowDown') { e.preventDefault(); setSelected(filtered[Math.min(idx + 1, filtered.length - 1)]) }
+    if (e.key === 'ArrowUp') { e.preventDefault(); setSelected(filtered[Math.max(idx - 1, 0)]) }
+    if (e.key === 'Enter' && selected) { onView?.(selected) }
+  }
+
+  return (
+    <div className="glass-card" style={{ padding: 0, overflow: 'hidden', display: 'flex', flexDirection: 'column', minHeight: 500 }}>
+      {/* Search bar */}
+      <div style={{ padding: '14px 16px', borderBottom: '1px solid rgba(255,255,255,0.07)', display: 'flex', alignItems: 'center', gap: 10, background: 'rgba(255,255,255,0.02)' }}>
+        <Search size={16} color="rgba(255,255,255,0.4)" />
+        <input
+          ref={inputRef}
+          value={spotSearch}
+          onChange={e => setSpotSearch(e.target.value)}
+          onKeyDown={handleKey}
+          placeholder="Search commands…"
+          style={{ flex: 1, background: 'transparent', border: 'none', outline: 'none', fontSize: 15, color: 'rgba(255,255,255,0.9)', fontFamily: 'inherit' }}
+        />
+        {spotSearch && (
+          <button onClick={() => setSpotSearch('')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(255,255,255,0.3)', display: 'flex', padding: 0 }}>
+            <X size={14} />
+          </button>
+        )}
+        <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.2)', background: 'rgba(255,255,255,0.06)', padding: '2px 7px', borderRadius: 5 }}>{filtered.length}</span>
+      </div>
+
+      {/* Body: list + preview */}
+      <div style={{ display: 'flex', flex: 1, minHeight: 0 }}>
+        {/* Left: results list */}
+        <div style={{ width: 260, borderRight: '1px solid rgba(255,255,255,0.06)', overflowY: 'auto', flexShrink: 0 }}>
+          {filtered.length === 0 && (
+            <div style={{ padding: '32px 16px', textAlign: 'center', color: 'var(--text-quaternary)', fontSize: 12 }}>No results</div>
+          )}
+          {filtered.map(cmd => {
+            const isActive = selected?.id === cmd.id
+            const sc = SHELL_COLORS[cmd.shell] || '#8E8E93'
+            return (
+              <div key={cmd.id}
+                onClick={() => setSelected(cmd)}
+                style={{ padding: '9px 14px', cursor: 'pointer', background: isActive ? 'rgba(0,122,255,0.12)' : 'transparent', borderLeft: isActive ? '2px solid #007AFF' : '2px solid transparent', transition: 'background 0.1s' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <div style={{ width: 6, height: 6, borderRadius: '50%', background: sc, flexShrink: 0 }} />
+                  <span style={{ fontSize: 12, fontWeight: isActive ? 600 : 400, flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: isActive ? 'rgba(255,255,255,0.95)' : 'rgba(255,255,255,0.7)' }}>{cmd.title}</span>
+                  {cmd.is_favorite && <Star size={9} color="var(--yellow)" fill="var(--yellow)" />}
+                </div>
+                <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.3)', fontFamily: 'monospace', marginTop: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', paddingLeft: 12 }}>
+                  {cmd.command}
+                </div>
+              </div>
+            )
+          })}
+        </div>
+
+        {/* Right: preview */}
+        {selected ? (
+          <div style={{ flex: 1, padding: '24px 28px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 20 }}>
+            {/* Title + actions */}
+            <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 }}>
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+                  <h2 style={{ fontSize: 20, fontWeight: 700, letterSpacing: -0.3, margin: 0 }}>{selected.title}</h2>
+                  {selected.is_favorite && <Star size={14} color="var(--yellow)" fill="var(--yellow)" />}
+                </div>
+                {selected.description && (
+                  <p style={{ fontSize: 13, color: 'var(--text-tertiary)', margin: 0, lineHeight: 1.5 }}>{selected.description}</p>
+                )}
+              </div>
+              <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
+                <button className="btn btn-glass btn-sm" onClick={() => onFavorite(selected.id)} style={{ gap: 5 }}>
+                  <Star size={12} color={selected.is_favorite ? 'var(--yellow)' : undefined} fill={selected.is_favorite ? 'var(--yellow)' : 'none'} />
+                </button>
+                <button className="btn btn-glass btn-sm" onClick={() => onEdit(selected)} style={{ gap: 5 }}>
+                  <Edit3 size={12} /> Edit
+                </button>
+                <button className="btn btn-glass btn-sm" onClick={() => onDelete(selected.id)} style={{ gap: 5, color: '#FF375F' }}>
+                  <Trash2 size={12} />
+                </button>
+              </div>
+            </div>
+
+            {/* Command block */}
+            <div style={{ background: 'rgba(0,0,0,0.5)', borderRadius: 12, overflow: 'hidden', border: `1px solid ${shellColor}20` }}>
+              <div style={{ padding: '8px 14px', borderBottom: `1px solid ${shellColor}15`, display: 'flex', alignItems: 'center', gap: 8 }}>
+                <div style={{ display: 'flex', gap: 5 }}>
+                  {['#FF5F57','#FEBC2E','#28C840'].map((c, i) => <div key={i} style={{ width: 9, height: 9, borderRadius: '50%', background: c, opacity: 0.8 }} />)}
+                </div>
+                <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)', fontFamily: 'monospace', flex: 1 }}>{selected.shell} — {selected.platform !== 'all' ? selected.platform : 'all platforms'}</span>
+                <button onClick={handleCopy} style={{ background: copied ? 'rgba(48,209,88,0.15)' : 'rgba(255,255,255,0.07)', border: `1px solid ${copied ? 'rgba(48,209,88,0.3)' : 'rgba(255,255,255,0.1)'}`, borderRadius: 6, padding: '4px 12px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 5, fontSize: 11, color: copied ? '#30D158' : 'rgba(255,255,255,0.6)' }}>
+                  {copied ? <Check size={11} /> : <Copy size={11} />}
+                  {copied ? 'Copied!' : 'Copy'}
+                </button>
+              </div>
+              <div style={{ padding: '16px 18px' }}>
+                <pre style={{ margin: 0, fontFamily: "'JetBrains Mono','Fira Code',monospace", fontSize: 14, color: shellColor, whiteSpace: 'pre-wrap', wordBreak: 'break-all', lineHeight: 1.7 }}>
+                  <span style={{ color: 'rgba(255,255,255,0.2)', userSelect: 'none' }}>$ </span>{selected.command}
+                </pre>
+              </div>
+            </div>
+
+            {/* Meta */}
+            <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+              <div style={{ background: 'rgba(255,255,255,0.04)', borderRadius: 8, padding: '8px 14px' }}>
+                <div style={{ fontSize: 10, color: 'var(--text-quaternary)', marginBottom: 3 }}>SHELL</div>
+                <span style={{ fontSize: 13, fontWeight: 600, color: shellColor }}>{selected.shell}</span>
+              </div>
+              <div style={{ background: 'rgba(255,255,255,0.04)', borderRadius: 8, padding: '8px 14px' }}>
+                <div style={{ fontSize: 10, color: 'var(--text-quaternary)', marginBottom: 3 }}>CATEGORY</div>
+                <span style={{ fontSize: 13, fontWeight: 600 }}>{selected.category || '—'}</span>
+              </div>
+              <div style={{ background: 'rgba(255,255,255,0.04)', borderRadius: 8, padding: '8px 14px' }}>
+                <div style={{ fontSize: 10, color: 'var(--text-quaternary)', marginBottom: 3 }}>PLATFORM</div>
+                <span style={{ fontSize: 13, fontWeight: 600 }}>{PLATFORM_ICONS[selected.platform]} {selected.platform}</span>
+              </div>
+              {selected.use_count > 0 && (
+                <div style={{ background: 'rgba(255,255,255,0.04)', borderRadius: 8, padding: '8px 14px' }}>
+                  <div style={{ fontSize: 10, color: 'var(--text-quaternary)', marginBottom: 3 }}>USED</div>
+                  <span style={{ fontSize: 13, fontWeight: 600 }}>{selected.use_count}×</span>
+                </div>
+              )}
+            </div>
+
+            {/* Keyboard hint */}
+            <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.2)', display: 'flex', gap: 12 }}>
+              <span>↑↓ navigate</span>
+              <span>↵ open detail</span>
+            </div>
+          </div>
+        ) : (
+          <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-quaternary)', fontSize: 13 }}>
+            Select a command to preview
           </div>
         )}
       </div>
@@ -645,6 +900,16 @@ export default function CommandsPage() {
       {/* Terminal view */}
       {commands.length > 0 && viewMode === 'terminal' && (
         <CommandTerminalView commands={commands} {...commonProps} />
+      )}
+
+      {/* Kanban view */}
+      {commands.length > 0 && viewMode === 'kanban' && (
+        <CommandKanbanView commands={commands} {...commonProps} />
+      )}
+
+      {/* Spotlight view */}
+      {commands.length > 0 && viewMode === 'spotlight' && (
+        <CommandSpotlightView commands={commands} {...commonProps} />
       )}
 
       {/* Edit Modal */}
