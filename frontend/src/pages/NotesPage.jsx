@@ -8,7 +8,7 @@ import toast from 'react-hot-toast'
 import { formatDistanceToNow, format, isToday, isYesterday, isThisWeek, isThisMonth } from 'date-fns'
 import {
   StickyNote, Plus, Search, Star, Trash2, Edit3, X,
-  LayoutGrid, List, Pin, Maximize2, Minimize2, Kanban, Clock,
+  LayoutGrid, List, Pin, Maximize2, Minimize2, Kanban, Clock, Columns2,
 } from 'lucide-react'
 
 // ── Color presets ──────────────────────────────────────────────
@@ -519,6 +519,82 @@ function NoteListRow({ note, onFavorite, onPin, onEdit, onDelete, onView }) {
   )
 }
 
+// ── Kanban View ───────────────────────────────────────────────
+// Columns by category, note cards stacked vertically
+function NoteKanbanView({ notes, onFavorite, onPin, onEdit, onDelete, onView }) {
+  const grouped = notes.reduce((acc, note) => {
+    const cat = note.category || 'general'
+    if (!acc[cat]) acc[cat] = []
+    acc[cat].push(note)
+    return acc
+  }, {})
+
+  const COL_COLORS = ['#FFD60A','#007AFF','#30D158','#BF5AF2','#FF9500','#FF375F','#5AC8FA','#FF6B35']
+
+  return (
+    <div style={{ display: 'flex', gap: 14, overflowX: 'auto', paddingBottom: 8, alignItems: 'flex-start' }}>
+      {Object.entries(grouped).map(([category, catNotes], colIdx) => {
+        const colColor = COL_COLORS[colIdx % COL_COLORS.length]
+        return (
+          <div key={category} style={{ minWidth: 260, maxWidth: 300, flex: '0 0 260px', display: 'flex', flexDirection: 'column', gap: 8 }}>
+            {/* Column header */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 12px', background: `${colColor}12`, border: `1px solid ${colColor}25`, borderRadius: 10 }}>
+              <div style={{ width: 8, height: 8, borderRadius: '50%', background: colColor, flexShrink: 0 }} />
+              <span style={{ fontSize: 12, fontWeight: 700, color: colColor, textTransform: 'uppercase', letterSpacing: 0.5 }}>{category}</span>
+              <span style={{ fontSize: 11, color: `${colColor}80`, marginLeft: 'auto', background: `${colColor}18`, padding: '1px 7px', borderRadius: 10 }}>{catNotes.length}</span>
+            </div>
+            {/* Cards */}
+            {catNotes.map(note => {
+              const noteColor = note.color || colColor
+              const preview = stripMarkdown(note.content)
+              const timeAgo = note.updated_at ? formatDistanceToNow(new Date(note.updated_at), { addSuffix: true }) : ''
+              return (
+                <div key={note.id} className="glass-card"
+                  style={{ padding: 0, overflow: 'hidden', cursor: 'pointer', transition: 'transform 0.12s, box-shadow 0.12s', borderLeft: `3px solid ${noteColor}` }}
+                  onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = `0 4px 20px ${noteColor}20` }}
+                  onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = 'none' }}
+                  onClick={() => onView?.(note)}>
+                  <div style={{ padding: '10px 12px' }}>
+                    {/* Title */}
+                    <div style={{ display: 'flex', alignItems: 'flex-start', gap: 5, marginBottom: preview ? 7 : 0 }}>
+                      {note.is_pinned && <Pin size={9} color={noteColor} fill={noteColor} style={{ flexShrink: 0, marginTop: 3 }} />}
+                      <span style={{ fontSize: 12, fontWeight: 600, flex: 1, lineHeight: 1.4 }}>{note.title}</span>
+                      {note.is_favorite && <Star size={9} color="var(--yellow)" fill="var(--yellow)" style={{ flexShrink: 0, marginTop: 2 }} />}
+                    </div>
+                    {/* Preview */}
+                    {preview && (
+                      <p style={{ fontSize: 11, color: 'var(--text-tertiary)', margin: '0 0 8px', lineHeight: 1.5, overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical' }}>
+                        {preview}
+                      </p>
+                    )}
+                    {/* Footer */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 4 }} onClick={e => e.stopPropagation()}>
+                      <div style={{ width: 6, height: 6, borderRadius: '50%', background: noteColor, flexShrink: 0 }} />
+                      <span style={{ fontSize: 9, color: 'var(--text-quaternary)', flex: 1 }}>{timeAgo}</span>
+                      <button className="btn-icon" style={{ width: 22, height: 22 }} onClick={() => onPin(note.id)}>
+                        <Pin size={10} color={note.is_pinned ? noteColor : 'rgba(255,255,255,0.3)'} fill={note.is_pinned ? noteColor : 'none'} />
+                      </button>
+                      <button className="btn-icon" style={{ width: 22, height: 22 }} onClick={() => onFavorite(note.id)}>
+                        <Star size={10} color={note.is_favorite ? 'var(--yellow)' : 'rgba(255,255,255,0.3)'} fill={note.is_favorite ? 'var(--yellow)' : 'none'} />
+                      </button>
+                      <button className="btn-icon" style={{ width: 22, height: 22 }} onClick={() => onEdit(note)}>
+                        <Edit3 size={10} color="rgba(255,255,255,0.3)" />
+                      </button>
+                      <button className="btn-icon" style={{ width: 22, height: 22 }} onClick={() => onDelete(note.id)}>
+                        <Trash2 size={10} color="rgba(255,55,95,0.5)" />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        )
+      })}
+    </div>
+  )
+}
+
 // ── Note Modal (create / edit) ─────────────────────────────────
 function NoteModal({ note, onClose, onSave }) {
   const isEdit = !!note?.id
@@ -901,6 +977,14 @@ export default function NotesPage() {
           >
             <List size={13} />
           </button>
+          <button
+            className={`btn-icon${viewMode === 'kanban' ? ' active' : ''}`}
+            style={{ width: 28, height: 28, borderRadius: 6 }}
+            onClick={() => setView('kanban')}
+            title="Kanban view"
+          >
+            <Columns2 size={13} />
+          </button>
         </div>
       </div>
 
@@ -1013,6 +1097,15 @@ export default function NotesPage() {
             </div>
           ))}
         </div>
+      ) : viewMode === 'kanban' ? (
+        <NoteKanbanView
+          notes={notes}
+          onFavorite={id => favMut.mutate(id)}
+          onPin={id => pinMut.mutate(id)}
+          onEdit={openEdit}
+          onDelete={id => setDeleteConfirm(id)}
+          onView={n => setViewItem(n)}
+        />
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
           {notes.map(note => (
