@@ -4,7 +4,7 @@ import { skillsApi, categoriesApi } from '../utils/api'
 import ItemCard from '../components/ItemCard'
 import Modal from '../components/Modal'
 import DetailModal from '../components/DetailModal'
-import { Zap, Plus, Search, Star, ToggleLeft, ToggleRight } from 'lucide-react'
+import { Zap, Plus, Search, Star, ToggleLeft, ToggleRight, LayoutGrid, AlignJustify, List } from 'lucide-react'
 import toast from 'react-hot-toast'
 import MarkdownEditor from '../components/MarkdownEditor'
 import CategorySelector from '../components/CategorySelector'
@@ -27,6 +27,8 @@ export default function SkillsPage() {
   const [form, setForm] = useState(defaultForm)
   const [viewItem, setViewItem] = useState(null)
   const [deleteConfirm, setDeleteConfirm] = useState(null)
+  const [viewMode, setViewMode] = useState(() => localStorage.getItem('skills_view') || 'cards')
+  const setView = (m) => { setViewMode(m); localStorage.setItem('skills_view', m) }
 
   const { data, isLoading } = useQuery({
     queryKey: ['skills', { search, category, favorite: showFavorites, active: showActive }],
@@ -113,6 +115,15 @@ export default function SkillsPage() {
         <button className={`filter-chip ${showActive ? 'active' : ''}`} onClick={() => setShowActive(!showActive)}>
           Active only
         </button>
+        {/* View toggle */}
+        <div style={{ display: 'flex', background: 'rgba(255,255,255,0.05)', borderRadius: 10, padding: 3, gap: 2 }}>
+          {[['cards', LayoutGrid], ['list', List], ['compact', AlignJustify]].map(([id, Icon]) => (
+            <button key={id} onClick={() => setView(id)} title={`${id} view`}
+              style={{ padding: '5px 9px', borderRadius: 7, border: 'none', cursor: 'pointer', background: viewMode === id ? 'rgba(255,255,255,0.1)' : 'transparent', color: viewMode === id ? 'var(--text-primary)' : 'var(--text-tertiary)', transition: 'all 0.15s' }}>
+              <Icon size={14} />
+            </button>
+          ))}
+        </div>
         <button className="btn btn-primary" onClick={openCreate}><Plus size={15} /> New Skill</button>
       </div>
 
@@ -135,6 +146,40 @@ export default function SkillsPage() {
           <div className="empty-state-title">{search || category ? 'No skills found' : 'No skills yet'}</div>
           <div className="empty-state-desc">{search || category ? 'Try adjusting your filters' : 'Create reusable AI skill definitions'}</div>
           {!search && !category && <button className="btn btn-primary" onClick={openCreate} style={{ marginTop: 8 }}><Plus size={15} /> Create Skill</button>}
+        </div>
+      ) : viewMode === 'list' ? (
+        <div className="glass-card" style={{ padding: 0, overflow: 'hidden' }}>
+          {skills.map((skill, idx) => (
+            <div key={skill.id} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 16px', borderBottom: idx < skills.length - 1 ? '1px solid rgba(255,255,255,0.05)' : 'none', cursor: 'pointer', transition: 'background 0.12s' }}
+              onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.03)'}
+              onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+              onClick={() => setViewItem(skill)}>
+              <div style={{ width: 8, height: 8, borderRadius: '50%', background: skill.is_active ? '#30D158' : '#8E8E93', flexShrink: 0 }} />
+              <span style={{ fontSize: 13, fontWeight: 500, flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{skill.title}</span>
+              {skill.is_favorite && <Star size={11} color="var(--yellow)" fill="var(--yellow)" />}
+              <span style={{ fontSize: 11, color: 'var(--text-quaternary)', background: 'rgba(255,255,255,0.05)', padding: '1px 7px', borderRadius: 4 }}>{skill.category}</span>
+              <span style={{ fontSize: 10, color: skill.is_active ? '#30D158' : 'var(--text-quaternary)', background: skill.is_active ? 'rgba(48,209,88,0.1)' : 'rgba(255,255,255,0.04)', padding: '1px 7px', borderRadius: 4 }}>{skill.is_active ? 'active' : 'inactive'}</span>
+            </div>
+          ))}
+        </div>
+      ) : viewMode === 'compact' ? (
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(240px,100%), 1fr))', gap: 8 }}>
+          {skills.map(skill => (
+            <div key={skill.id} className="glass-card" style={{ padding: '10px 12px', cursor: 'pointer', borderTop: `2px solid ${skill.is_active ? '#FF9500' : '#8E8E93'}`, transition: 'box-shadow 0.15s' }}
+              onMouseEnter={e => e.currentTarget.style.boxShadow = '0 0 0 1px rgba(255,149,0,0.3)'}
+              onMouseLeave={e => e.currentTarget.style.boxShadow = 'none'}
+              onClick={() => setViewItem(skill)}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
+                <span style={{ fontSize: 12, fontWeight: 600, flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{skill.title}</span>
+                {skill.is_favorite && <Star size={9} color="var(--yellow)" fill="var(--yellow)" />}
+              </div>
+              {skill.description && <p style={{ fontSize: 11, color: 'var(--text-tertiary)', margin: '0 0 6px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{skill.description}</p>}
+              <div style={{ display: 'flex', gap: 5 }}>
+                <span style={{ fontSize: 9, color: 'var(--text-quaternary)', background: 'rgba(255,255,255,0.05)', padding: '1px 5px', borderRadius: 3 }}>{skill.category}</span>
+                <span style={{ fontSize: 9, color: skill.is_active ? '#30D158' : 'var(--text-quaternary)', background: skill.is_active ? 'rgba(48,209,88,0.1)' : 'rgba(255,255,255,0.04)', padding: '1px 5px', borderRadius: 3 }}>{skill.is_active ? 'active' : 'inactive'}</span>
+              </div>
+            </div>
+          ))}
         </div>
       ) : (
         <div className={`cards-grid${!gridMounted.current ? ' stagger-children' : ''}`}

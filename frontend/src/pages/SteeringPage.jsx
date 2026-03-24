@@ -4,7 +4,7 @@ import { steeringApi, categoriesApi } from '../utils/api'
 import ItemCard from '../components/ItemCard'
 import Modal from '../components/Modal'
 import DetailModal from '../components/DetailModal'
-import { Navigation, Plus, Search, Star } from 'lucide-react'
+import { Navigation, Plus, Search, Star, LayoutGrid, AlignJustify, List } from 'lucide-react'
 import toast from 'react-hot-toast'
 import MarkdownEditor from '../components/MarkdownEditor'
 import CategorySelector from '../components/CategorySelector'
@@ -28,6 +28,8 @@ export default function SteeringPage() {
   const [editItem, setEditItem] = useState(null)
   const [form, setForm] = useState(defaultForm)
   const [deleteConfirm, setDeleteConfirm] = useState(null)
+  const [viewMode, setViewMode] = useState(() => localStorage.getItem('steering_view') || 'cards')
+  const setView = (m) => { setViewMode(m); localStorage.setItem('steering_view', m) }
   const [viewItem, setViewItem] = useState(null)
 
   const { data, isLoading } = useQuery({
@@ -117,6 +119,14 @@ export default function SteeringPage() {
         <button className={`filter-chip ${showFavorites ? 'active' : ''}`} onClick={() => setShowFavorites(!showFavorites)}>
           <Star size={12} fill={showFavorites ? 'currentColor' : 'none'} /> Favorites
         </button>
+        <div style={{ display: 'flex', background: 'rgba(255,255,255,0.05)', borderRadius: 10, padding: 3, gap: 2 }}>
+          {[['cards', LayoutGrid], ['list', List], ['compact', AlignJustify]].map(([id, Icon]) => (
+            <button key={id} onClick={() => setView(id)} title={`${id} view`}
+              style={{ padding: '5px 9px', borderRadius: 7, border: 'none', cursor: 'pointer', background: viewMode === id ? 'rgba(255,255,255,0.1)' : 'transparent', color: viewMode === id ? 'var(--text-primary)' : 'var(--text-tertiary)', transition: 'all 0.15s' }}>
+              <Icon size={14} />
+            </button>
+          ))}
+        </div>
         <button className="btn btn-primary" onClick={openCreate}><Plus size={15} /> New Steering</button>
       </div>
 
@@ -150,6 +160,40 @@ export default function SteeringPage() {
           <div className="empty-state-title">{search || category || scope ? 'No steering found' : 'No steering configs yet'}</div>
           <div className="empty-state-desc">{search || category || scope ? 'Try adjusting your filters' : 'Create behavioral guidance and system instructions for your AI'}</div>
           {!search && !category && !scope && <button className="btn btn-primary" onClick={openCreate} style={{ marginTop: 8 }}><Plus size={15} /> Create Steering</button>}
+        </div>
+      ) : viewMode === 'list' ? (
+        <div className="glass-card" style={{ padding: 0, overflow: 'hidden' }}>
+          {items.map((item, idx) => (
+            <div key={item.id} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 16px', borderBottom: idx < items.length - 1 ? '1px solid rgba(255,255,255,0.05)' : 'none', cursor: 'pointer', transition: 'background 0.12s' }}
+              onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.03)'}
+              onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+              onClick={() => setViewItem(item)}>
+              <div style={{ width: 8, height: 8, borderRadius: '50%', background: item.is_active ? '#BF5AF2' : '#8E8E93', flexShrink: 0 }} />
+              <span style={{ fontSize: 13, fontWeight: 500, flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.title}</span>
+              {item.is_favorite && <Star size={11} color="var(--yellow)" fill="var(--yellow)" />}
+              <span style={{ fontSize: 10, color: 'var(--text-quaternary)', background: 'rgba(255,255,255,0.05)', padding: '1px 6px', borderRadius: 4 }}>{item.scope}</span>
+              <span style={{ fontSize: 11, color: 'var(--text-quaternary)', background: 'rgba(255,255,255,0.05)', padding: '1px 7px', borderRadius: 4 }}>{item.category}</span>
+            </div>
+          ))}
+        </div>
+      ) : viewMode === 'compact' ? (
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(240px,100%), 1fr))', gap: 8 }}>
+          {items.map(item => (
+            <div key={item.id} className="glass-card" style={{ padding: '10px 12px', cursor: 'pointer', borderTop: `2px solid #BF5AF2`, transition: 'box-shadow 0.15s' }}
+              onMouseEnter={e => e.currentTarget.style.boxShadow = '0 0 0 1px rgba(191,90,242,0.3)'}
+              onMouseLeave={e => e.currentTarget.style.boxShadow = 'none'}
+              onClick={() => setViewItem(item)}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
+                <span style={{ fontSize: 12, fontWeight: 600, flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.title}</span>
+                {item.is_favorite && <Star size={9} color="var(--yellow)" fill="var(--yellow)" />}
+              </div>
+              {item.description && <p style={{ fontSize: 11, color: 'var(--text-tertiary)', margin: '0 0 6px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.description}</p>}
+              <div style={{ display: 'flex', gap: 5 }}>
+                <span style={{ fontSize: 9, color: '#BF5AF2', background: 'rgba(191,90,242,0.1)', padding: '1px 5px', borderRadius: 3 }}>{item.scope}</span>
+                <span style={{ fontSize: 9, color: 'var(--text-quaternary)', background: 'rgba(255,255,255,0.05)', padding: '1px 5px', borderRadius: 3 }}>{item.category}</span>
+              </div>
+            </div>
+          ))}
         </div>
       ) : (
         <div className={`cards-grid${!gridMounted.current ? ' stagger-children' : ''}`}

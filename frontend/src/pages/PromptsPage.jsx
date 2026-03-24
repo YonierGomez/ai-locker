@@ -4,7 +4,7 @@ import { promptsApi, categoriesApi, settingsApi } from '../utils/api'
 import ItemCard from '../components/ItemCard'
 import Modal from '../components/Modal'
 import DetailModal from '../components/DetailModal'
-import { MessageSquare, Plus, Search, Star, LayoutGrid, List, Trash2, Check, MousePointer } from 'lucide-react'
+import { MessageSquare, Plus, Search, Star, LayoutGrid, List, AlignJustify, Trash2, Check, MousePointer } from 'lucide-react'
 import toast from 'react-hot-toast'
 import ModelSelector from '../components/ModelSelector'
 import MarkdownEditor from '../components/MarkdownEditor'
@@ -161,7 +161,7 @@ export default function PromptsPage() {
     setModalOpen(false)
     setEditItem(null)
     setEditFullscreen(false)
-    setForm(defaultForm)
+    setForm(baseDefaultForm)
   }
 
   const handleSubmit = () => {
@@ -219,6 +219,10 @@ export default function PromptsPage() {
           <button onClick={() => setView('table')} title="Table view"
             style={{ padding: '5px 9px', borderRadius: 7, border: 'none', cursor: 'pointer', background: viewMode === 'table' ? 'rgba(255,255,255,0.1)' : 'transparent', color: viewMode === 'table' ? 'var(--text-primary)' : 'var(--text-tertiary)', transition: 'all 0.15s' }}>
             <List size={14} />
+          </button>
+          <button onClick={() => setView('compact')} title="Compact view"
+            style={{ padding: '5px 9px', borderRadius: 7, border: 'none', cursor: 'pointer', background: viewMode === 'compact' ? 'rgba(255,255,255,0.1)' : 'transparent', color: viewMode === 'compact' ? 'var(--text-primary)' : 'var(--text-tertiary)', transition: 'all 0.15s' }}>
+            <AlignJustify size={14} />
           </button>
         </div>
 
@@ -371,6 +375,26 @@ export default function PromptsPage() {
               })}
             </tbody>
           </table>
+        </div>
+      ) : viewMode === 'compact' ? (
+        /* ── Compact view ── */
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(240px,100%), 1fr))', gap: 8 }}>
+          {prompts.map(prompt => (
+            <div key={prompt.id} className="glass-card" style={{ padding: '10px 12px', cursor: 'pointer', borderTop: '2px solid #007AFF', transition: 'box-shadow 0.15s' }}
+              onMouseEnter={e => e.currentTarget.style.boxShadow = '0 0 0 1px rgba(0,122,255,0.3)'}
+              onMouseLeave={e => e.currentTarget.style.boxShadow = 'none'}
+              onClick={() => setViewItem(prompt)}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
+                <span style={{ fontSize: 12, fontWeight: 600, flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{prompt.title}</span>
+                {prompt.is_favorite && <Star size={9} color="var(--yellow)" fill="var(--yellow)" />}
+              </div>
+              {prompt.description && <p style={{ fontSize: 11, color: 'var(--text-tertiary)', margin: '0 0 6px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{prompt.description}</p>}
+              <div style={{ display: 'flex', gap: 5 }}>
+                <span style={{ fontSize: 9, color: '#007AFF', background: 'rgba(0,122,255,0.1)', padding: '1px 5px', borderRadius: 3 }}>{prompt.category}</span>
+                {prompt.use_count > 0 && <span style={{ fontSize: 9, color: 'var(--text-quaternary)' }}>{prompt.use_count}×</span>}
+              </div>
+            </div>
+          ))}
         </div>
       ) : (
         /* ── Cards view ── */
