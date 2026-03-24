@@ -4,7 +4,7 @@ import { promptsApi, categoriesApi, settingsApi } from '../utils/api'
 import ItemCard from '../components/ItemCard'
 import Modal from '../components/Modal'
 import DetailModal from '../components/DetailModal'
-import { MessageSquare, Plus, Search, Star, LayoutGrid, List, AlignJustify, Trash2, Check, MousePointer } from 'lucide-react'
+import { MessageSquare, Plus, Search, Star, LayoutGrid, List, AlignJustify, Trash2, Check, MousePointer, BookOpen, Layers, Copy } from 'lucide-react'
 import toast from 'react-hot-toast'
 import ModelSelector from '../components/ModelSelector'
 import MarkdownEditor from '../components/MarkdownEditor'
@@ -14,6 +14,177 @@ import TagsSelector from '../components/TagsSelector'
 const baseDefaultForm = {
   title: '', content: '', description: '', category: 'general',
   model: '', temperature: 0.7, max_tokens: '', tags: []
+}
+
+// ── Cheatsheet View ───────────────────────────────────────────
+// Grouped by category, shows full prompt content — like a reference sheet
+function CheatsheetView({ prompts, onView, onCopy }) {
+  const grouped = prompts.reduce((acc, p) => {
+    const cat = p.category || 'general'
+    if (!acc[cat]) acc[cat] = []
+    acc[cat].push(p)
+    return acc
+  }, {})
+  const CAT_COLORS = ['#007AFF','#BF5AF2','#FF9500','#30D158','#FF375F','#5AC8FA','#FFD60A']
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 28 }}>
+      {Object.entries(grouped).map(([cat, items], ci) => {
+        const color = CAT_COLORS[ci % CAT_COLORS.length]
+        return (
+          <div key={cat}>
+            {/* Category header */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
+              <div style={{ width: 10, height: 10, borderRadius: '50%', background: color, flexShrink: 0 }} />
+              <span style={{ fontSize: 13, fontWeight: 700, color, textTransform: 'uppercase', letterSpacing: 0.6 }}>{cat}</span>
+              <span style={{ fontSize: 11, color: `${color}70`, background: `${color}15`, padding: '1px 8px', borderRadius: 10 }}>{items.length}</span>
+              <div style={{ flex: 1, height: 1, background: `${color}20` }} />
+            </div>
+            {/* Prompt blocks */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(480px,100%), 1fr))', gap: 12 }}>
+              {items.map(p => (
+                <div key={p.id} className="glass-card" style={{ padding: 0, overflow: 'hidden', borderLeft: `3px solid ${color}` }}>
+                  {/* Header */}
+                  <div style={{ padding: '10px 14px 8px', display: 'flex', alignItems: 'center', gap: 8, borderBottom: '1px solid rgba(255,255,255,0.06)', background: `${color}08` }}>
+                    <span style={{ fontSize: 13, fontWeight: 600, flex: 1 }}>{p.title}</span>
+                    {p.is_favorite && <Star size={11} color="var(--yellow)" fill="var(--yellow)" />}
+                    {p.use_count > 0 && <span style={{ fontSize: 10, color: 'var(--text-quaternary)' }}>{p.use_count}×</span>}
+                    <button className="btn-icon" style={{ width: 26, height: 26 }} onClick={() => onCopy(p)} title="Copy prompt">
+                      <Copy size={11} color="rgba(255,255,255,0.4)" />
+                    </button>
+                    <button className="btn-icon" style={{ width: 26, height: 26 }} onClick={() => onView(p)} title="Open detail">
+                      <MessageSquare size={11} color="rgba(255,255,255,0.4)" />
+                    </button>
+                  </div>
+                  {/* Content */}
+                  <div style={{ padding: '10px 14px' }}>
+                    {p.description && <p style={{ fontSize: 11, color: 'var(--text-tertiary)', margin: '0 0 8px', fontStyle: 'italic' }}>{p.description}</p>}
+                    <pre style={{ margin: 0, fontFamily: 'inherit', fontSize: 12.5, lineHeight: 1.65, color: 'var(--text-secondary)', whiteSpace: 'pre-wrap', wordBreak: 'break-word', maxHeight: 200, overflowY: 'auto' }}>
+                      {p.content}
+                    </pre>
+                  </div>
+                  {/* Model badge if set */}
+                  {p.model && (
+                    <div style={{ padding: '5px 14px', borderTop: '1px solid rgba(255,255,255,0.04)', background: 'rgba(255,255,255,0.01)' }}>
+                      <span style={{ fontSize: 10, color: 'var(--text-quaternary)' }}>Model: {p.model}</span>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        )
+      })}
+    </div>
+  )
+}
+
+// ── Flashcard View ────────────────────────────────────────────
+// One prompt at a time — front shows title/description, back shows full content
+function FlashcardView({ prompts, onView, onFavorite }) {
+  const [idx, setIdx] = useState(0)
+  const [flipped, setFlipped] = useState(false)
+  const [copied, setCopied] = useState(false)
+
+  const current = prompts[idx]
+  if (!current) return null
+
+  const prev = () => { setIdx(i => Math.max(0, i - 1)); setFlipped(false) }
+  const next = () => { setIdx(i => Math.min(prompts.length - 1, i + 1)); setFlipped(false) }
+
+  const handleCopy = async () => {
+    await navigator.clipboard.writeText(current.content)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 1800)
+  }
+
+  // Keyboard navigation
+  const handleKey = (e) => {
+    if (e.key === 'ArrowLeft') prev()
+    if (e.key === 'ArrowRight') next()
+    if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); setFlipped(f => !f) }
+  }
+
+  return (
+    <div tabIndex={0} onKeyDown={handleKey} style={{ outline: 'none', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 24, padding: '20px 0' }}>
+      {/* Progress */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+        <span style={{ fontSize: 12, color: 'var(--text-tertiary)' }}>{idx + 1} / {prompts.length}</span>
+        <div style={{ width: 200, height: 3, background: 'rgba(255,255,255,0.08)', borderRadius: 99, overflow: 'hidden' }}>
+          <div style={{ height: '100%', width: `${((idx + 1) / prompts.length) * 100}%`, background: '#007AFF', borderRadius: 99, transition: 'width 0.3s' }} />
+        </div>
+        <span style={{ fontSize: 11, color: 'var(--text-quaternary)' }}>{current.category}</span>
+      </div>
+
+      {/* Card */}
+      <div
+        onClick={() => setFlipped(f => !f)}
+        style={{
+          width: '100%', maxWidth: 640, minHeight: 320,
+          cursor: 'pointer', perspective: 1000,
+          position: 'relative',
+        }}
+      >
+        <div style={{
+          width: '100%', minHeight: 320,
+          transformStyle: 'preserve-3d',
+          transition: 'transform 0.5s cubic-bezier(0.4,0,0.2,1)',
+          transform: flipped ? 'rotateY(180deg)' : 'rotateY(0deg)',
+          position: 'relative',
+        }}>
+          {/* Front — title + description */}
+          <div className="glass-card" style={{
+            padding: '40px 36px', minHeight: 320,
+            backfaceVisibility: 'hidden', WebkitBackfaceVisibility: 'hidden',
+            display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+            textAlign: 'center', gap: 16,
+            borderTop: '3px solid #007AFF',
+            position: 'absolute', width: '100%', boxSizing: 'border-box',
+          }}>
+            <div style={{ fontSize: 10, fontWeight: 600, color: '#007AFF', letterSpacing: 1, textTransform: 'uppercase', marginBottom: 4 }}>{current.category}</div>
+            <h2 style={{ fontSize: 24, fontWeight: 700, letterSpacing: -0.5, margin: 0, lineHeight: 1.3 }}>{current.title}</h2>
+            {current.description && <p style={{ fontSize: 14, color: 'var(--text-tertiary)', margin: 0, lineHeight: 1.6, maxWidth: 400 }}>{current.description}</p>}
+            <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.2)', marginTop: 8 }}>Click or press Space to reveal</div>
+          </div>
+
+          {/* Back — full content */}
+          <div className="glass-card" style={{
+            padding: '28px 32px', minHeight: 320,
+            backfaceVisibility: 'hidden', WebkitBackfaceVisibility: 'hidden',
+            transform: 'rotateY(180deg)',
+            display: 'flex', flexDirection: 'column', gap: 12,
+            borderTop: '3px solid #30D158',
+            position: 'absolute', width: '100%', boxSizing: 'border-box',
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+              <span style={{ fontSize: 13, fontWeight: 600, flex: 1 }}>{current.title}</span>
+              {current.is_favorite && <Star size={12} color="var(--yellow)" fill="var(--yellow)" />}
+              <button className="btn btn-glass btn-sm" onClick={e => { e.stopPropagation(); handleCopy() }} style={{ gap: 5 }}>
+                {copied ? <Check size={11} color="#30D158" /> : <Copy size={11} />}
+                {copied ? 'Copied' : 'Copy'}
+              </button>
+            </div>
+            <pre style={{ margin: 0, fontFamily: 'inherit', fontSize: 13, lineHeight: 1.7, color: 'var(--text-secondary)', whiteSpace: 'pre-wrap', wordBreak: 'break-word', flex: 1, overflowY: 'auto', maxHeight: 240 }}>
+              {current.content}
+            </pre>
+          </div>
+        </div>
+      </div>
+
+      {/* Navigation */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+        <button className="btn btn-glass" onClick={prev} disabled={idx === 0} style={{ gap: 6 }}>← Prev</button>
+        <button className="btn btn-glass btn-sm" onClick={() => onFavorite(current.id)} style={{ gap: 5 }}>
+          <Star size={12} color={current.is_favorite ? 'var(--yellow)' : undefined} fill={current.is_favorite ? 'var(--yellow)' : 'none'} />
+        </button>
+        <button className="btn btn-glass btn-sm" onClick={() => onView(current)} style={{ gap: 5 }}>
+          <MessageSquare size={12} /> Open
+        </button>
+        <button className="btn btn-glass" onClick={next} disabled={idx === prompts.length - 1} style={{ gap: 6 }}>Next →</button>
+      </div>
+      <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.2)' }}>← → navigate · Space flip</div>
+    </div>
+  )
 }
 
 export default function PromptsPage() {
@@ -224,6 +395,14 @@ export default function PromptsPage() {
             style={{ padding: '5px 9px', borderRadius: 7, border: 'none', cursor: 'pointer', background: viewMode === 'compact' ? 'rgba(255,255,255,0.1)' : 'transparent', color: viewMode === 'compact' ? 'var(--text-primary)' : 'var(--text-tertiary)', transition: 'all 0.15s' }}>
             <AlignJustify size={14} />
           </button>
+          <button onClick={() => setView('cheatsheet')} title="Cheatsheet — grouped by category with full content"
+            style={{ padding: '5px 9px', borderRadius: 7, border: 'none', cursor: 'pointer', background: viewMode === 'cheatsheet' ? 'rgba(255,255,255,0.1)' : 'transparent', color: viewMode === 'cheatsheet' ? 'var(--text-primary)' : 'var(--text-tertiary)', transition: 'all 0.15s' }}>
+            <BookOpen size={14} />
+          </button>
+          <button onClick={() => setView('flashcard')} title="Flashcard — one at a time, flip to see content"
+            style={{ padding: '5px 9px', borderRadius: 7, border: 'none', cursor: 'pointer', background: viewMode === 'flashcard' ? 'rgba(255,255,255,0.1)' : 'transparent', color: viewMode === 'flashcard' ? 'var(--text-primary)' : 'var(--text-tertiary)', transition: 'all 0.15s' }}>
+            <Layers size={14} />
+          </button>
         </div>
 
         {/* Select mode toggle */}
@@ -396,6 +575,12 @@ export default function PromptsPage() {
             </div>
           ))}
         </div>
+      ) : viewMode === 'cheatsheet' ? (
+        /* ── Cheatsheet view — grouped by category, full content visible ── */
+        <CheatsheetView prompts={prompts} onView={setViewItem} onCopy={async (p) => { await navigator.clipboard.writeText(p.content); toast.success('Copied!') }} />
+      ) : viewMode === 'flashcard' ? (
+        /* ── Flashcard view — one at a time, flip to reveal content ── */
+        <FlashcardView prompts={prompts} onView={setViewItem} onFavorite={(id) => favMutation.mutate(id)} />
       ) : (
         /* ── Cards view ── */
         <div className={`cards-grid${!gridMounted.current ? ' stagger-children' : ''}`}
