@@ -96,17 +96,7 @@ export default function Sidebar({ isOpen, onClose }) {
           {appLogo ? (
             <img src={appLogo} alt="logo" style={{ width: 32, height: 32, borderRadius: 8, objectFit: 'cover' }} />
           ) : (
-            /* AI Library / Vault icon: stylized brain-chip with storage dots */
-            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-              {/* Outer rounded square (vault/storage) */}
-              <rect x="2" y="2" width="16" height="16" rx="4" stroke="#00D4FF" strokeWidth="1.2" strokeOpacity="0.7"/>
-              {/* Inner grid — represents stored data/prompts */}
-              <rect x="5.5" y="5.5" width="3.5" height="3.5" rx="1" fill="#00D4FF" fillOpacity="0.85"/>
-              <rect x="11" y="5.5" width="3.5" height="3.5" rx="1" fill="#00D4FF" fillOpacity="0.5"/>
-              <rect x="5.5" y="11" width="3.5" height="3.5" rx="1" fill="#00D4FF" fillOpacity="0.5"/>
-              {/* AI spark in bottom-right cell */}
-              <path d="M13.5 11.5L12.5 13.5L14.5 13L13 15" stroke="#00D4FF" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" strokeOpacity="0.9"/>
-            </svg>
+            <img src="/icon.svg" alt="AI Locker" style={{ width: 32, height: 32 }} />
           )}
         </div>
         <span className="sidebar-logo-text">{appName}</span>

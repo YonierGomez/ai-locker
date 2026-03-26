@@ -504,13 +504,7 @@ export default function DashboardPage() {
           <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 14, flexWrap: 'wrap' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 14, flex: 1, minWidth: 0 }}>
               <div className="welcome-banner-icon" style={{ width: 44, height: 44, borderRadius: 12, background: 'linear-gradient(145deg, #0a0a0a 0%, #0f0f12 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 8px 24px rgba(0,0,0,0.5)', border: '1px solid rgba(255,255,255,0.09)' }}>
-                <svg width="24" height="24" viewBox="0 0 20 20" fill="none">
-                  <rect x="2" y="2" width="16" height="16" rx="4" stroke="#00D4FF" strokeWidth="1.2" strokeOpacity="0.7"/>
-                  <rect x="5.5" y="5.5" width="3.5" height="3.5" rx="1" fill="#00D4FF" fillOpacity="0.85"/>
-                  <rect x="11" y="5.5" width="3.5" height="3.5" rx="1" fill="#00D4FF" fillOpacity="0.5"/>
-                  <rect x="5.5" y="11" width="3.5" height="3.5" rx="1" fill="#00D4FF" fillOpacity="0.5"/>
-                  <path d="M13.5 11.5L12.5 13.5L14.5 13L13 15" stroke="#00D4FF" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" strokeOpacity="0.9"/>
-                </svg>
+                <img src="/icon.svg" alt="AI Locker" style={{ width: 24, height: 24 }} />
               </div>
               <div>
                 <h1 style={{ fontSize: 22, fontWeight: 700, letterSpacing: -0.5, marginBottom: 2 }}>Welcome to AI Locker</h1>

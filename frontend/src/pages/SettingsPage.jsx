@@ -518,13 +518,7 @@ export default function SettingsPage() {
                 {currentSettings.app_logo ? (
                   <img src={currentSettings.app_logo} alt="logo" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                 ) : (
-                  <svg width="28" height="28" viewBox="0 0 20 20" fill="none">
-                    <rect x="2" y="2" width="16" height="16" rx="4" stroke="#00D4FF" strokeWidth="1.2" strokeOpacity="0.7"/>
-                    <rect x="5.5" y="5.5" width="3.5" height="3.5" rx="1" fill="#00D4FF" fillOpacity="0.85"/>
-                    <rect x="11" y="5.5" width="3.5" height="3.5" rx="1" fill="#00D4FF" fillOpacity="0.5"/>
-                    <rect x="5.5" y="11" width="3.5" height="3.5" rx="1" fill="#00D4FF" fillOpacity="0.5"/>
-                    <path d="M13.5 11.5L12.5 13.5L14.5 13L13 15" stroke="#00D4FF" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" strokeOpacity="0.9"/>
-                  </svg>
+                  <img src="/icon.svg" alt="AI Locker" style={{ width: 28, height: 28 }} />
                 )}
               </div>
               <div style={{ flex: 1 }}>
@@ -1033,13 +1027,7 @@ export default function SettingsPage() {
               {currentSettings.app_logo ? (
                 <img src={currentSettings.app_logo} alt="logo" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
               ) : (
-                <svg width="28" height="28" viewBox="0 0 20 20" fill="none">
-                  <rect x="2" y="2" width="16" height="16" rx="4" stroke="#00D4FF" strokeWidth="1.2" strokeOpacity="0.7"/>
-                  <rect x="5.5" y="5.5" width="3.5" height="3.5" rx="1" fill="#00D4FF" fillOpacity="0.85"/>
-                  <rect x="11" y="5.5" width="3.5" height="3.5" rx="1" fill="#00D4FF" fillOpacity="0.5"/>
-                  <rect x="5.5" y="11" width="3.5" height="3.5" rx="1" fill="#00D4FF" fillOpacity="0.5"/>
-                  <path d="M13.5 11.5L12.5 13.5L14.5 13L13 15" stroke="#00D4FF" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" strokeOpacity="0.9"/>
-                </svg>
+                <img src="/icon.svg" alt="AI Locker" style={{ width: 28, height: 28 }} />
               )}
             </div>
             <div>
