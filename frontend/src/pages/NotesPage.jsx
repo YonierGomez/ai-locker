@@ -9,7 +9,7 @@ import toast from 'react-hot-toast'
 import { formatDistanceToNow, format, isToday, isYesterday, isThisWeek, isThisMonth } from 'date-fns'
 import {
   StickyNote, Plus, Search, Star, Trash2, Edit3, X,
-  LayoutGrid, List, Pin, Maximize2, Minimize2, Kanban, Clock, Columns2, Check, MousePointer, Tag,
+  LayoutGrid, List, Pin, Maximize2, Minimize2, Kanban, Clock, Columns2, Check, MousePointer,
 } from 'lucide-react'
 
 // ── Color presets ──────────────────────────────────────────────
@@ -51,7 +51,9 @@ function NoteCard({ note, onFavorite, onPin, onEdit, onDelete, onView, selectabl
       style={{
         padding: 0, overflow: 'hidden', cursor: 'pointer',
         transition: 'transform 0.15s, box-shadow 0.15s',
-        borderTop: `3px solid ${color}`,
+        borderTop: `3px solid ${selected ? 'var(--blue)' : color}`,
+        outline: selected ? '2px solid var(--blue)' : 'none',
+        outlineOffset: 2,
       }}
       onMouseEnter={e => {
         e.currentTarget.style.transform = 'translateY(-2px)'
@@ -67,6 +69,11 @@ function NoteCard({ note, onFavorite, onPin, onEdit, onDelete, onView, selectabl
       <div style={{ padding: '12px 14px 8px', display: 'flex', alignItems: 'flex-start', gap: 8 }}>
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+            {selectable && (
+              <div style={{ width: 16, height: 16, borderRadius: 4, border: `1.5px solid ${selected ? 'var(--blue)' : 'rgba(255,255,255,0.2)'}`, background: selected ? 'var(--blue)' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                {selected && <Check size={10} color="white" strokeWidth={3} />}
+              </div>
+            )}
             {note.is_pinned && <Pin size={10} color={color} fill={color} style={{ flexShrink: 0 }} />}
             <span style={{ fontSize: 13, fontWeight: 600, lineHeight: 1.3, wordBreak: 'break-word' }}>
               {note.title}
@@ -80,20 +87,22 @@ function NoteCard({ note, onFavorite, onPin, onEdit, onDelete, onView, selectabl
           )}
         </div>
         {/* Actions — always visible (touch-friendly) */}
-        <div style={{ display: 'flex', gap: 2, flexShrink: 0 }}>
-          <button className="btn-icon" style={{ width: 32, height: 32 }}
-            onClick={e => { e.stopPropagation(); onPin(note.id) }} title={note.is_pinned ? 'Unpin' : 'Pin'}>
-            <Pin size={14} color={note.is_pinned ? color : 'rgba(255,255,255,0.5)'} fill={note.is_pinned ? color : 'none'} />
-          </button>
-          <button className="btn-icon" style={{ width: 32, height: 32 }}
-            onClick={e => { e.stopPropagation(); onEdit(note) }} title="Edit">
-            <Edit3 size={14} color="rgba(255,255,255,0.5)" />
-          </button>
-          <button className="btn-icon" style={{ width: 32, height: 32 }}
-            onClick={e => { e.stopPropagation(); onDelete(note.id) }} title="Delete">
-            <Trash2 size={14} color="rgba(255,55,95,0.7)" />
-          </button>
-        </div>
+        {!selectable && (
+          <div style={{ display: 'flex', gap: 2, flexShrink: 0 }}>
+            <button className="btn-icon" style={{ width: 32, height: 32 }}
+              onClick={e => { e.stopPropagation(); onPin?.(note.id) }} title={note.is_pinned ? 'Unpin' : 'Pin'}>
+              <Pin size={14} color={note.is_pinned ? color : 'rgba(255,255,255,0.5)'} fill={note.is_pinned ? color : 'none'} />
+            </button>
+            <button className="btn-icon" style={{ width: 32, height: 32 }}
+              onClick={e => { e.stopPropagation(); onEdit?.(note) }} title="Edit">
+              <Edit3 size={14} color="rgba(255,255,255,0.5)" />
+            </button>
+            <button className="btn-icon" style={{ width: 32, height: 32 }}
+              onClick={e => { e.stopPropagation(); onDelete?.(note.id) }} title="Delete">
+              <Trash2 size={14} color="rgba(255,55,95,0.7)" />
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Preview */}
@@ -118,11 +127,13 @@ function NoteCard({ note, onFavorite, onPin, onEdit, onDelete, onView, selectabl
         <span style={{ fontSize: 10, color: 'var(--c-tick)', background: 'var(--c-surface)', padding: '2px 6px', borderRadius: 4 }}>
           {note.category || 'general'}
         </span>
-        <button className="btn-icon" style={{ width: 24, height: 24, marginLeft: 'auto' }}
-          onClick={e => { e.stopPropagation(); onFavorite(note.id) }}>
-          <Star size={12} color={note.is_favorite ? 'var(--yellow)' : 'rgba(255,255,255,0.3)'} fill={note.is_favorite ? 'var(--yellow)' : 'none'} />
-        </button>
-        <span style={{ fontSize: 10, color: 'var(--text-quaternary)' }}>{timeAgo}</span>
+        {!selectable && (
+          <button className="btn-icon" style={{ width: 24, height: 24, marginLeft: 'auto' }}
+            onClick={e => { e.stopPropagation(); onFavorite?.(note.id) }}>
+            <Star size={12} color={note.is_favorite ? 'var(--yellow)' : 'rgba(255,255,255,0.3)'} fill={note.is_favorite ? 'var(--yellow)' : 'none'} />
+          </button>
+        )}
+        <span style={{ fontSize: 10, color: 'var(--text-quaternary)', marginLeft: selectable ? 'auto' : 0 }}>{timeAgo}</span>
       </div>
     </div>
   )
@@ -135,7 +146,7 @@ function noteRotation(id) {
 }
 
 // ── Board Card (sticky note style) ────────────────────────────
-function NoteBoardCard({ note, onFavorite, onPin, onEdit, onDelete, onView }) {
+function NoteBoardCard({ note, onFavorite, onPin, onEdit, onDelete, onView, selectable, selected, onSelect }) {
   const color = note.color || '#FFD60A'
   const preview = stripMarkdown(note.content)
   const rotation = noteRotation(note.id)
@@ -145,15 +156,18 @@ function NoteBoardCard({ note, onFavorite, onPin, onEdit, onDelete, onView }) {
   return (
     <div
       style={{
+        position: 'relative',
         background: `${color}18`,
-        border: `1px solid ${color}40`,
-        borderTop: `4px solid ${color}`,
+        border: selected ? `2px solid var(--blue)` : `1px solid ${color}40`,
+        borderTop: selected ? `4px solid var(--blue)` : `4px solid ${color}`,
         borderRadius: 10,
         padding: '14px 14px 12px',
         cursor: 'pointer',
         transform: `rotate(${rotation}deg)`,
         transition: 'transform 0.2s, box-shadow 0.2s',
-        boxShadow: `0 4px 18px rgba(0,0,0,0.35), 0 0 0 1px ${color}20`,
+        boxShadow: selected
+          ? `0 4px 18px rgba(0,122,255,0.3), 0 0 0 2px var(--blue)`
+          : `0 4px 18px rgba(0,0,0,0.35), 0 0 0 1px ${color}20`,
         breakInside: 'avoid',
         marginBottom: 16,
         display: 'inline-block',
@@ -161,18 +175,29 @@ function NoteBoardCard({ note, onFavorite, onPin, onEdit, onDelete, onView }) {
       }}
       onMouseEnter={e => {
         setHovered(true)
-        e.currentTarget.style.transform = 'rotate(0deg) scale(1.02)'
-        e.currentTarget.style.boxShadow = `0 12px 40px rgba(0,0,0,0.5), 0 0 0 1px ${color}50`
-        e.currentTarget.style.zIndex = 10
+        if (!selected) {
+          e.currentTarget.style.transform = 'rotate(0deg) scale(1.02)'
+          e.currentTarget.style.boxShadow = `0 12px 40px rgba(0,0,0,0.5), 0 0 0 1px ${color}50`
+          e.currentTarget.style.zIndex = 10
+        }
       }}
       onMouseLeave={e => {
         setHovered(false)
-        e.currentTarget.style.transform = `rotate(${rotation}deg) scale(1)`
-        e.currentTarget.style.boxShadow = `0 4px 18px rgba(0,0,0,0.35), 0 0 0 1px ${color}20`
-        e.currentTarget.style.zIndex = 1
+        if (!selected) {
+          e.currentTarget.style.transform = `rotate(${rotation}deg) scale(1)`
+          e.currentTarget.style.boxShadow = `0 4px 18px rgba(0,0,0,0.35), 0 0 0 1px ${color}20`
+          e.currentTarget.style.zIndex = 1
+        }
       }}
       onClick={() => selectable ? onSelect?.(note.id) : onView?.(note)}
     >
+      {/* Selection indicator */}
+      {selectable && (
+        <div style={{ position: 'absolute', top: 8, right: 8, width: 18, height: 18, borderRadius: 4, border: `1.5px solid ${selected ? 'var(--blue)' : 'rgba(255,255,255,0.3)'}`, background: selected ? 'var(--blue)' : 'rgba(0,0,0,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 2 }}>
+          {selected && <Check size={11} color="white" strokeWidth={3} />}
+        </div>
+      )}
+
       {/* Pin icon if pinned */}
       {note.is_pinned && (
         <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 6 }}>
@@ -203,27 +228,29 @@ function NoteBoardCard({ note, onFavorite, onPin, onEdit, onDelete, onView }) {
       {/* Footer */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 10, gap: 6 }}>
         <span style={{ fontSize: 10, color: `${color}cc`, fontWeight: 500 }}>{note.category || 'general'}</span>
-        <div style={{ display: 'flex', gap: 3 }} onClick={e => e.stopPropagation()}>
-          <button className="btn-icon" style={{ width: 28, height: 28 }} onClick={() => onPin(note.id)}>
-            <Pin size={14} color={note.is_pinned ? color : 'rgba(255,255,255,0.65)'} fill={note.is_pinned ? color : 'none'} />
-          </button>
-          <button className="btn-icon" style={{ width: 28, height: 28 }} onClick={() => onFavorite(note.id)}>
-            <Star size={14} color={note.is_favorite ? 'var(--yellow)' : 'rgba(255,255,255,0.65)'} fill={note.is_favorite ? 'var(--yellow)' : 'none'} />
-          </button>
-          <button className="btn-icon" style={{ width: 28, height: 28 }} onClick={() => onEdit(note)}>
-            <Edit3 size={14} color="rgba(255,255,255,0.65)" />
-          </button>
-          <button className="btn-icon" style={{ width: 28, height: 28 }} onClick={() => onDelete(note.id)}>
-            <Trash2 size={14} color="rgba(255,55,95,0.8)" />
-          </button>
-        </div>
+        {!selectable && (
+          <div style={{ display: 'flex', gap: 3 }} onClick={e => e.stopPropagation()}>
+            <button className="btn-icon" style={{ width: 28, height: 28 }} onClick={() => onPin?.(note.id)}>
+              <Pin size={14} color={note.is_pinned ? color : 'rgba(255,255,255,0.65)'} fill={note.is_pinned ? color : 'none'} />
+            </button>
+            <button className="btn-icon" style={{ width: 28, height: 28 }} onClick={() => onFavorite?.(note.id)}>
+              <Star size={14} color={note.is_favorite ? 'var(--yellow)' : 'rgba(255,255,255,0.65)'} fill={note.is_favorite ? 'var(--yellow)' : 'none'} />
+            </button>
+            <button className="btn-icon" style={{ width: 28, height: 28 }} onClick={() => onEdit?.(note)}>
+              <Edit3 size={14} color="rgba(255,255,255,0.65)" />
+            </button>
+            <button className="btn-icon" style={{ width: 28, height: 28 }} onClick={() => onDelete?.(note.id)}>
+              <Trash2 size={14} color="rgba(255,55,95,0.8)" />
+            </button>
+          </div>
+        )}
       </div>
     </div>
   )
 }
 
 // ── Post-it Wall card ────────────────────────────────────────
-function NotePostItCard({ note, onFavorite, onPin, onEdit, onDelete, onView }) {
+function NotePostItCard({ note, onFavorite, onPin, onEdit, onDelete, onView, selectable, selected, onSelect }) {
   const color = note.color || '#FFD60A'
   const preview = stripMarkdown(note.content)
   const rotation = noteRotation(note.id) * 0.5
@@ -251,25 +278,38 @@ function NotePostItCard({ note, onFavorite, onPin, onEdit, onDelete, onView }) {
       <div
         style={{
           position: 'relative',
-          background: color,
+          background: selected ? `color-mix(in srgb, var(--blue) 15%, ${color})` : color,
           borderRadius: 3,
           padding: '18px 14px 14px',
           cursor: 'pointer',
-          transform: `rotate(${rotation}deg)`,
+          transform: selected ? 'rotate(0deg)' : `rotate(${rotation}deg)`,
           transition: 'transform 0.2s ease, box-shadow 0.2s ease',
-          boxShadow: '3px 5px 18px rgba(0,0,0,0.5), 1px 1px 4px rgba(0,0,0,0.25)',
+          boxShadow: selected
+            ? '0 0 0 3px var(--blue), 3px 5px 18px rgba(0,0,0,0.5)'
+            : '3px 5px 18px rgba(0,0,0,0.5), 1px 1px 4px rgba(0,0,0,0.25)',
           overflow: 'hidden',
         }}
         onMouseEnter={e => {
-          e.currentTarget.style.transform = `rotate(0deg) translateY(-5px)`
-          e.currentTarget.style.boxShadow = '6px 16px 40px rgba(0,0,0,0.65), 2px 3px 8px rgba(0,0,0,0.35)'
+          if (!selected) {
+            e.currentTarget.style.transform = `rotate(0deg) translateY(-5px)`
+            e.currentTarget.style.boxShadow = '6px 16px 40px rgba(0,0,0,0.65), 2px 3px 8px rgba(0,0,0,0.35)'
+          }
         }}
         onMouseLeave={e => {
-          e.currentTarget.style.transform = `rotate(${rotation}deg) translateY(0)`
-          e.currentTarget.style.boxShadow = '3px 5px 18px rgba(0,0,0,0.5), 1px 1px 4px rgba(0,0,0,0.25)'
+          if (!selected) {
+            e.currentTarget.style.transform = `rotate(${rotation}deg) translateY(0)`
+            e.currentTarget.style.boxShadow = '3px 5px 18px rgba(0,0,0,0.5), 1px 1px 4px rgba(0,0,0,0.25)'
+          }
         }}
         onClick={() => selectable ? onSelect?.(note.id) : onView?.(note)}
       >
+        {/* Selection indicator */}
+        {selectable && (
+          <div style={{ position: 'absolute', top: 6, right: 6, width: 18, height: 18, borderRadius: 4, border: `1.5px solid ${selected ? 'var(--blue)' : 'rgba(0,0,0,0.3)'}`, background: selected ? 'var(--blue)' : 'rgba(255,255,255,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 2 }}>
+            {selected && <Check size={11} color="white" strokeWidth={3} />}
+          </div>
+        )}
+
         {/* Folded corner */}
         <div style={{
           position: 'absolute', bottom: 0, right: 0,
@@ -305,33 +345,35 @@ function NotePostItCard({ note, onFavorite, onPin, onEdit, onDelete, onView }) {
             <span style={{ fontSize: 10, color: inkLight, fontWeight: 500 }}>{note.category || 'general'}</span>
             <span style={{ fontSize: 9, color: 'rgba(0,0,0,0.3)', marginLeft: 6 }}>{timeAgo}</span>
           </div>
-          <div
-            className="postit-actions"
-            style={{ display: 'flex', gap: 1, opacity: hovered ? 1 : 0, transition: 'opacity 0.15s', pointerEvents: hovered ? 'auto' : 'none' }}
-            onClick={e => e.stopPropagation()}
-          >
-            {[
-              { onClick: () => onPin(note.id), icon: <Pin size={14} color={note.is_pinned ? ink : 'rgba(0,0,0,0.45)'} fill={note.is_pinned ? ink : 'none'} /> },
-              { onClick: () => onFavorite(note.id), icon: <Star size={14} color={note.is_favorite ? 'rgba(140,70,0,0.9)' : 'rgba(0,0,0,0.45)'} fill={note.is_favorite ? 'rgba(140,70,0,0.9)' : 'none'} /> },
-              { onClick: () => onEdit(note), icon: <Edit3 size={14} color="rgba(0,0,0,0.45)" /> },
-              { onClick: () => onDelete(note.id), icon: <Trash2 size={14} color="rgba(140,0,25,0.7)" /> },
-            ].map((btn, i) => (
-              <button
-                key={i}
-                onClick={btn.onClick}
-                style={{
-                  width: 28, height: 28, borderRadius: 6, border: 'none',
-                   background: 'var(--c-code-bg)', cursor: 'pointer',
-                  display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-                  transition: 'background 0.15s',
-                }}
-                onMouseEnter={e => e.currentTarget.style.background = 'rgba(0,0,0,0.2)'}
-                onMouseLeave={e => e.currentTarget.style.background = 'rgba(0,0,0,0.1)'}
-              >
-                {btn.icon}
-              </button>
-            ))}
-          </div>
+          {!selectable && (
+            <div
+              className="postit-actions"
+              style={{ display: 'flex', gap: 1, opacity: hovered ? 1 : 0, transition: 'opacity 0.15s', pointerEvents: hovered ? 'auto' : 'none' }}
+              onClick={e => e.stopPropagation()}
+            >
+              {[
+                { onClick: () => onPin?.(note.id), icon: <Pin size={14} color={note.is_pinned ? ink : 'rgba(0,0,0,0.45)'} fill={note.is_pinned ? ink : 'none'} /> },
+                { onClick: () => onFavorite?.(note.id), icon: <Star size={14} color={note.is_favorite ? 'rgba(140,70,0,0.9)' : 'rgba(0,0,0,0.45)'} fill={note.is_favorite ? 'rgba(140,70,0,0.9)' : 'none'} /> },
+                { onClick: () => onEdit?.(note), icon: <Edit3 size={14} color="rgba(0,0,0,0.45)" /> },
+                { onClick: () => onDelete?.(note.id), icon: <Trash2 size={14} color="rgba(140,0,25,0.7)" /> },
+              ].map((btn, i) => (
+                <button
+                  key={i}
+                  onClick={btn.onClick}
+                  style={{
+                    width: 28, height: 28, borderRadius: 6, border: 'none',
+                    background: 'rgba(0,0,0,0.1)', cursor: 'pointer',
+                    display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                    transition: 'background 0.15s',
+                  }}
+                  onMouseEnter={e => e.currentTarget.style.background = 'rgba(0,0,0,0.2)'}
+                  onMouseLeave={e => e.currentTarget.style.background = 'rgba(0,0,0,0.1)'}
+                >
+                  {btn.icon}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
       </div>
     </div>
@@ -343,7 +385,7 @@ function timelineLabel(dateStr) {
   const d = new Date(dateStr)
   if (isToday(d)) return 'Today'
   if (isYesterday(d)) return 'Yesterday'
-  if (isThisWeek(d)) return format(d, 'EEEE') // e.g. "Monday"
+  if (isThisWeek(d)) return format(d, 'EEEE')
   if (isThisMonth(d)) return format(d, 'MMMM d')
   return format(d, 'MMMM d, yyyy')
 }
@@ -363,7 +405,7 @@ function groupByDate(notes) {
 }
 
 // ── Timeline Note Item ────────────────────────────────────────
-function NoteTimelineItem({ note, onFavorite, onPin, onEdit, onDelete, onView }) {
+function NoteTimelineItem({ note, onFavorite, onPin, onEdit, onDelete, onView, selectable, selected, onSelect }) {
   const color = note.color || '#FFD60A'
   const preview = stripMarkdown(note.content)
   const timeAgo = note.updated_at ? formatDistanceToNow(new Date(note.updated_at), { addSuffix: true }) : ''
@@ -375,9 +417,9 @@ function NoteTimelineItem({ note, onFavorite, onPin, onEdit, onDelete, onView })
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: 40, flexShrink: 0 }}>
         <div style={{
           width: 12, height: 12, borderRadius: '50%',
-          background: color,
-          border: `2px solid ${color}`,
-          boxShadow: `0 0 8px ${color}80`,
+          background: selected ? 'var(--blue)' : color,
+          border: `2px solid ${selected ? 'var(--blue)' : color}`,
+          boxShadow: `0 0 8px ${selected ? 'rgba(0,122,255,0.6)' : color + '80'}`,
           flexShrink: 0, marginTop: 14, zIndex: 1,
         }} />
         <div style={{ flex: 1, width: 2, background: `linear-gradient(to bottom, ${color}40, transparent)`, minHeight: 20 }} />
@@ -387,43 +429,56 @@ function NoteTimelineItem({ note, onFavorite, onPin, onEdit, onDelete, onView })
       <div
         style={{
           flex: 1, marginBottom: 12,
-          background: 'var(--glass-bg)',
-          border: `1px solid ${color}30`,
+          background: selected ? 'color-mix(in srgb, var(--blue) 8%, var(--glass-bg))' : 'var(--glass-bg)',
+          border: selected ? '1px solid color-mix(in srgb, var(--blue) 40%, transparent)' : `1px solid ${color}30`,
           borderRadius: 12, padding: '12px 14px',
           cursor: 'pointer', transition: 'background 0.15s, box-shadow 0.15s',
+          outline: selected ? '2px solid var(--blue)' : 'none',
+          outlineOffset: 2,
         }}
         onMouseEnter={e => {
           setHovered(true)
-          e.currentTarget.style.background = 'var(--glass-bg-hover)'
-          e.currentTarget.style.boxShadow = `0 4px 24px rgba(0,0,0,0.3), 0 0 0 1px ${color}40`
+          if (!selected) {
+            e.currentTarget.style.background = 'var(--glass-bg-hover)'
+            e.currentTarget.style.boxShadow = `0 4px 24px rgba(0,0,0,0.3), 0 0 0 1px ${color}40`
+          }
         }}
         onMouseLeave={e => {
           setHovered(false)
-          e.currentTarget.style.background = 'var(--glass-bg)'
-          e.currentTarget.style.boxShadow = 'none'
+          if (!selected) {
+            e.currentTarget.style.background = 'var(--glass-bg)'
+            e.currentTarget.style.boxShadow = 'none'
+          }
         }}
         onClick={() => selectable ? onSelect?.(note.id) : onView?.(note)}
       >
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8, marginBottom: preview ? 6 : 0 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, flex: 1, minWidth: 0 }}>
+            {selectable && (
+              <div style={{ width: 16, height: 16, borderRadius: 4, border: `1.5px solid ${selected ? 'var(--blue)' : 'rgba(255,255,255,0.2)'}`, background: selected ? 'var(--blue)' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                {selected && <Check size={10} color="white" strokeWidth={3} />}
+              </div>
+            )}
             {note.is_pinned && <Pin size={10} color={color} fill={color} style={{ flexShrink: 0 }} />}
             <span style={{ fontSize: 13, fontWeight: 600, lineHeight: 1.3, color: 'var(--text-primary)' }}>{note.title}</span>
             {note.is_favorite && <Star size={10} color="var(--yellow)" fill="var(--yellow)" style={{ flexShrink: 0 }} />}
           </div>
-          <div style={{ display: 'flex', gap: 3, flexShrink: 0 }} onClick={e => e.stopPropagation()}>
-            <button className="btn-icon" style={{ width: 28, height: 28 }} onClick={() => onPin(note.id)}>
-              <Pin size={14} color={note.is_pinned ? color : 'rgba(255,255,255,0.65)'} fill={note.is_pinned ? color : 'none'} />
-            </button>
-            <button className="btn-icon" style={{ width: 28, height: 28 }} onClick={() => onFavorite(note.id)}>
-              <Star size={14} color={note.is_favorite ? 'var(--yellow)' : 'rgba(255,255,255,0.65)'} fill={note.is_favorite ? 'var(--yellow)' : 'none'} />
-            </button>
-            <button className="btn-icon" style={{ width: 28, height: 28 }} onClick={() => onEdit(note)}>
-              <Edit3 size={14} color="rgba(255,255,255,0.65)" />
-            </button>
-            <button className="btn-icon" style={{ width: 28, height: 28 }} onClick={() => onDelete(note.id)}>
-              <Trash2 size={14} color="rgba(255,55,95,0.8)" />
-            </button>
-          </div>
+          {!selectable && (
+            <div style={{ display: 'flex', gap: 3, flexShrink: 0 }} onClick={e => e.stopPropagation()}>
+              <button className="btn-icon" style={{ width: 28, height: 28 }} onClick={() => onPin?.(note.id)}>
+                <Pin size={14} color={note.is_pinned ? color : 'rgba(255,255,255,0.65)'} fill={note.is_pinned ? color : 'none'} />
+              </button>
+              <button className="btn-icon" style={{ width: 28, height: 28 }} onClick={() => onFavorite?.(note.id)}>
+                <Star size={14} color={note.is_favorite ? 'var(--yellow)' : 'rgba(255,255,255,0.65)'} fill={note.is_favorite ? 'var(--yellow)' : 'none'} />
+              </button>
+              <button className="btn-icon" style={{ width: 28, height: 28 }} onClick={() => onEdit?.(note)}>
+                <Edit3 size={14} color="rgba(255,255,255,0.65)" />
+              </button>
+              <button className="btn-icon" style={{ width: 28, height: 28 }} onClick={() => onDelete?.(note.id)}>
+                <Trash2 size={14} color="rgba(255,55,95,0.8)" />
+              </button>
+            </div>
+          )}
         </div>
         {preview && (
           <p style={{
@@ -462,14 +517,22 @@ function NoteListRow({ note, onFavorite, onPin, onEdit, onDelete, onView, select
         style={{
           display: 'flex', alignItems: 'center', gap: 10,
           padding: '10px 12px', borderRadius: 10,
-          background: 'var(--glass-bg)', border: '1px solid var(--glass-border)',
-          borderLeft: `3px solid ${color}`,
+          background: selected ? 'color-mix(in srgb, var(--blue) 8%, var(--glass-bg))' : 'var(--glass-bg)',
+          border: selected ? '1px solid color-mix(in srgb, var(--blue) 40%, transparent)' : '1px solid var(--glass-border)',
+          borderLeft: selected ? `3px solid var(--blue)` : `3px solid ${color}`,
           cursor: 'pointer', transition: 'background 0.15s',
+          outline: selected ? '2px solid var(--blue)' : 'none',
+          outlineOffset: 2,
         }}
-        onMouseEnter={e => e.currentTarget.style.background = 'var(--glass-bg-hover)'}
-        onMouseLeave={e => e.currentTarget.style.background = 'var(--glass-bg)'}
+        onMouseEnter={e => { if (!selected) e.currentTarget.style.background = 'var(--glass-bg-hover)' }}
+        onMouseLeave={e => { if (!selected) e.currentTarget.style.background = 'var(--glass-bg)' }}
         onClick={() => selectable ? onSelect?.(note.id) : onView?.(note)}
       >
+        {selectable && (
+          <div style={{ width: 16, height: 16, borderRadius: 4, border: `1.5px solid ${selected ? 'var(--blue)' : 'rgba(255,255,255,0.2)'}`, background: selected ? 'var(--blue)' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+            {selected && <Check size={10} color="white" strokeWidth={3} />}
+          </div>
+        )}
         {note.is_pinned && <Pin size={10} color={color} fill={color} style={{ flexShrink: 0 }} />}
         <span style={{
           flex: 1, fontSize: 13, fontWeight: 500, minWidth: 0,
@@ -487,28 +550,29 @@ function NoteListRow({ note, onFavorite, onPin, onEdit, onDelete, onView, select
         <span className="note-list-meta" style={{ fontSize: 11, color: 'var(--text-quaternary)', flexShrink: 0, minWidth: 72, textAlign: 'right' }}>
           {timeAgo}
         </span>
-        <div style={{ display: 'flex', gap: 2, flexShrink: 0 }}>
-          <button className="btn-icon" style={{ width: 30, height: 30 }} onClick={e => { e.stopPropagation(); onPin(note.id) }}>
-            <Pin size={14} color={note.is_pinned ? color : 'rgba(255,255,255,0.65)'} fill={note.is_pinned ? color : 'none'} />
-          </button>
-          <button className="btn-icon" style={{ width: 30, height: 30 }} onClick={e => { e.stopPropagation(); onFavorite(note.id) }}>
-            <Star size={14} color={note.is_favorite ? 'var(--yellow)' : 'rgba(255,255,255,0.65)'} fill={note.is_favorite ? 'var(--yellow)' : 'none'} />
-          </button>
-          <button className="btn-icon" style={{ width: 30, height: 30 }} onClick={e => { e.stopPropagation(); onEdit(note) }}>
-            <Edit3 size={14} color="rgba(255,255,255,0.65)" />
-          </button>
-          <button className="btn-icon" style={{ width: 30, height: 30 }} onClick={e => { e.stopPropagation(); onDelete(note.id) }}>
-            <Trash2 size={14} color="rgba(255,55,95,0.75)" />
-          </button>
-        </div>
+        {!selectable && (
+          <div style={{ display: 'flex', gap: 2, flexShrink: 0 }}>
+            <button className="btn-icon" style={{ width: 30, height: 30 }} onClick={e => { e.stopPropagation(); onPin?.(note.id) }}>
+              <Pin size={14} color={note.is_pinned ? color : 'rgba(255,255,255,0.65)'} fill={note.is_pinned ? color : 'none'} />
+            </button>
+            <button className="btn-icon" style={{ width: 30, height: 30 }} onClick={e => { e.stopPropagation(); onFavorite?.(note.id) }}>
+              <Star size={14} color={note.is_favorite ? 'var(--yellow)' : 'rgba(255,255,255,0.65)'} fill={note.is_favorite ? 'var(--yellow)' : 'none'} />
+            </button>
+            <button className="btn-icon" style={{ width: 30, height: 30 }} onClick={e => { e.stopPropagation(); onEdit?.(note) }}>
+              <Edit3 size={14} color="rgba(255,255,255,0.65)" />
+            </button>
+            <button className="btn-icon" style={{ width: 30, height: 30 }} onClick={e => { e.stopPropagation(); onDelete?.(note.id) }}>
+              <Trash2 size={14} color="rgba(255,55,95,0.75)" />
+            </button>
+          </div>
+        )}
       </div>
     </>
   )
 }
 
 // ── Kanban View ───────────────────────────────────────────────
-// Columns by category, note cards stacked vertically
-function NoteKanbanView({ notes, onFavorite, onPin, onEdit, onDelete, onView }) {
+function NoteKanbanView({ notes, onFavorite, onPin, onEdit, onDelete, onView, selectable, selectedIds, onSelect }) {
   const grouped = notes.reduce((acc, note) => {
     const cat = note.category || 'general'
     if (!acc[cat]) acc[cat] = []
@@ -535,15 +599,21 @@ function NoteKanbanView({ notes, onFavorite, onPin, onEdit, onDelete, onView }) 
               const noteColor = note.color || colColor
               const preview = stripMarkdown(note.content)
               const timeAgo = note.updated_at ? formatDistanceToNow(new Date(note.updated_at), { addSuffix: true }) : ''
+              const isSelected = selectedIds?.has(note.id)
               return (
                 <div key={note.id} className="glass-card"
-                  style={{ padding: 0, overflow: 'hidden', cursor: 'pointer', transition: 'transform 0.12s, box-shadow 0.12s', borderLeft: `3px solid ${noteColor}` }}
-                  onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = `0 4px 20px ${noteColor}20` }}
-                  onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = 'none' }}
+                  style={{ padding: 0, overflow: 'hidden', cursor: 'pointer', transition: 'transform 0.12s, box-shadow 0.12s', borderLeft: `3px solid ${isSelected ? 'var(--blue)' : noteColor}`, outline: isSelected ? '2px solid var(--blue)' : 'none', outlineOffset: 2, background: isSelected ? 'color-mix(in srgb, var(--blue) 8%, var(--glass-bg))' : undefined }}
+                  onMouseEnter={e => { if (!isSelected) { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = `0 4px 20px ${noteColor}20` } }}
+                  onMouseLeave={e => { if (!isSelected) { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = 'none' } }}
                   onClick={() => selectable ? onSelect?.(note.id) : onView?.(note)}>
                   <div style={{ padding: '10px 12px' }}>
                     {/* Title */}
                     <div style={{ display: 'flex', alignItems: 'flex-start', gap: 5, marginBottom: preview ? 7 : 0 }}>
+                      {selectable && (
+                        <div style={{ width: 14, height: 14, borderRadius: 3, border: `1.5px solid ${isSelected ? 'var(--blue)' : 'rgba(255,255,255,0.2)'}`, background: isSelected ? 'var(--blue)' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: 2 }}>
+                          {isSelected && <Check size={9} color="white" strokeWidth={3} />}
+                        </div>
+                      )}
                       {note.is_pinned && <Pin size={9} color={noteColor} fill={noteColor} style={{ flexShrink: 0, marginTop: 3 }} />}
                       <span style={{ fontSize: 12, fontWeight: 600, flex: 1, lineHeight: 1.4 }}>{note.title}</span>
                       {note.is_favorite && <Star size={9} color="var(--yellow)" fill="var(--yellow)" style={{ flexShrink: 0, marginTop: 2 }} />}
@@ -558,18 +628,22 @@ function NoteKanbanView({ notes, onFavorite, onPin, onEdit, onDelete, onView }) 
                     <div style={{ display: 'flex', alignItems: 'center', gap: 4 }} onClick={e => e.stopPropagation()}>
                       <div style={{ width: 6, height: 6, borderRadius: '50%', background: noteColor, flexShrink: 0 }} />
                       <span style={{ fontSize: 9, color: 'var(--text-quaternary)', flex: 1 }}>{timeAgo}</span>
-                      <button className="btn-icon" style={{ width: 22, height: 22 }} onClick={() => onPin(note.id)}>
-                        <Pin size={10} color={note.is_pinned ? noteColor : 'rgba(255,255,255,0.3)'} fill={note.is_pinned ? noteColor : 'none'} />
-                      </button>
-                      <button className="btn-icon" style={{ width: 22, height: 22 }} onClick={() => onFavorite(note.id)}>
-                        <Star size={10} color={note.is_favorite ? 'var(--yellow)' : 'rgba(255,255,255,0.3)'} fill={note.is_favorite ? 'var(--yellow)' : 'none'} />
-                      </button>
-                      <button className="btn-icon" style={{ width: 22, height: 22 }} onClick={() => onEdit(note)}>
-                        <Edit3 size={10} color="rgba(255,255,255,0.3)" />
-                      </button>
-                      <button className="btn-icon" style={{ width: 22, height: 22 }} onClick={() => onDelete(note.id)}>
-                        <Trash2 size={10} color="rgba(255,55,95,0.5)" />
-                      </button>
+                      {!selectable && (
+                        <>
+                          <button className="btn-icon" style={{ width: 22, height: 22 }} onClick={() => onPin?.(note.id)}>
+                            <Pin size={10} color={note.is_pinned ? noteColor : 'rgba(255,255,255,0.3)'} fill={note.is_pinned ? noteColor : 'none'} />
+                          </button>
+                          <button className="btn-icon" style={{ width: 22, height: 22 }} onClick={() => onFavorite?.(note.id)}>
+                            <Star size={10} color={note.is_favorite ? 'var(--yellow)' : 'rgba(255,255,255,0.3)'} fill={note.is_favorite ? 'var(--yellow)' : 'none'} />
+                          </button>
+                          <button className="btn-icon" style={{ width: 22, height: 22 }} onClick={() => onEdit?.(note)}>
+                            <Edit3 size={10} color="rgba(255,255,255,0.3)" />
+                          </button>
+                          <button className="btn-icon" style={{ width: 22, height: 22 }} onClick={() => onDelete?.(note.id)}>
+                            <Trash2 size={10} color="rgba(255,55,95,0.5)" />
+                          </button>
+                        </>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -624,7 +698,7 @@ function NoteModal({ note, onClose, onSave }) {
         alignItems: maximized ? 'stretch' : 'flex-end',
         justifyContent: 'center',
         padding: maximized ? 0 : 0,
-         background: 'var(--c-code-bg)', backdropFilter: 'blur(8px)',
+        background: 'var(--c-code-bg)', backdropFilter: 'blur(8px)',
       }}
       className="note-modal-overlay"
       onClick={e => e.target === e.currentTarget && onClose()}
@@ -685,7 +759,7 @@ function NoteModal({ note, onClose, onSave }) {
             />
           </div>
 
-          {/* Color + Category — stacks vertically on mobile */}
+          {/* Color + Category */}
           <style>{`
             .note-color-row { display: flex; gap: 16px; align-items: flex-start; }
             @media (max-width: 480px) { .note-color-row { flex-direction: column; gap: 12px; } }
@@ -710,7 +784,6 @@ function NoteModal({ note, onClose, onSave }) {
                     }}
                   />
                 ))}
-                {/* Custom color picker */}
                 <label
                   title="Custom color"
                   style={{
@@ -794,7 +867,7 @@ function DeleteDialog({ onConfirm, onCancel }) {
     <div style={{
       position: 'fixed', inset: 0, zIndex: 1100,
       display: 'flex', alignItems: 'center', justifyContent: 'center',
-      padding: 20,  background: 'var(--c-code-bg)', backdropFilter: 'blur(8px)',
+      padding: 20, background: 'var(--c-code-bg)', backdropFilter: 'blur(8px)',
     }}>
       <div className="glass-card" style={{ maxWidth: 380, width: '100%', padding: 24 }}>
         <p style={{ fontWeight: 600, marginBottom: 8, fontSize: 15 }}>Move to Trash?</p>
@@ -821,7 +894,7 @@ export default function NotesPage() {
   const qc = useQueryClient()
   const [search, setSearch] = useState('')
   const [showFavorites, setShowFavorites] = useState(false)
-  const [activeTag, setActiveTag] = useState(null) // tag id or null
+  const [activeTag, setActiveTag] = useState(null)
   const [viewMode, setViewMode] = useState(() => {
     const saved = localStorage.getItem('notes_view')
     return (saved === 'bento' ? 'postit' : saved) || 'postit'
@@ -831,23 +904,28 @@ export default function NotesPage() {
   const [viewItem, setViewItem] = useState(null)
   const [deleteConfirm, setDeleteConfirm] = useState(null)
 
-  const setView = (m) => { setViewMode(m); localStorage.setItem('notes_view', m); setSelectedIds(new Set()); setSelectMode(false) }
   const [selectMode, setSelectMode] = useState(false)
   const [selectedIds, setSelectedIds] = useState(new Set())
   const [bulkDeleting, setBulkDeleting] = useState(false)
+
+  const setView = (m) => { setViewMode(m); localStorage.setItem('notes_view', m); setSelectedIds(new Set()); setSelectMode(false) }
   const toggleSelect = (id) => setSelectedIds(prev => { const n = new Set(prev); n.has(id) ? n.delete(id) : n.add(id); return n })
   const selectAll = () => setSelectedIds(new Set(notes.map(n => n.id)))
   const clearSelection = () => { setSelectedIds(new Set()); setSelectMode(false) }
+
   const handleBulkDelete = async () => {
     if (!selectedIds.size) return
     setBulkDeleting(true)
     try {
       await Promise.all([...selectedIds].map(id => notesApi.delete(id)))
-      qc.invalidateQueries({ queryKey: ['notes'] }); qc.invalidateQueries({ queryKey: ['stats'] }); qc.invalidateQueries({ queryKey: ['trash-count'] })
+      qc.invalidateQueries({ queryKey: ['notes'] })
+      qc.invalidateQueries({ queryKey: ['stats'] })
+      qc.invalidateQueries({ queryKey: ['trash-count'] })
       toast.success(`${selectedIds.size} note${selectedIds.size !== 1 ? 's' : ''} deleted`)
       setSelectedIds(new Set())
     } catch (err) { toast.error(err.message) } finally { setBulkDeleting(false) }
   }
+
   const handleBulkFavorite = async () => {
     try {
       await Promise.all([...selectedIds].map(id => notesApi.toggleFavorite(id)))
@@ -857,7 +935,6 @@ export default function NotesPage() {
     } catch (err) { toast.error(err.message) }
   }
 
-  // Load all tags for the filter chips
   const { data: tagsData } = useQuery({ queryKey: ['tags'], queryFn: () => tagsApi.list(), staleTime: 60000 })
   const allTags = tagsData?.data || []
 
@@ -923,33 +1000,78 @@ export default function NotesPage() {
   const notes = data?.data || []
   const total = data?.total ?? 0
 
+  // Shared select props for all views
+  const isSelectActive = selectMode || selectedIds.size > 0
+  const selectProps = {
+    selectable: isSelectActive,
+    selectedIds,
+    onSelect: (id) => { toggleSelect(id); setSelectMode(true) },
+  }
+
+  // Shared action props (disabled in select mode)
+  const actionProps = isSelectActive ? {
+    onFavorite: undefined,
+    onPin: undefined,
+    onEdit: undefined,
+    onDelete: undefined,
+    onView: undefined,
+  } : {
+    onFavorite: (id) => favMut.mutate(id),
+    onPin: (id) => pinMut.mutate(id),
+    onEdit: openEdit,
+    onDelete: (id) => setDeleteConfirm(id),
+    onView: (n) => setViewItem(n),
+  }
+
   return (
     <div className="page-content">
-      {/* Header */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <div style={{
-            width: 40, height: 40, borderRadius: 10,
-            background: 'rgba(255,214,10,0.12)', border: '1px solid rgba(255,214,10,0.2)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-          }}>
-            <StickyNote size={20} color="#FFD60A" />
-          </div>
-          <div>
-            <h1 style={{ fontSize: 20, fontWeight: 700, letterSpacing: -0.4, lineHeight: 1 }}>Notes</h1>
-            <p style={{ fontSize: 12, color: 'var(--text-tertiary)', marginTop: 3 }}>{total} note{total !== 1 ? 's' : ''}</p>
-          </div>
+      {/* ── Toolbar (single row, like Skills) ── */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 20, flexWrap: 'wrap' }}>
+        <div className="search-bar" style={{ flex: 1, minWidth: 200 }}>
+          <Search size={15} color="var(--text-tertiary)" />
+          <input placeholder="Search notes…" value={search} onChange={e => setSearch(e.target.value)} />
+          {search && (
+            <button onClick={() => setSearch('')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--c-tick)', display: 'flex', padding: 0, flexShrink: 0 }}>
+              <X size={14} />
+            </button>
+          )}
         </div>
-        <div style={{ display: 'flex', gap: 8 }}>
-          <button className={`btn btn-glass btn-sm ${(selectMode || selectedIds.size > 0) ? 'active' : ''}`}
-            onClick={() => { setSelectMode(m => !m); if (selectMode || selectedIds.size > 0) clearSelection() }}
-            style={(selectMode || selectedIds.size > 0) ? { borderColor: 'color-mix(in srgb, var(--blue) 40%, transparent)', color: 'var(--blue-light)', gap: 5 } : { gap: 5 }}>
-            <Check size={13} /> Select
+        <button onClick={() => setShowFavorites(f => !f)} className={`filter-chip${showFavorites ? ' active' : ''}`}
+          style={showFavorites ? { background: 'rgba(255,214,10,0.12)', borderColor: 'rgba(255,214,10,0.3)', color: '#FFD60A' } : {}}>
+          <Star size={11} fill={showFavorites ? 'currentColor' : 'none'} /> Favorites
+        </button>
+        {allTags.map(tag => (
+          <button key={tag.id} onClick={() => setActiveTag(t => t === tag.id ? null : tag.id)}
+            className={`filter-chip${activeTag === tag.id ? ' active' : ''}`}
+            style={activeTag === tag.id ? { background: `${tag.color}18`, borderColor: `${tag.color}50`, color: tag.color } : {}}>
+            <div style={{ width: 6, height: 6, borderRadius: '50%', background: activeTag === tag.id ? tag.color : 'rgba(255,255,255,0.3)', flexShrink: 0 }} />
+            {tag.name}
           </button>
-          <button className="btn btn-primary" onClick={openNew} style={{ gap: 7 }}>
-            <Plus size={14} /> New note
-          </button>
+        ))}
+        {/* View toggle */}
+        <div style={{ display: 'flex', background: 'var(--c-surface)', borderRadius: 10, padding: 3, gap: 2 }}>
+          {[
+            { id: 'postit', icon: <StickyNote size={13} />, title: 'Post-it Wall' },
+            { id: 'board', icon: <Kanban size={13} />, title: 'Board view' },
+            { id: 'grid', icon: <LayoutGrid size={13} />, title: 'Grid view' },
+            { id: 'timeline', icon: <Clock size={13} />, title: 'Timeline view' },
+            { id: 'list', icon: <List size={13} />, title: 'List view' },
+            { id: 'kanban', icon: <Columns2 size={13} />, title: 'Kanban view' },
+          ].map(({ id, icon, title }) => (
+            <button key={id} onClick={() => setView(id)} title={title}
+              style={{ padding: '5px 9px', borderRadius: 7, border: 'none', cursor: 'pointer', background: viewMode === id ? 'rgba(255,255,255,0.1)' : 'transparent', color: viewMode === id ? 'var(--text-primary)' : 'var(--text-tertiary)', transition: 'all 0.15s' }}>
+              {icon}
+            </button>
+          ))}
         </div>
+        <button className={`btn btn-glass btn-sm ${isSelectActive ? 'active' : ''}`}
+          onClick={() => { setSelectMode(m => !m); if (isSelectActive) clearSelection() }}
+          style={isSelectActive ? { borderColor: 'color-mix(in srgb, var(--blue) 40%, transparent)', color: 'var(--blue-light)', gap: 5 } : { gap: 5 }}>
+          <MousePointer size={13} /> Select
+        </button>
+        <button className="btn btn-primary" onClick={openNew} style={{ gap: 7 }}>
+          <Plus size={14} /> New note
+        </button>
       </div>
 
       {selectedIds.size > 0 && (
@@ -963,101 +1085,6 @@ export default function NotesPage() {
           <button className="btn btn-glass btn-sm" onClick={clearSelection} style={{ marginLeft: 'auto', gap: 5 }}>Cancel</button>
         </div>
       )}
-
-      {/* Search */}
-      <div className="search-bar" style={{ marginBottom: 12 }}>
-        <Search size={15} style={{ color: 'var(--c-tick)', flexShrink: 0 }} />
-        <input
-          placeholder="Search notes…"
-          value={search}
-          onChange={e => setSearch(e.target.value)}
-        />
-        {search && (
-          <button onClick={() => setSearch('')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--c-tick)', display: 'flex', padding: 0, flexShrink: 0 }}>
-            <X size={14} />
-          </button>
-        )}
-      </div>
-
-      {/* Filters — row 1: chips (wrap freely) */}
-      <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center', marginBottom: 8 }}>
-        <button
-          onClick={() => setShowFavorites(f => !f)}
-          className={`filter-chip${showFavorites ? ' active' : ''}`}
-          style={showFavorites ? { background: 'rgba(255,214,10,0.12)', borderColor: 'rgba(255,214,10,0.3)', color: '#FFD60A' } : {}}
-        >
-          <Star size={11} fill={showFavorites ? 'currentColor' : 'none'} /> Favorites
-        </button>
-
-        {/* Tag filter chips */}
-        {allTags.map(tag => (
-          <button
-            key={tag.id}
-            onClick={() => setActiveTag(t => t === tag.id ? null : tag.id)}
-            className={`filter-chip${activeTag === tag.id ? ' active' : ''}`}
-            style={activeTag === tag.id
-              ? { background: `${tag.color}18`, borderColor: `${tag.color}50`, color: tag.color }
-              : {}}
-          >
-            <div style={{ width: 6, height: 6, borderRadius: '50%', background: activeTag === tag.id ? tag.color : 'rgba(255,255,255,0.3)', flexShrink: 0 }} />
-            {tag.name}
-          </button>
-        ))}
-      </div>
-
-      {/* Filters — row 2: view switcher (always right-aligned) */}
-      <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 16 }}>
-        <div style={{ display: 'flex', gap: 2, background: 'var(--glass-bg)', border: '1px solid var(--glass-border)', borderRadius: 8, padding: 2 }}>
-          <button
-            className={`btn-icon${viewMode === 'postit' ? ' active' : ''}`}
-            style={{ width: 28, height: 28, borderRadius: 6 }}
-            onClick={() => setView('postit')}
-            title="Post-it Wall"
-          >
-            <StickyNote size={13} />
-          </button>
-          <button
-            className={`btn-icon${viewMode === 'board' ? ' active' : ''}`}
-            style={{ width: 28, height: 28, borderRadius: 6 }}
-            onClick={() => setView('board')}
-            title="Board view"
-          >
-            <Kanban size={13} />
-          </button>
-          <button
-            className={`btn-icon${viewMode === 'grid' ? ' active' : ''}`}
-            style={{ width: 28, height: 28, borderRadius: 6 }}
-            onClick={() => setView('grid')}
-            title="Grid view"
-          >
-            <LayoutGrid size={13} />
-          </button>
-          <button
-            className={`btn-icon${viewMode === 'timeline' ? ' active' : ''}`}
-            style={{ width: 28, height: 28, borderRadius: 6 }}
-            onClick={() => setView('timeline')}
-            title="Timeline view"
-          >
-            <Clock size={13} />
-          </button>
-          <button
-            className={`btn-icon${viewMode === 'list' ? ' active' : ''}`}
-            style={{ width: 28, height: 28, borderRadius: 6 }}
-            onClick={() => setView('list')}
-            title="List view"
-          >
-            <List size={13} />
-          </button>
-          <button
-            className={`btn-icon${viewMode === 'kanban' ? ' active' : ''}`}
-            style={{ width: 28, height: 28, borderRadius: 6 }}
-            onClick={() => setView('kanban')}
-            title="Kanban view"
-          >
-            <Columns2 size={13} />
-          </button>
-        </div>
-      </div>
 
       {/* Content */}
       {isLoading ? (
@@ -1086,21 +1113,20 @@ export default function NotesPage() {
           )}
         </div>
       ) : viewMode === 'grid' ? (
-        <div className="cards-grid">
-          {notes.map(note => (
-            <NoteCard
-              key={note.id}
-              note={note}
-              onFavorite={selectMode ? undefined : id => favMut.mutate(id)}
-              onPin={selectMode ? undefined : id => pinMut.mutate(id)}
-              onEdit={selectMode ? undefined : openEdit}
-              onDelete={selectMode ? undefined : id => setDeleteConfirm(id)}
-              onView={selectMode ? undefined : n => setViewItem(n)}
-              selectable={selectMode || selectedIds.size > 0}
-              selected={selectedIds.has(note.id)}
-              onSelect={(id) => { toggleSelect(id); setSelectMode(true) }}
-            />
-          ))}
+        <div style={{ position: 'relative' }}>
+          <div className="cards-grid">
+            {notes.map(note => (
+              <div key={note.id} data-item-id={note.id}>
+                <NoteCard
+                  note={note}
+                  {...actionProps}
+                  selectable={isSelectActive}
+                  selected={selectedIds.has(note.id)}
+                  onSelect={(id) => { toggleSelect(id); setSelectMode(true) }}
+                />
+              </div>
+            ))}
+          </div>
         </div>
       ) : viewMode === 'board' ? (
         <>
@@ -1109,18 +1135,20 @@ export default function NotesPage() {
             @media (max-width: 900px) { .notes-board-grid { column-count: 2; } }
             @media (max-width: 540px) { .notes-board-grid { column-count: 1; } }
           `}</style>
-          <div className="notes-board-grid">
-            {notes.map(note => (
-              <NoteBoardCard
-                key={note.id}
-                note={note}
-                onFavorite={id => favMut.mutate(id)}
-                onPin={id => pinMut.mutate(id)}
-                onEdit={openEdit}
-                onDelete={id => setDeleteConfirm(id)}
-                onView={n => setViewItem(n)}
-              />
-            ))}
+          <div style={{ position: 'relative' }}>
+            <div className="notes-board-grid">
+              {notes.map(note => (
+                <div key={note.id} data-item-id={note.id} style={{ display: 'inline-block', width: '100%', breakInside: 'avoid' }}>
+                  <NoteBoardCard
+                    note={note}
+                    {...actionProps}
+                    selectable={isSelectActive}
+                    selected={selectedIds.has(note.id)}
+                    onSelect={(id) => { toggleSelect(id); setSelectMode(true) }}
+                  />
+                </div>
+              ))}
+            </div>
           </div>
         </>
       ) : viewMode === 'postit' ? (
@@ -1133,92 +1161,80 @@ export default function NotesPage() {
               padding: 8px 4px 24px;
             }
             @media (max-width: 480px) {
-              .notes-postit-grid {
-                grid-template-columns: repeat(2, 1fr);
-                gap: 20px;
-              }
+              .notes-postit-grid { grid-template-columns: repeat(2, 1fr); gap: 20px; }
             }
             @media (max-width: 340px) {
-              .notes-postit-grid {
-                grid-template-columns: 1fr;
-              }
+              .notes-postit-grid { grid-template-columns: 1fr; }
             }
-            /* Post-it actions always visible on touch devices */
             @media (hover: none) {
               .postit-actions { opacity: 1 !important; pointer-events: auto !important; }
             }
           `}</style>
-          <div className="notes-postit-grid">
-            {notes.map(note => (
-              <NotePostItCard
-                key={note.id}
-                note={note}
-                onFavorite={id => favMut.mutate(id)}
-                onPin={id => pinMut.mutate(id)}
-                onEdit={openEdit}
-                onDelete={id => setDeleteConfirm(id)}
-                onView={n => setViewItem(n)}
-              />
-            ))}
+          <div style={{ position: 'relative' }}>
+            <div className="notes-postit-grid">
+              {notes.map(note => (
+                <div key={note.id} data-item-id={note.id}>
+                  <NotePostItCard
+                    note={note}
+                    {...actionProps}
+                    selectable={isSelectActive}
+                    selected={selectedIds.has(note.id)}
+                    onSelect={(id) => { toggleSelect(id); setSelectMode(true) }}
+                  />
+                </div>
+              ))}
+            </div>
           </div>
         </>
       ) : viewMode === 'timeline' ? (
-        <div style={{ paddingLeft: 4 }}>
+        <div style={{ paddingLeft: 4, position: 'relative' }}>
           {groupByDate(notes).map(group => (
             <div key={group.label} style={{ marginBottom: 8 }}>
-              {/* Date label */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 4, paddingLeft: 0 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 4 }}>
                 <div style={{ width: 40, display: 'flex', justifyContent: 'center' }}>
-                  <div style={{
-                    width: 2, height: 16,
-                    background: 'rgba(255,255,255,0.1)',
-                  }} />
+                  <div style={{ width: 2, height: 16, background: 'rgba(255,255,255,0.1)' }} />
                 </div>
-                <span style={{
-                  fontSize: 11, fontWeight: 600, letterSpacing: 0.5,
-                  color: 'var(--text-tertiary)', textTransform: 'uppercase',
-                }}>
+                <span style={{ fontSize: 11, fontWeight: 600, letterSpacing: 0.5, color: 'var(--text-tertiary)', textTransform: 'uppercase' }}>
                   {group.label}
                 </span>
               </div>
               {group.notes.map(note => (
-                <NoteTimelineItem
-                  key={note.id}
-                  note={note}
-                  onFavorite={id => favMut.mutate(id)}
-                  onPin={id => pinMut.mutate(id)}
-                  onEdit={openEdit}
-                  onDelete={id => setDeleteConfirm(id)}
-                  onView={n => setViewItem(n)}
-                />
+                <div key={note.id} data-item-id={note.id}>
+                  <NoteTimelineItem
+                    note={note}
+                    {...actionProps}
+                    selectable={isSelectActive}
+                    selected={selectedIds.has(note.id)}
+                    onSelect={(id) => { toggleSelect(id); setSelectMode(true) }}
+                  />
+                </div>
               ))}
             </div>
           ))}
         </div>
       ) : viewMode === 'kanban' ? (
-        <NoteKanbanView
-          notes={notes}
-          onFavorite={id => favMut.mutate(id)}
-          onPin={id => pinMut.mutate(id)}
-          onEdit={openEdit}
-          onDelete={id => setDeleteConfirm(id)}
-          onView={n => setViewItem(n)}
-        />
+        <div style={{ position: 'relative' }}>
+          <NoteKanbanView
+            notes={notes}
+            {...actionProps}
+            selectable={isSelectActive}
+            selectedIds={selectedIds}
+            onSelect={(id) => { toggleSelect(id); setSelectMode(true) }}
+          />
+        </div>
       ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+        /* list view */
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 4, position: 'relative' }}>
           {notes.map(note => (
-            <NoteListRow
-              key={note.id}
-              note={note}
-              onFavorite={selectMode ? undefined : id => favMut.mutate(id)}
-              onPin={selectMode ? undefined : id => pinMut.mutate(id)}
-              onEdit={selectMode ? undefined : openEdit}
-              onDelete={selectMode ? undefined : id => setDeleteConfirm(id)}
-              onView={selectMode ? undefined : n => setViewItem(n)}
-              selectable={selectMode || selectedIds.size > 0}
-              selected={selectedIds.has(note.id)}
-              onSelect={(id) => { toggleSelect(id); setSelectMode(true) }}
-            />
+            <div key={note.id} data-item-id={note.id}>
+              <NoteListRow
+                note={note}
+                {...actionProps}
+                selectable={isSelectActive}
+                selected={selectedIds.has(note.id)}
+                onSelect={(id) => { toggleSelect(id); setSelectMode(true) }}
+              />
+            </div>
           ))}
         </div>
       )}

@@ -63,7 +63,7 @@ const libraryItems = [
   { path: '/prompts', icon: MessageSquare, label: 'Prompts', statsKey: 'prompts' },
   { path: '/skills', icon: Zap, label: 'Skills', statsKey: 'skills' },
   { path: '/steering', icon: Navigation, label: 'Steering', statsKey: 'steering' },
-  { path: '/mcp', icon: McpIcon, label: 'MCP Configs', statsKey: 'mcp_configs' },
+  { path: '/mcp', icon: McpIcon, label: 'MCP', statsKey: 'mcp_configs' },
   { path: '/commands', icon: TerminalSquare, label: 'Commands', statsKey: 'commands' },
   { path: '/notes', icon: StickyNote, label: 'Notes', statsKey: 'notes' },
 ]

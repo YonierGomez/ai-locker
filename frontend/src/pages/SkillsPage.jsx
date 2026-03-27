@@ -188,13 +188,20 @@ export default function SkillsPage() {
           <div className="empty-state-desc">{search || category ? 'Try adjusting your filters' : 'Create reusable AI skill definitions'}</div>
           {!search && !category && <button className="btn btn-primary" onClick={openCreate} style={{ marginTop: 8 }}><Plus size={15} /> Create Skill</button>}
         </div>
-      ) : viewMode === 'list' ? (
+      ) : (
+      <div style={{ position: 'relative' }}>
+      {viewMode === 'list' ? (
         <div className="glass-card" style={{ padding: 0, overflow: 'hidden' }}>
           {skills.map((skill, idx) => (
-            <div key={skill.id} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 16px', borderBottom: idx < skills.length - 1 ? '1px solid rgba(255,255,255,0.05)' : 'none', cursor: 'pointer', transition: 'background 0.12s' }}
-              onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.03)'}
-              onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
-              onClick={() => setViewItem(skill)}>
+            <div key={skill.id} data-item-id={skill.id} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 16px', borderBottom: idx < skills.length - 1 ? '1px solid rgba(255,255,255,0.05)' : 'none', cursor: 'pointer', transition: 'background 0.12s', background: selectedIds.has(skill.id) ? 'color-mix(in srgb, var(--blue) 8%, transparent)' : 'transparent', outline: selectedIds.has(skill.id) ? '2px solid var(--blue)' : 'none', outlineOffset: -2 }}
+              onMouseEnter={e => { if (!selectedIds.has(skill.id)) e.currentTarget.style.background = 'rgba(255,255,255,0.03)' }}
+              onMouseLeave={e => { if (!selectedIds.has(skill.id)) e.currentTarget.style.background = 'transparent' }}
+              onClick={() => (selectMode || selectedIds.size > 0) ? (toggleSelect(skill.id), setSelectMode(true)) : setViewItem(skill)}>
+              {(selectMode || selectedIds.size > 0) && (
+                <div style={{ width: 16, height: 16, borderRadius: 4, border: `1.5px solid ${selectedIds.has(skill.id) ? 'var(--blue)' : 'rgba(255,255,255,0.2)'}`, background: selectedIds.has(skill.id) ? 'var(--blue)' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  {selectedIds.has(skill.id) && <Check size={10} color="white" strokeWidth={3} />}
+                </div>
+              )}
               <div style={{ width: 8, height: 8, borderRadius: '50%', background: skill.is_active ? '#30D158' : '#8E8E93', flexShrink: 0 }} />
               <span style={{ fontSize: 13, fontWeight: 500, flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{skill.title}</span>
               {skill.is_favorite && <Star size={11} color="var(--yellow)" fill="var(--yellow)" />}
@@ -206,14 +213,19 @@ export default function SkillsPage() {
       ) : viewMode === 'compact' ? (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(240px,100%), 1fr))', gap: 8 }}>
           {skills.map(skill => (
-            <div key={skill.id} className="glass-card" style={{ padding: '10px 12px', cursor: 'pointer', borderTop: `2px solid ${skill.is_active ? '#FF9500' : '#8E8E93'}`, transition: 'box-shadow 0.15s' }}
-              onMouseEnter={e => e.currentTarget.style.boxShadow = '0 0 0 1px rgba(255,149,0,0.3)'}
-              onMouseLeave={e => e.currentTarget.style.boxShadow = 'none'}
-              onClick={() => setViewItem(skill)}>
+            <div key={skill.id} data-item-id={skill.id} className="glass-card" style={{ padding: '10px 12px', cursor: 'pointer', borderTop: `2px solid ${skill.is_active ? '#FF9500' : '#8E8E93'}`, transition: 'box-shadow 0.15s', outline: selectedIds.has(skill.id) ? '2px solid var(--blue)' : 'none', outlineOffset: 2, background: selectedIds.has(skill.id) ? 'color-mix(in srgb, var(--blue) 8%, var(--glass-bg))' : undefined }}
+              onMouseEnter={e => { if (!selectedIds.has(skill.id)) e.currentTarget.style.boxShadow = '0 0 0 1px rgba(255,149,0,0.3)' }}
+              onMouseLeave={e => { if (!selectedIds.has(skill.id)) e.currentTarget.style.boxShadow = 'none' }}
+              onClick={() => (selectMode || selectedIds.size > 0) ? (toggleSelect(skill.id), setSelectMode(true)) : setViewItem(skill)}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
                 <span style={{ fontSize: 12, fontWeight: 600, flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{skill.title}</span>
                 {skill.is_favorite && <Star size={9} color="var(--yellow)" fill="var(--yellow)" />}
               </div>
+              {(selectMode || selectedIds.size > 0) && (
+                <div style={{ width: 14, height: 14, borderRadius: 3, border: `1.5px solid ${selectedIds.has(skill.id) ? 'var(--blue)' : 'rgba(255,255,255,0.2)'}`, background: selectedIds.has(skill.id) ? 'var(--blue)' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginBottom: 4 }}>
+                  {selectedIds.has(skill.id) && <Check size={9} color="white" strokeWidth={3} />}
+                </div>
+              )}
               {skill.description && <p style={{ fontSize: 11, color: 'var(--text-tertiary)', margin: '0 0 6px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{skill.description}</p>}
               <div style={{ display: 'flex', gap: 5 }}>
                 <span style={{ fontSize: 9, color: 'var(--text-quaternary)', background: 'var(--c-surface)', padding: '1px 5px', borderRadius: 3 }}>{skill.category}</span>
@@ -236,11 +248,16 @@ export default function SkillsPage() {
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                   {group.map(skill => (
-                    <div key={skill.id} className="glass-card" style={{ padding: '10px 14px', cursor: 'pointer', borderLeft: `3px solid ${color}`, transition: 'transform 0.12s' }}
-                      onMouseEnter={e => e.currentTarget.style.transform = 'translateX(3px)'}
-                      onMouseLeave={e => e.currentTarget.style.transform = 'translateX(0)'}
-                      onClick={() => setViewItem(skill)}>
+                    <div key={skill.id} data-item-id={skill.id} className="glass-card" style={{ padding: '10px 14px', cursor: 'pointer', borderLeft: `3px solid ${selectedIds.has(skill.id) ? 'var(--blue)' : color}`, transition: 'transform 0.12s', outline: selectedIds.has(skill.id) ? '2px solid var(--blue)' : 'none', outlineOffset: 2, background: selectedIds.has(skill.id) ? 'color-mix(in srgb, var(--blue) 8%, var(--glass-bg))' : undefined }}
+                      onMouseEnter={e => { if (!selectedIds.has(skill.id)) e.currentTarget.style.transform = 'translateX(3px)' }}
+                      onMouseLeave={e => { if (!selectedIds.has(skill.id)) e.currentTarget.style.transform = 'translateX(0)' }}
+                      onClick={() => (selectMode || selectedIds.size > 0) ? (toggleSelect(skill.id), setSelectMode(true)) : setViewItem(skill)}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                        {(selectMode || selectedIds.size > 0) && (
+                          <div style={{ width: 14, height: 14, borderRadius: 3, border: `1.5px solid ${selectedIds.has(skill.id) ? 'var(--blue)' : 'rgba(255,255,255,0.2)'}`, background: selectedIds.has(skill.id) ? 'var(--blue)' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                            {selectedIds.has(skill.id) && <Check size={9} color="white" strokeWidth={3} />}
+                          </div>
+                        )}
                         <span style={{ fontSize: 13, fontWeight: 600, flex: 1 }}>{skill.title}</span>
                         {skill.is_favorite && <Star size={10} color="var(--yellow)" fill="var(--yellow)" />}
                         <button className="btn-icon" style={{ width: 24, height: 24 }} onClick={e => { e.stopPropagation(); toggleMutation.mutate(skill.id) }} title="Toggle active">
@@ -261,11 +278,18 @@ export default function SkillsPage() {
         /* ── Pipeline — shows trigger → skill → behavior flow ── */
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
           {skills.map(skill => (
-            <div key={skill.id} className="glass-card" style={{ padding: 0, overflow: 'hidden', cursor: 'pointer', opacity: skill.is_active ? 1 : 0.55 }}
-              onClick={() => setViewItem(skill)}>
+            <div key={skill.id} data-item-id={skill.id} className="glass-card" style={{ padding: 0, overflow: 'hidden', cursor: 'pointer', opacity: skill.is_active ? 1 : 0.55, outline: selectedIds.has(skill.id) ? '2px solid var(--blue)' : 'none', outlineOffset: 2 }}
+              onClick={() => (selectMode || selectedIds.size > 0) ? (toggleSelect(skill.id), setSelectMode(true)) : setViewItem(skill)}>
               <div style={{ display: 'flex', alignItems: 'stretch', minHeight: 60 }}>
                 {/* Status indicator */}
-                <div style={{ width: 4, background: skill.is_active ? '#30D158' : '#8E8E93', flexShrink: 0 }} />
+                <div style={{ width: 4, background: selectedIds.has(skill.id) ? 'var(--blue)' : skill.is_active ? '#30D158' : '#8E8E93', flexShrink: 0 }} />
+                {(selectMode || selectedIds.size > 0) && (
+                  <div style={{ display: 'flex', alignItems: 'center', padding: '0 10px', flexShrink: 0 }} onClick={e => e.stopPropagation()}>
+                    <div style={{ width: 16, height: 16, borderRadius: 4, border: `1.5px solid ${selectedIds.has(skill.id) ? 'var(--blue)' : 'rgba(255,255,255,0.2)'}`, background: selectedIds.has(skill.id) ? 'var(--blue)' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      {selectedIds.has(skill.id) && <Check size={10} color="white" strokeWidth={3} />}
+                    </div>
+                  </div>
+                )}
                 {/* Trigger */}
                 <div style={{ width: 160, padding: '12px 14px', borderRight: '1px solid rgba(255,255,255,0.06)', display: 'flex', flexDirection: 'column', justifyContent: 'center', flexShrink: 0, background: 'rgba(255,149,0,0.04)' }}>
                   <div style={{ fontSize: 9, color: '#FF9500', fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 4 }}>Trigger</div>
@@ -306,7 +330,7 @@ export default function SkillsPage() {
           ))}
         </div>
       ) : (
-        <div className={`cards-grid${!gridMounted.current ? ' stagger-children' : ''}`}
+        <div className={`cards-grid${!gridMounted.current ? ' stagger-children' : ''}`} style={{ position: 'relative' }}
           ref={() => { gridMounted.current = true }}>
           {skills.map(skill => (
             <ItemCard key={skill.id} item={skill}
@@ -322,6 +346,8 @@ export default function SkillsPage() {
             />
           ))}
         </div>
+      )}
+      </div>
       )}
 
       <Modal isOpen={modalOpen} onClose={closeModal} title={editItem ? 'Edit Skill' : 'New Skill'} fullscreen={editFullscreen}

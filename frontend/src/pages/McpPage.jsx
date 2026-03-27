@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { mcpApi } from '../utils/api'
 import Modal from '../components/Modal'
 import DetailModal from '../components/DetailModal'
-import { Plus, Search, Star, Copy, Edit2, Trash2, Check, Download, LayoutGrid, AlignJustify, List, Server, FileJson, MousePointer } from 'lucide-react'
+import { Plus, Search, Star, Copy, Edit2, Trash2, Check, LayoutGrid, AlignJustify, List, Server, FileJson, MousePointer } from 'lucide-react'
 
 function McpIcon({ size = 16 }) {
   return (
@@ -31,18 +31,26 @@ const defaultConfigText = JSON.stringify({
 }, null, 2)
 
 // ── JSON Tree Item ────────────────────────────────────────────
-function JsonTreeItem({ item, onView, onCopy, copiedId, onToggle }) {
+function JsonTreeItem({ item, onView, onCopy, copiedId, onToggle, isSelectActive, selected, onSelect }) {
   const [expanded, setExpanded] = useState(true)
   const configStr = JSON.stringify(item.config, null, 2)
 
   return (
-    <div className="glass-card" style={{ padding: 0, overflow: 'hidden' }}>
+    <div className="glass-card" data-item-id={item.id}
+      style={{ padding: 0, overflow: 'hidden', outline: selected ? '2px solid var(--blue)' : 'none', outlineOffset: 2, background: selected ? 'color-mix(in srgb, var(--blue) 8%, var(--glass-bg))' : undefined }}
+      onClick={() => isSelectActive && onSelect?.(item.id)}>
       {/* Header */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 0, cursor: 'pointer', background: 'var(--c-surface)' }}
-        onClick={() => setExpanded(e => !e)}>
-        <div style={{ width: 4, alignSelf: 'stretch', background: item.is_active ? '#30D158' : '#8E8E93', flexShrink: 0 }} />
+      <div style={{ display: 'flex', alignItems: 'center', gap: 0, cursor: 'pointer', background: selected ? 'transparent' : 'var(--c-surface)' }}
+        onClick={e => { if (!isSelectActive) { e.stopPropagation(); setExpanded(ex => !ex) } }}>
+        <div style={{ width: 4, alignSelf: 'stretch', background: selected ? 'var(--blue)' : item.is_active ? '#30D158' : '#8E8E93', flexShrink: 0 }} />
         <div style={{ padding: '10px 14px', display: 'flex', alignItems: 'center', gap: 10, flex: 1 }}>
-          <span style={{ fontSize: 12, color: 'var(--c-tick)', fontFamily: 'monospace', userSelect: 'none' }}>{expanded ? '▼' : '▶'}</span>
+          {isSelectActive ? (
+            <div style={{ width: 16, height: 16, borderRadius: 4, border: `1.5px solid ${selected ? 'var(--blue)' : 'rgba(255,255,255,0.2)'}`, background: selected ? 'var(--blue)' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+              {selected && <Check size={10} color="white" strokeWidth={3} />}
+            </div>
+          ) : (
+            <span style={{ fontSize: 12, color: 'var(--c-tick)', fontFamily: 'monospace', userSelect: 'none' }}>{expanded ? '▼' : '▶'}</span>
+          )}
           <code style={{ fontSize: 13, color: '#5AC8FA', fontFamily: 'monospace', fontWeight: 600 }}>"{item.server_name}"</code>
           <span style={{ fontSize: 11, color: 'var(--text-quaternary)' }}>:</span>
           <span style={{ fontSize: 11, color: 'var(--text-tertiary)' }}>{item.title}</span>
@@ -50,21 +58,22 @@ function JsonTreeItem({ item, onView, onCopy, copiedId, onToggle }) {
           <span style={{ fontSize: 9, color: item.is_active ? '#30D158' : '#8E8E93', background: item.is_active ? 'rgba(48,209,88,0.1)' : 'rgba(255,255,255,0.05)', padding: '1px 6px', borderRadius: 4 }}>{item.is_active ? 'active' : 'inactive'}</span>
           <span style={{ fontSize: 9, color: '#5AC8FA', background: 'rgba(90,200,250,0.1)', padding: '1px 6px', borderRadius: 4 }}>{item.transport}</span>
         </div>
-        <div style={{ display: 'flex', gap: 4, padding: '0 12px', flexShrink: 0 }} onClick={e => e.stopPropagation()}>
-          <button className="btn-icon" style={{ width: 26, height: 26 }} onClick={() => onCopy(item)}>
+        {!isSelectActive && (
+        <div style={{ display: 'flex', gap: 4, padding: '0 12px', flexShrink: 0 }} data-no-select="true">
+          <button className="btn-icon" style={{ width: 26, height: 26 }} onClick={e => { e.stopPropagation(); onCopy(item) }}>
             {copiedId === item.id ? <Check size={11} color="#30D158" /> : <Copy size={11} color="rgba(255,255,255,0.4)" />}
           </button>
-          <button className="btn-icon" style={{ width: 26, height: 26 }} onClick={() => onView(item)}>
+          <button className="btn-icon" style={{ width: 26, height: 26 }} onClick={e => { e.stopPropagation(); onView(item) }}>
             <FileJson size={11} color="rgba(255,255,255,0.4)" />
           </button>
         </div>
+        )}
       </div>
       {/* JSON content */}
       {expanded && (
-        <div style={{  background: 'var(--c-code-bg)', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
+        <div style={{ background: 'var(--c-code-bg)', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
           <pre style={{ margin: 0, padding: '12px 16px 12px 28px', fontFamily: "'JetBrains Mono','Fira Code',monospace", fontSize: 12, lineHeight: 1.7, color: '#5AC8FA', whiteSpace: 'pre-wrap', wordBreak: 'break-all' }}>
             {configStr.split('\n').map((line, i) => {
-              // Syntax highlight keys vs values
               const keyMatch = line.match(/^(\s*)"([^"]+)"(\s*:\s*)(.*)$/)
               if (keyMatch) {
                 return (
@@ -102,13 +111,16 @@ export default function McpPage() {
   const [copiedId, setCopiedId] = useState(null)
   const [viewItem, setViewItem] = useState(null)
   const [viewMode, setViewMode] = useState(() => localStorage.getItem('mcp_view') || 'cards')
-  const setView = (m) => { setViewMode(m); localStorage.setItem('mcp_view', m); setSelectedIds(new Set()); setSelectMode(false) }
   const [selectMode, setSelectMode] = useState(false)
   const [selectedIds, setSelectedIds] = useState(new Set())
   const [bulkDeleting, setBulkDeleting] = useState(false)
-  const toggleSelect = (id) => setSelectedIds(prev => { const n = new Set(prev); n.has(id) ? n.delete(id) : n.add(id); return n })
+
+  const setView = (m) => { setViewMode(m); localStorage.setItem('mcp_view', m); setSelectedIds(new Set()); setSelectMode(false) }
+  const toggleSelect = (id) => { setSelectedIds(prev => { const n = new Set(prev); n.has(id) ? n.delete(id) : n.add(id); return n }); setSelectMode(true) }
   const selectAll = () => setSelectedIds(new Set(items.map(i => i.id)))
   const clearSelection = () => { setSelectedIds(new Set()); setSelectMode(false) }
+  const isSelectActive = selectMode || selectedIds.size > 0
+
   const handleBulkDelete = async () => {
     if (!selectedIds.size) return
     setBulkDeleting(true)
@@ -179,61 +191,33 @@ export default function McpPage() {
   })
 
   const openCreate = () => {
-    setEditItem(null)
-    setForm(defaultForm)
-    setConfigText(defaultConfigText)
-    setConfigError('')
-    setModalOpen(true)
+    setEditItem(null); setForm(defaultForm); setConfigText(defaultConfigText); setConfigError(''); setModalOpen(true)
   }
 
   const openEdit = (item, fullscreen = false) => {
-    setEditItem(item)
-    setEditFullscreen(fullscreen)
+    setEditItem(item); setEditFullscreen(fullscreen)
     setForm({ title: item.title || '', server_name: item.server_name || '', description: item.description || '', transport: item.transport || 'stdio', config: item.config || {}, tags: item.tags?.map(t => t.id) || [] })
-    setConfigText(JSON.stringify(item.config || {}, null, 2))
-    setConfigError('')
-    setModalOpen(true)
+    setConfigText(JSON.stringify(item.config || {}, null, 2)); setConfigError(''); setModalOpen(true)
   }
 
   const closeModal = () => { setModalOpen(false); setEditItem(null); setForm(defaultForm); setConfigText(defaultConfigText); setConfigError(''); setEditFullscreen(false) }
 
   const handleConfigChange = (text) => {
-    // Try to auto-wrap if user pasted without outer braces
     let processedText = text.trim()
-
-    // If text doesn't start with { try to wrap it
-    if (!processedText.startsWith('{') && !processedText.startsWith('[')) {
-      processedText = '{' + processedText + '}'
-    }
-
+    if (!processedText.startsWith('{') && !processedText.startsWith('[')) processedText = '{' + processedText + '}'
     setConfigText(text)
     try {
       const parsed = JSON.parse(processedText)
       const keys = Object.keys(parsed)
-
-      // Auto-detect full format: { "server-name": { command/type/timeout/args/env/url } }
       const MCP_KEYS = ['command', 'url', 'type', 'timeout', 'args', 'env']
-      if (
-        keys.length === 1 &&
-        typeof parsed[keys[0]] === 'object' &&
-        MCP_KEYS.some(k => k in parsed[keys[0]])
-      ) {
+      if (keys.length === 1 && typeof parsed[keys[0]] === 'object' && MCP_KEYS.some(k => k in parsed[keys[0]])) {
         const innerConfig = parsed[keys[0]]
-        const serverName = keys[0]
-        if (!form.server_name) {
-          setForm(f => ({ ...f, server_name: serverName }))
-        }
-        // Set transport from type field if present
-        if (innerConfig.type && !form.transport) {
-          setForm(f => ({ ...f, transport: innerConfig.type }))
-        }
-        const formatted = JSON.stringify(innerConfig, null, 2)
-        setConfigText(formatted)
+        if (!form.server_name) setForm(f => ({ ...f, server_name: keys[0] }))
+        if (innerConfig.type && !form.transport) setForm(f => ({ ...f, transport: innerConfig.type }))
+        setConfigText(JSON.stringify(innerConfig, null, 2))
       }
       setConfigError('')
-    } catch (e) {
-      setConfigError('Invalid JSON: ' + e.message)
-    }
+    } catch (e) { setConfigError('Invalid JSON: ' + e.message) }
   }
 
   const handleSubmit = () => {
@@ -242,15 +226,14 @@ export default function McpPage() {
     let config = {}
     try { config = JSON.parse(configText) } catch { toast.error('Invalid JSON config'); return }
     const payload = { ...form, config }
-    if (editItem) { updateMutation.mutate({ id: editItem.id, data: payload }) }
-    else { createMutation.mutate(payload) }
+    if (editItem) updateMutation.mutate({ id: editItem.id, data: payload })
+    else createMutation.mutate(payload)
   }
 
   const handleCopy = async (item) => {
     const configStr = JSON.stringify({ [item.server_name]: item.config }, null, 2)
     await navigator.clipboard.writeText(configStr)
-    setCopiedId(item.id)
-    toast.success('Config copied!')
+    setCopiedId(item.id); toast.success('Config copied!')
     setTimeout(() => setCopiedId(null), 2000)
   }
 
@@ -269,8 +252,16 @@ export default function McpPage() {
   const items = data?.data || []
   const isSubmitting = createMutation.isPending || updateMutation.isPending
 
+  // Selected item highlight style helper
+  const selStyle = (id) => selectedIds.has(id) ? {
+    outline: '2px solid var(--blue)',
+    outlineOffset: 2,
+    background: 'color-mix(in srgb, var(--blue) 8%, var(--glass-bg))',
+  } : {}
+
   return (
     <div className="page-content">
+      {/* ── Toolbar ── */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 20, flexWrap: 'wrap' }}>
         <div className="search-bar" style={{ flex: 1, minWidth: 200 }}>
           <Search size={15} color="var(--text-tertiary)" />
@@ -278,9 +269,6 @@ export default function McpPage() {
         </div>
         <button className={`filter-chip ${showFavorites ? 'active' : ''}`} onClick={() => setShowFavorites(!showFavorites)}>
           <Star size={12} fill={showFavorites ? 'currentColor' : 'none'} /> Favorites
-        </button>
-        <button className="btn btn-glass" onClick={handleExport}>
-          <Download size={14} /> Export Active
         </button>
         <div style={{ display: 'flex', background: 'var(--c-surface)', borderRadius: 10, padding: 3, gap: 2 }}>
           {[['cards', LayoutGrid], ['list', List], ['compact', AlignJustify], ['serverstatus', Server], ['jsontree', FileJson]].map(([id, Icon]) => (
@@ -290,14 +278,15 @@ export default function McpPage() {
             </button>
           ))}
         </div>
-        <button className={`btn btn-glass btn-sm ${(selectMode || selectedIds.size > 0) ? 'active' : ''}`}
-          onClick={() => { setSelectMode(m => !m); if (selectMode || selectedIds.size > 0) clearSelection() }}
-          style={(selectMode || selectedIds.size > 0) ? { borderColor: 'color-mix(in srgb, var(--blue) 40%, transparent)', color: 'var(--blue-light)' } : {}}>
+        <button className={`btn btn-glass btn-sm ${isSelectActive ? 'active' : ''}`}
+          onClick={() => { setSelectMode(m => !m); if (isSelectActive) clearSelection() }}
+          style={isSelectActive ? { borderColor: 'color-mix(in srgb, var(--blue) 40%, transparent)', color: 'var(--blue-light)', gap: 5 } : { gap: 5 }}>
           <MousePointer size={13} /> Select
         </button>
         <button className="btn btn-primary" onClick={openCreate}><Plus size={15} /> New Config</button>
       </div>
 
+      {/* ── Bulk action bar ── */}
       {selectedIds.size > 0 && (
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px', marginBottom: 14, background: 'color-mix(in srgb, var(--blue) 10%, transparent)', border: '1px solid color-mix(in srgb, var(--blue) 25%, transparent)', borderRadius: 12, flexWrap: 'wrap' }}>
           <Check size={14} color="var(--blue-light)" />
@@ -310,6 +299,7 @@ export default function McpPage() {
         </div>
       )}
 
+      {/* ── Transport filters ── */}
       <div className="filter-bar" style={{ marginBottom: 20 }}>
         <span style={{ fontSize: 12, color: 'var(--text-tertiary)', marginRight: 4 }}>Transport:</span>
         <button className={`filter-chip ${!transport ? 'active' : ''}`} onClick={() => setTransport('')}>All</button>
@@ -318,6 +308,7 @@ export default function McpPage() {
         ))}
       </div>
 
+      {/* ── Content ── */}
       {isLoading ? (
         <div style={{ display: 'flex', justifyContent: 'center', padding: 60 }}><div className="spinner" /></div>
       ) : items.length === 0 ? (
@@ -327,164 +318,187 @@ export default function McpPage() {
           <div className="empty-state-desc">{search || transport ? 'Try adjusting your filters' : 'Add Model Context Protocol server configurations'}</div>
           {!search && !transport && <button className="btn btn-primary" onClick={openCreate} style={{ marginTop: 8 }}><Plus size={15} /> Add MCP Config</button>}
         </div>
-      ) : viewMode === 'list' ? (
-        <div className="glass-card" style={{ padding: 0, overflow: 'hidden' }}>
-          {items.map((item, idx) => (
-            <div key={item.id} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 16px', borderBottom: idx < items.length - 1 ? '1px solid rgba(255,255,255,0.05)' : 'none', cursor: 'pointer', transition: 'background 0.12s' }}
-              onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.03)'}
-              onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
-              onClick={() => setViewItem(item)}>
-              <div style={{ width: 8, height: 8, borderRadius: '50%', background: item.is_active ? '#30D158' : '#8E8E93', flexShrink: 0 }} />
-              <span style={{ fontSize: 13, fontWeight: 500, flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.title}</span>
-              <span style={{ fontSize: 11, color: 'var(--text-quaternary)', fontFamily: 'monospace' }}>{item.server_name}</span>
-              {item.is_favorite && <Star size={11} color="var(--yellow)" fill="var(--yellow)" />}
-              <span style={{ fontSize: 10, color: 'var(--teal)', background: 'rgba(90,200,250,0.1)', padding: '1px 7px', borderRadius: 4 }}>{item.transport}</span>
-            </div>
-          ))}
-        </div>
-      ) : viewMode === 'compact' ? (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(240px,100%), 1fr))', gap: 8 }}>
-          {items.map(item => (
-            <div key={item.id} className="glass-card" style={{ padding: '10px 12px', cursor: 'pointer', borderTop: `2px solid #30D158`, transition: 'box-shadow 0.15s' }}
-              onMouseEnter={e => e.currentTarget.style.boxShadow = '0 0 0 1px rgba(48,209,88,0.3)'}
-              onMouseLeave={e => e.currentTarget.style.boxShadow = 'none'}
-              onClick={() => setViewItem(item)}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
-                <div style={{ width: 6, height: 6, borderRadius: '50%', background: item.is_active ? '#30D158' : '#8E8E93', flexShrink: 0 }} />
-                <span style={{ fontSize: 12, fontWeight: 600, flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.title}</span>
-                {item.is_favorite && <Star size={9} color="var(--yellow)" fill="var(--yellow)" />}
-              </div>
-              <div style={{ fontSize: 10, color: 'var(--text-tertiary)', fontFamily: 'monospace', marginBottom: 6, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.server_name}</div>
-              <span style={{ fontSize: 9, color: 'var(--teal)', background: 'rgba(90,200,250,0.1)', padding: '1px 5px', borderRadius: 3 }}>{item.transport}</span>
-            </div>
-          ))}
-        </div>
-      ) : viewMode === 'serverstatus' ? (
-        /* ── Server Status — dashboard panel showing online/offline servers ── */
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-          {/* Summary bar */}
-          <div style={{ display: 'flex', gap: 12, marginBottom: 8 }}>
-            {[
-              { label: 'Online', count: items.filter(i => i.is_active).length, color: '#30D158' },
-              { label: 'Offline', count: items.filter(i => !i.is_active).length, color: '#8E8E93' },
-              { label: 'Total', count: items.length, color: '#5AC8FA' },
-            ].map(({ label, count, color }) => (
-              <div key={label} className="glass-card" style={{ padding: '10px 16px', display: 'flex', alignItems: 'center', gap: 10, flex: 1 }}>
-                <div style={{ width: 10, height: 10, borderRadius: '50%', background: color, boxShadow: label === 'Online' ? `0 0 8px ${color}` : 'none' }} />
-                <span style={{ fontSize: 22, fontWeight: 800, color, letterSpacing: -1 }}>{count}</span>
-                <span style={{ fontSize: 11, color: 'var(--text-tertiary)', textTransform: 'uppercase', letterSpacing: 0.5 }}>{label}</span>
-              </div>
-            ))}
-          </div>
-          {/* Server rows */}
-          {items.map(item => (
-            <div key={item.id} className="glass-card" style={{ padding: 0, overflow: 'hidden', cursor: 'pointer' }}
-              onClick={() => setViewItem(item)}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 0 }}>
-                {/* Status indicator */}
-                <div style={{ width: 4, alignSelf: 'stretch', background: item.is_active ? '#30D158' : '#8E8E93', flexShrink: 0 }} />
-                {/* Status dot + server name */}
-                <div style={{ width: 200, padding: '12px 16px', borderRight: '1px solid rgba(255,255,255,0.06)', flexShrink: 0 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 3 }}>
-                    <div style={{ width: 8, height: 8, borderRadius: '50%', background: item.is_active ? '#30D158' : '#8E8E93', boxShadow: item.is_active ? '0 0 6px #30D158' : 'none' }} />
-                    <code style={{ fontSize: 12, color: item.is_active ? '#30D158' : 'var(--text-tertiary)', fontFamily: 'monospace' }}>{item.server_name}</code>
-                  </div>
-                  <div style={{ fontSize: 10, color: item.is_active ? 'rgba(48,209,88,0.6)' : 'var(--text-quaternary)', paddingLeft: 16 }}>{item.is_active ? '● online' : '○ offline'}</div>
-                </div>
-                {/* Title + description */}
-                <div style={{ flex: 1, padding: '12px 16px', minWidth: 0 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 2 }}>
-                    <span style={{ fontSize: 13, fontWeight: 600 }}>{item.title}</span>
-                    {item.is_favorite && <Star size={10} color="var(--yellow)" fill="var(--yellow)" />}
-                  </div>
-                  {item.description && <p style={{ fontSize: 11, color: 'var(--text-tertiary)', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.description}</p>}
-                </div>
-                {/* Transport + command */}
-                <div style={{ width: 160, padding: '12px 16px', borderLeft: '1px solid rgba(255,255,255,0.06)', flexShrink: 0 }}>
-                  <div style={{ fontSize: 9, color: 'var(--text-quaternary)', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 4 }}>Transport</div>
-                  <span style={{ fontSize: 11, color: '#5AC8FA', background: 'rgba(90,200,250,0.1)', padding: '2px 7px', borderRadius: 4 }}>{item.transport}</span>
-                </div>
-                {/* Actions */}
-                <div style={{ width: 80, padding: '0 12px', display: 'flex', gap: 4, justifyContent: 'center', borderLeft: '1px solid rgba(255,255,255,0.06)', flexShrink: 0 }} onClick={e => e.stopPropagation()}>
-                  <button className="btn-icon" style={{ width: 28, height: 28 }} onClick={() => toggleMutation.mutate(item.id)} title="Toggle">
-                    <div style={{ width: 10, height: 10, borderRadius: '50%', background: item.is_active ? '#30D158' : '#8E8E93', border: '2px solid currentColor' }} />
-                  </button>
-                  <button className="btn-icon" style={{ width: 28, height: 28 }} onClick={() => handleCopy(item)}>
-                    {copiedId === item.id ? <Check size={12} color="#30D158" /> : <Copy size={12} color="rgba(255,255,255,0.4)" />}
-                  </button>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      ) : viewMode === 'jsontree' ? (
-        /* ── JSON Tree — expandable config view per server ── */
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-          {items.map(item => (
-            <JsonTreeItem key={item.id} item={item} onView={setViewItem} onCopy={handleCopy} copiedId={copiedId} onToggle={() => toggleMutation.mutate(item.id)} />
-          ))}
-        </div>
       ) : (
-        <div className={`cards-grid${!gridMounted.current ? ' stagger-children' : ''}`}
-          ref={() => { gridMounted.current = true }}>
-          {items.map(item => (
-            <div key={item.id} className={`item-card${selectedIds.has(item.id) ? ' selected' : ''}`}
-              onClick={() => selectMode || selectedIds.size > 0 ? (toggleSelect(item.id), setSelectMode(true)) : setViewItem(item)}
-              style={{ cursor: 'pointer', outline: selectedIds.has(item.id) ? '2px solid var(--blue)' : 'none', outlineOffset: 2 }}>
-              <div className="item-card-header">
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-                    <div className={`status-dot ${item.is_active ? 'active' : 'inactive'}`}
-                      style={{ cursor: 'pointer' }} onClick={() => toggleMutation.mutate(item.id)}
-                      title={item.is_active ? 'Active — click to deactivate' : 'Inactive — click to activate'} />
-                    <div className="item-card-title truncate">{item.title}</div>
-                  </div>
-                  <div style={{ fontSize: 12, color: 'var(--text-tertiary)', fontFamily: 'var(--font-mono)' }}>
-                    {item.server_name}
-                  </div>
-                </div>
-                <button className={`favorite-btn ${item.is_favorite ? 'active' : ''}`} onClick={() => favMutation.mutate(item.id)}>
-                  <Star size={14} fill={item.is_favorite ? 'currentColor' : 'none'} />
-                </button>
-              </div>
-
-              {item.description && <div className="item-card-description">{item.description}</div>}
-
-              <div className="code-block" style={{ fontSize: 11, maxHeight: 120, overflow: 'hidden' }}>
-                <pre style={{ margin: 0, whiteSpace: 'pre-wrap', wordBreak: 'break-all' }}>
-                  {JSON.stringify(item.config, null, 2).slice(0, 300)}
-                  {JSON.stringify(item.config, null, 2).length > 300 ? '\n…' : ''}
-                </pre>
-              </div>
-
-              <div className="item-card-footer">
-                <div className="item-card-meta">
-                  <span className="tag" style={{ color: 'var(--teal)', borderColor: 'rgba(90,200,250,0.3)' }}>
-                    {item.transport}
-                  </span>
-                  {item.updated_at && (
-                    <span style={{ fontSize: 11, color: 'var(--text-quaternary)' }}>
-                      {formatDistanceToNow(new Date(item.updated_at), { addSuffix: true })}
-                    </span>
+        /* ── Selectable content wrapper — SelectOverlay intercepts ALL clicks ── */
+        <div style={{ position: 'relative' }}>
+{viewMode === 'list' ? (
+            <div className="glass-card" style={{ padding: 0, overflow: 'hidden' }}>
+              {items.map((item, idx) => (
+                <div key={item.id} data-item-id={item.id}
+                  style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 16px', borderBottom: idx < items.length - 1 ? '1px solid rgba(255,255,255,0.05)' : 'none', cursor: 'pointer', transition: 'background 0.12s', ...selStyle(item.id) }}
+                  onMouseEnter={e => { if (!selectedIds.has(item.id)) e.currentTarget.style.background = 'rgba(255,255,255,0.03)' }}
+                  onMouseLeave={e => { if (!selectedIds.has(item.id)) e.currentTarget.style.background = 'transparent' }}
+                  onClick={() => isSelectActive ? toggleSelect(item.id) : setViewItem(item)}>
+                  {isSelectActive && (
+                    <div style={{ width: 16, height: 16, borderRadius: 4, border: `1.5px solid ${selectedIds.has(item.id) ? 'var(--blue)' : 'rgba(255,255,255,0.2)'}`, background: selectedIds.has(item.id) ? 'var(--blue)' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                      {selectedIds.has(item.id) && <Check size={10} color="white" strokeWidth={3} />}
+                    </div>
                   )}
+                  <div style={{ width: 8, height: 8, borderRadius: '50%', background: item.is_active ? '#30D158' : '#8E8E93', flexShrink: 0 }} />
+                  <span style={{ fontSize: 13, fontWeight: 500, flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.title}</span>
+                  <span style={{ fontSize: 11, color: 'var(--text-quaternary)', fontFamily: 'monospace' }}>{item.server_name}</span>
+                  {item.is_favorite && <Star size={11} color="var(--yellow)" fill="var(--yellow)" />}
+                  <span style={{ fontSize: 10, color: 'var(--teal)', background: 'rgba(90,200,250,0.1)', padding: '1px 7px', borderRadius: 4 }}>{item.transport}</span>
                 </div>
-                <div className="item-card-actions" style={{ opacity: 1 }}>
-                  <button className="btn-icon" onClick={(e) => { e.stopPropagation(); handleCopy(item) }} title="Copy config" style={{ padding: 6 }}>
-                    {copiedId === item.id ? <Check size={13} color="var(--green)" /> : <Copy size={13} />}
-                  </button>
-                  <button className="btn-icon" onClick={(e) => { e.stopPropagation(); openEdit(item) }} title="Edit" style={{ padding: 6 }}>
-                    <Edit2 size={13} />
-                  </button>
-                  <button className="btn-icon" onClick={(e) => { e.stopPropagation(); setDeleteConfirm(item.id) }} title="Delete" style={{ padding: 6, color: 'var(--pink)' }}>
-                    <Trash2 size={13} />
-                  </button>
-                </div>
-              </div>
+              ))}
             </div>
-          ))}
+
+          ) : viewMode === 'compact' ? (
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(240px,100%), 1fr))', gap: 8 }}>
+              {items.map(item => (
+                <div key={item.id} data-item-id={item.id} className="glass-card"
+                  style={{ padding: '10px 12px', cursor: 'pointer', borderTop: `2px solid #30D158`, transition: 'box-shadow 0.15s', ...selStyle(item.id) }}
+                  onMouseEnter={e => { if (!selectedIds.has(item.id)) e.currentTarget.style.boxShadow = '0 0 0 1px rgba(48,209,88,0.3)' }}
+                  onMouseLeave={e => { if (!selectedIds.has(item.id)) e.currentTarget.style.boxShadow = 'none' }}
+                  onClick={() => isSelectActive ? toggleSelect(item.id) : setViewItem(item)}>
+                  {isSelectActive && (
+                    <div style={{ width: 14, height: 14, borderRadius: 3, border: `1.5px solid ${selectedIds.has(item.id) ? 'var(--blue)' : 'rgba(255,255,255,0.2)'}`, background: selectedIds.has(item.id) ? 'var(--blue)' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginBottom: 6 }}>
+                      {selectedIds.has(item.id) && <Check size={9} color="white" strokeWidth={3} />}
+                    </div>
+                  )}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
+                    <div style={{ width: 6, height: 6, borderRadius: '50%', background: item.is_active ? '#30D158' : '#8E8E93', flexShrink: 0 }} />
+                    <span style={{ fontSize: 12, fontWeight: 600, flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.title}</span>
+                    {item.is_favorite && <Star size={9} color="var(--yellow)" fill="var(--yellow)" />}
+                  </div>
+                  <div style={{ fontSize: 10, color: 'var(--text-tertiary)', fontFamily: 'monospace', marginBottom: 6, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.server_name}</div>
+                  <span style={{ fontSize: 9, color: 'var(--teal)', background: 'rgba(90,200,250,0.1)', padding: '1px 5px', borderRadius: 3 }}>{item.transport}</span>
+                </div>
+              ))}
+            </div>
+
+          ) : viewMode === 'serverstatus' ? (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              {/* Summary bar — not selectable */}
+              <div style={{ display: 'flex', gap: 12, marginBottom: 8 }}>
+                {[
+                  { label: 'Online', count: items.filter(i => i.is_active).length, color: '#30D158' },
+                  { label: 'Offline', count: items.filter(i => !i.is_active).length, color: '#8E8E93' },
+                  { label: 'Total', count: items.length, color: '#5AC8FA' },
+                ].map(({ label, count, color }) => (
+                  <div key={label} className="glass-card" style={{ padding: '10px 16px', display: 'flex', alignItems: 'center', gap: 10, flex: 1 }}>
+                    <div style={{ width: 10, height: 10, borderRadius: '50%', background: color, boxShadow: label === 'Online' ? `0 0 8px ${color}` : 'none' }} />
+                    <span style={{ fontSize: 22, fontWeight: 800, color, letterSpacing: -1 }}>{count}</span>
+                    <span style={{ fontSize: 11, color: 'var(--text-tertiary)', textTransform: 'uppercase', letterSpacing: 0.5 }}>{label}</span>
+                  </div>
+                ))}
+              </div>
+              {/* Server rows */}
+              {items.map(item => (
+                <div key={item.id} data-item-id={item.id} className="glass-card"
+                  style={{ padding: 0, overflow: 'hidden', cursor: 'pointer', ...selStyle(item.id) }}
+                  onClick={() => isSelectActive ? toggleSelect(item.id) : setViewItem(item)}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 0 }}>
+                    <div style={{ width: 4, alignSelf: 'stretch', background: selectedIds.has(item.id) ? 'var(--blue)' : item.is_active ? '#30D158' : '#8E8E93', flexShrink: 0 }} />
+                    <div style={{ width: 200, padding: '12px 16px', borderRight: '1px solid rgba(255,255,255,0.06)', flexShrink: 0 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 3 }}>
+                        <div style={{ width: 8, height: 8, borderRadius: '50%', background: item.is_active ? '#30D158' : '#8E8E93', boxShadow: item.is_active ? '0 0 6px #30D158' : 'none' }} />
+                        <code style={{ fontSize: 12, color: item.is_active ? '#30D158' : 'var(--text-tertiary)', fontFamily: 'monospace' }}>{item.server_name}</code>
+                      </div>
+                      <div style={{ fontSize: 10, color: item.is_active ? 'rgba(48,209,88,0.6)' : 'var(--text-quaternary)', paddingLeft: 16 }}>{item.is_active ? '● online' : '○ offline'}</div>
+                    </div>
+                    <div style={{ flex: 1, padding: '12px 16px', minWidth: 0 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 2 }}>
+                        <span style={{ fontSize: 13, fontWeight: 600 }}>{item.title}</span>
+                        {item.is_favorite && <Star size={10} color="var(--yellow)" fill="var(--yellow)" />}
+                      </div>
+                      {item.description && <p style={{ fontSize: 11, color: 'var(--text-tertiary)', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.description}</p>}
+                    </div>
+                    <div style={{ width: 160, padding: '12px 16px', borderLeft: '1px solid rgba(255,255,255,0.06)', flexShrink: 0 }}>
+                      <div style={{ fontSize: 9, color: 'var(--text-quaternary)', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 4 }}>Transport</div>
+                      <span style={{ fontSize: 11, color: '#5AC8FA', background: 'rgba(90,200,250,0.1)', padding: '2px 7px', borderRadius: 4 }}>{item.transport}</span>
+                    </div>
+                    {!isSelectActive && (
+                    <div style={{ width: 80, padding: '0 12px', display: 'flex', gap: 4, justifyContent: 'center', borderLeft: '1px solid rgba(255,255,255,0.06)', flexShrink: 0 }}>
+                      <button className="btn-icon" style={{ width: 28, height: 28 }} onClick={e => { e.stopPropagation(); toggleMutation.mutate(item.id) }} title="Toggle">
+                        <div style={{ width: 10, height: 10, borderRadius: '50%', background: item.is_active ? '#30D158' : '#8E8E93', border: '2px solid currentColor' }} />
+                      </button>
+                      <button className="btn-icon" style={{ width: 28, height: 28 }} onClick={e => { e.stopPropagation(); handleCopy(item) }}>
+                        {copiedId === item.id ? <Check size={12} color="#30D158" /> : <Copy size={12} color="rgba(255,255,255,0.4)" />}
+                      </button>
+                    </div>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+
+          ) : viewMode === 'jsontree' ? (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              {items.map(item => (
+                <JsonTreeItem key={item.id} item={item} onView={setViewItem} onCopy={handleCopy} copiedId={copiedId} onToggle={() => toggleMutation.mutate(item.id)}
+                  isSelectActive={isSelectActive} selected={selectedIds.has(item.id)} onSelect={toggleSelect} />
+              ))}
+            </div>
+
+          ) : (
+            /* cards view */
+            <div className={`cards-grid${!gridMounted.current ? ' stagger-children' : ''}`}
+              ref={() => { gridMounted.current = true }}>
+              {items.map(item => (
+                <div key={item.id} data-item-id={item.id}
+                  className={`item-card${selectedIds.has(item.id) ? ' selected' : ''}`}
+                  onClick={() => isSelectActive ? toggleSelect(item.id) : setViewItem(item)}
+                  style={{ cursor: 'pointer' }}>
+                  <div className="item-card-header">
+                    {isSelectActive && (
+                      <div style={{ width: 17, height: 17, borderRadius: 5, border: `2px solid ${selectedIds.has(item.id) ? 'var(--blue)' : 'rgba(255,255,255,0.25)'}`, background: selectedIds.has(item.id) ? 'var(--blue)' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginRight: 6 }}>
+                        {selectedIds.has(item.id) && <Check size={10} color="white" strokeWidth={3} />}
+                      </div>
+                    )}
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+                        {!isSelectActive && (
+                          <div className={`status-dot ${item.is_active ? 'active' : 'inactive'}`}
+                            style={{ cursor: 'pointer' }} onClick={e => { e.stopPropagation(); toggleMutation.mutate(item.id) }}
+                            title={item.is_active ? 'Active — click to deactivate' : 'Inactive — click to activate'} />
+                        )}
+                        <div className="item-card-title truncate">{item.title}</div>
+                      </div>
+                      <div style={{ fontSize: 12, color: 'var(--text-tertiary)', fontFamily: 'var(--font-mono)' }}>
+                        {item.server_name}
+                      </div>
+                    </div>
+                    {!isSelectActive && (
+                      <button className={`favorite-btn ${item.is_favorite ? 'active' : ''}`} onClick={e => { e.stopPropagation(); favMutation.mutate(item.id) }}>
+                        <Star size={14} fill={item.is_favorite ? 'currentColor' : 'none'} />
+                      </button>
+                    )}
+                  </div>
+                  {item.description && <div className="item-card-description">{item.description}</div>}
+                  <div className="code-block" style={{ fontSize: 11, maxHeight: 120, overflow: 'hidden' }}>
+                    <pre style={{ margin: 0, whiteSpace: 'pre-wrap', wordBreak: 'break-all' }}>
+                      {JSON.stringify(item.config, null, 2).slice(0, 300)}
+                      {JSON.stringify(item.config, null, 2).length > 300 ? '\n…' : ''}
+                    </pre>
+                  </div>
+                  <div className="item-card-footer">
+                    <div className="item-card-meta">
+                      <span className="tag" style={{ color: 'var(--teal)', borderColor: 'rgba(90,200,250,0.3)' }}>{item.transport}</span>
+                      {item.updated_at && <span style={{ fontSize: 11, color: 'var(--text-quaternary)' }}>{formatDistanceToNow(new Date(item.updated_at), { addSuffix: true })}</span>}
+                    </div>
+                    {!isSelectActive && (
+                    <div className="item-card-actions" style={{ opacity: 1 }} data-no-select="true">
+                      <button className="btn-icon" onClick={e => { e.stopPropagation(); handleCopy(item) }} title="Copy config" style={{ padding: 6 }}>
+                        {copiedId === item.id ? <Check size={13} color="var(--green)" /> : <Copy size={13} />}
+                      </button>
+                      <button className="btn-icon" onClick={e => { e.stopPropagation(); openEdit(item) }} title="Edit" style={{ padding: 6 }}>
+                        <Edit2 size={13} />
+                      </button>
+                      <button className="btn-icon" onClick={e => { e.stopPropagation(); setDeleteConfirm(item.id) }} title="Delete" style={{ padding: 6, color: 'var(--pink)' }}>
+                        <Trash2 size={13} />
+                      </button>
+                    </div>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       )}
 
+      {/* ── Modals ── */}
       <Modal isOpen={modalOpen} onClose={closeModal} title={editItem ? 'Edit MCP Config' : 'New MCP Config'} size="lg" fullscreen={editFullscreen}
         footer={<>
           <button className="btn btn-glass" onClick={closeModal}>Cancel</button>
@@ -520,16 +534,10 @@ export default function McpPage() {
             <span>Server Configuration (JSON)</span>
             {configError && <span style={{ color: 'var(--pink)', fontSize: 11 }}>{configError}</span>}
           </label>
-          <textarea
-            className={`form-textarea code`}
+          <textarea className="form-textarea code"
             style={{ borderColor: configError ? 'rgba(255,55,95,0.5)' : undefined, minHeight: 220 }}
-            value={configText}
-            onChange={e => handleConfigChange(e.target.value)}
-            spellCheck={false}
-          />
-          <div style={{ fontSize: 11, color: 'var(--text-quaternary)', marginTop: 4 }}>
-            Standard MCP server config format: command, args, env
-          </div>
+            value={configText} onChange={e => handleConfigChange(e.target.value)} spellCheck={false} />
+          <div style={{ fontSize: 11, color: 'var(--text-quaternary)', marginTop: 4 }}>Standard MCP server config format: command, args, env</div>
         </div>
       </Modal>
 

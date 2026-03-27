@@ -48,7 +48,7 @@ function CommandCardGrid({ cmd, onCopy, onFavorite, onEdit, onDelete, onView }) 
   const shellColor = SHELL_COLORS[cmd.shell] || '#8E8E93'
 
   return (
-    <div className="glass-card" style={{ padding: 0, overflow: 'hidden', transition: 'transform 0.15s', cursor: 'pointer' }}
+    <div className="glass-card" data-item-id={cmd.id} style={{ padding: 0, overflow: 'hidden', transition: 'transform 0.15s', cursor: 'pointer' }}
       onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-1px)'}
       onMouseLeave={e => e.currentTarget.style.transform = 'translateY(0)'}
       onClick={() => onView?.(cmd)}>
@@ -62,7 +62,7 @@ function CommandCardGrid({ cmd, onCopy, onFavorite, onEdit, onDelete, onView }) 
             <p style={{ fontSize: 11, color: 'var(--text-tertiary)', marginTop: 3, lineHeight: 1.4 }}>{cmd.description}</p>
           )}
         </div>
-        <div style={{ display: 'flex', gap: 4, flexShrink: 0 }}>
+        <div style={{ display: 'flex', gap: 4, flexShrink: 0 }} data-no-select="true">
           <button className="btn-icon" style={{ width: 26, height: 26 }} onClick={e => { e.stopPropagation(); onFavorite(cmd.id) }}>
             <Star size={12} color={cmd.is_favorite ? 'var(--yellow)' : 'rgba(255,255,255,0.3)'} fill={cmd.is_favorite ? 'var(--yellow)' : 'none'} />
           </button>
@@ -109,7 +109,7 @@ function CommandCardCompact({ cmd, onCopy, onFavorite, onEdit, onDelete, onView 
   const shellColor = SHELL_COLORS[cmd.shell] || '#8E8E93'
 
   return (
-    <div className="glass-card" style={{ padding: 0, overflow: 'hidden', cursor: 'pointer', transition: 'box-shadow 0.15s' }}
+    <div className="glass-card" data-item-id={cmd.id} style={{ padding: 0, overflow: 'hidden', cursor: 'pointer', transition: 'box-shadow 0.15s' }}
       onMouseEnter={e => e.currentTarget.style.boxShadow = `0 0 0 1px ${shellColor}30`}
       onMouseLeave={e => e.currentTarget.style.boxShadow = 'none'}
       onClick={() => onView?.(cmd)}>
@@ -132,7 +132,7 @@ function CommandCardCompact({ cmd, onCopy, onFavorite, onEdit, onDelete, onView 
           <span style={{ fontSize: 9, fontWeight: 600, color: shellColor, background: `${shellColor}18`, padding: '1px 5px', borderRadius: 3 }}>{cmd.shell}</span>
           {cmd.category && <span style={{ fontSize: 9, color: 'var(--text-quaternary)', background: 'var(--c-surface)', padding: '1px 5px', borderRadius: 3 }}>{cmd.category}</span>}
           <div style={{ flex: 1 }} />
-          <div style={{ display: 'flex', gap: 1 }} onClick={e => e.stopPropagation()}>
+          <div style={{ display: 'flex', gap: 1 }} data-no-select="true" onClick={e => e.stopPropagation()}>
             <button className="btn-icon" style={{ width: 22, height: 22 }} onClick={handleCopy}>
               {copied ? <Check size={10} color="#30D158" /> : <Copy size={10} color="rgba(255,255,255,0.3)" />}
             </button>
@@ -154,7 +154,7 @@ function CommandCardCompact({ cmd, onCopy, onFavorite, onEdit, onDelete, onView 
 
 // ── 3. Code View ──────────────────────────────────────────────
 // Grouped by category, terminal-style lines
-function CommandCodeView({ commands, onCopy, onFavorite, onEdit, onDelete, onView }) {
+function CommandCodeView({ commands, onCopy, onFavorite, onEdit, onDelete, onView, selectMode, selectedIds, onSelect }) {
   const grouped = commands.reduce((acc, cmd) => {
     const cat = cmd.category || 'general'
     if (!acc[cat]) acc[cat] = []
@@ -174,7 +174,8 @@ function CommandCodeView({ commands, onCopy, onFavorite, onEdit, onDelete, onVie
           <div className="glass-card" style={{ padding: 0, overflow: 'hidden' }}>
             {cmds.map((cmd, idx) => (
               <CodeRow key={cmd.id} cmd={cmd} isLast={idx === cmds.length - 1}
-                onCopy={onCopy} onFavorite={onFavorite} onEdit={onEdit} onDelete={onDelete} onView={onView} />
+                onCopy={onCopy} onFavorite={onFavorite} onEdit={onEdit} onDelete={onDelete} onView={onView}
+                selectMode={selectMode} selectedIds={selectedIds} onSelect={onSelect} />
             ))}
           </div>
         </div>
@@ -183,14 +184,21 @@ function CommandCodeView({ commands, onCopy, onFavorite, onEdit, onDelete, onVie
   )
 }
 
-function CodeRow({ cmd, isLast, onCopy, onFavorite, onEdit, onDelete, onView }) {
+function CodeRow({ cmd, isLast, onCopy, onFavorite, onEdit, onDelete, onView, selectMode, selectedIds, onSelect }) {
   const { copied, handle: handleCopy } = useCopy(cmd.command, () => onCopy?.(cmd.id))
   const shellColor = SHELL_COLORS[cmd.shell] || '#8E8E93'
+  const isSelected = selectedIds?.has(cmd.id)
+  const isSelectActive = selectMode || (selectedIds?.size > 0)
 
   return (
-    <div style={{ borderBottom: isLast ? 'none' : '1px solid rgba(255,255,255,0.05)' }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 0, background: 'var(--c-code-bg)', cursor: 'pointer' }}
-        onClick={() => onView?.(cmd)}>
+    <div style={{ borderBottom: isLast ? 'none' : '1px solid rgba(255,255,255,0.05)', background: isSelected ? 'color-mix(in srgb, var(--blue) 8%, transparent)' : undefined }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 0, background: isSelected ? 'transparent' : 'var(--c-code-bg)', cursor: 'pointer', outline: isSelected ? '2px solid var(--blue)' : 'none', outlineOffset: -2 }}
+        onClick={() => isSelectActive ? onSelect?.(cmd.id) : onView?.(cmd)}>
+        {isSelectActive && (
+          <div style={{ width: 16, height: 16, borderRadius: 4, border: `1.5px solid ${isSelected ? 'var(--blue)' : 'rgba(255,255,255,0.2)'}`, background: isSelected ? 'var(--blue)' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, margin: '0 12px' }}>
+            {isSelected && <Check size={10} color="white" strokeWidth={3} />}
+          </div>
+        )}
         <div style={{ width: 4, alignSelf: 'stretch', background: shellColor, opacity: 0.6, flexShrink: 0 }} />
         <div style={{ padding: '10px 14px', display: 'flex', alignItems: 'flex-start', gap: 8, flex: 1, minWidth: 0 }}>
           <span style={{ fontSize: 12, color: 'var(--text-quaternary)', fontFamily: 'monospace', userSelect: 'none', flexShrink: 0, marginTop: 1 }}>$</span>
@@ -226,7 +234,7 @@ function CodeRow({ cmd, isLast, onCopy, onFavorite, onEdit, onDelete, onView }) 
 
 // ── 4. Terminal View ──────────────────────────────────────────
 // Full terminal window simulation — all commands in one session
-function CommandTerminalView({ commands, onCopy, onFavorite, onEdit, onDelete, onView }) {
+function CommandTerminalView({ commands, onCopy, onFavorite, onEdit, onDelete, onView, selectMode, selectedIds, onSelect }) {
   const [activeShell, setActiveShell] = useState(null)
   const shells = [...new Set(commands.map(c => c.shell))].filter(Boolean)
   const filtered = activeShell ? commands.filter(c => c.shell === activeShell) : commands
@@ -268,7 +276,8 @@ function CommandTerminalView({ commands, onCopy, onFavorite, onEdit, onDelete, o
 
           {filtered.map((cmd, idx) => (
             <TerminalLine key={cmd.id} cmd={cmd} idx={idx}
-              onCopy={onCopy} onFavorite={onFavorite} onEdit={onEdit} onDelete={onDelete} onView={onView} />
+              onCopy={onCopy} onFavorite={onFavorite} onEdit={onEdit} onDelete={onDelete} onView={onView}
+              selectMode={selectMode} selectedIds={selectedIds} onSelect={onSelect} />
           ))}
 
           {/* Blinking cursor */}
@@ -284,13 +293,15 @@ function CommandTerminalView({ commands, onCopy, onFavorite, onEdit, onDelete, o
   )
 }
 
-function TerminalLine({ cmd, idx, onCopy, onFavorite, onEdit, onDelete, onView }) {
+function TerminalLine({ cmd, idx, onCopy, onFavorite, onEdit, onDelete, onView, selectMode, selectedIds, onSelect }) {
   const { copied, handle: handleCopy } = useCopy(cmd.command, () => onCopy?.(cmd.id))
   const shellColor = SHELL_COLORS[cmd.shell] || '#30D158'
   const [hovered, setHovered] = useState(false)
+  const isSelected = selectedIds?.has(cmd.id)
+  const isSelectActive = selectMode || (selectedIds?.size > 0)
 
   return (
-    <div style={{ marginBottom: 2 }}
+    <div style={{ marginBottom: 2, background: isSelected ? 'rgba(0,122,255,0.08)' : undefined, borderRadius: 4 }}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}>
       {/* Comment / title line */}
@@ -300,8 +311,13 @@ function TerminalLine({ cmd, idx, onCopy, onFavorite, onEdit, onDelete, onView }
         </div>
       )}
       {/* Command line */}
-      <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8, cursor: 'pointer', borderRadius: 4, padding: '2px 4px', margin: '0 -4px', background: hovered ? 'rgba(255,255,255,0.04)' : 'transparent', transition: 'background 0.1s' }}
-        onClick={() => onView?.(cmd)}>
+      <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8, cursor: 'pointer', borderRadius: 4, padding: '2px 4px', margin: '0 -4px', background: hovered && !isSelected ? 'rgba(255,255,255,0.04)' : 'transparent', transition: 'background 0.1s', outline: isSelected ? '1px solid var(--blue)' : 'none', outlineOffset: 1 }}
+        onClick={() => isSelectActive ? onSelect?.(cmd.id) : onView?.(cmd)}>
+        {isSelectActive && (
+          <div style={{ width: 14, height: 14, borderRadius: 3, border: `1.5px solid ${isSelected ? 'var(--blue)' : 'rgba(255,255,255,0.3)'}`, background: isSelected ? 'var(--blue)' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: 3 }}>
+            {isSelected && <Check size={9} color="white" strokeWidth={3} />}
+          </div>
+        )}
         <span style={{ color: shellColor, userSelect: 'none', flexShrink: 0 }}>❯</span>
         <pre style={{ margin: 0, color: shellColor, whiteSpace: 'pre-wrap', wordBreak: 'break-all', flex: 1, fontSize: 13, lineHeight: 1.6 }}>
           {cmd.command}
@@ -330,7 +346,7 @@ function TerminalLine({ cmd, idx, onCopy, onFavorite, onEdit, onDelete, onView }
 
 // ── 5. Kanban View ────────────────────────────────────────────
 // Columns by category, cards stacked vertically
-function CommandKanbanView({ commands, onCopy, onFavorite, onEdit, onDelete, onView }) {
+function CommandKanbanView({ commands, onCopy, onFavorite, onEdit, onDelete, onView, selectMode, selectedIds, onSelect }) {
   const grouped = commands.reduce((acc, cmd) => {
     const cat = cmd.category || 'general'
     if (!acc[cat]) acc[cat] = []
@@ -355,7 +371,8 @@ function CommandKanbanView({ commands, onCopy, onFavorite, onEdit, onDelete, onV
             {/* Cards */}
             {cmds.map(cmd => (
               <KanbanCard key={cmd.id} cmd={cmd} colColor={colColor}
-                onCopy={onCopy} onFavorite={onFavorite} onEdit={onEdit} onDelete={onDelete} onView={onView} />
+                onCopy={onCopy} onFavorite={onFavorite} onEdit={onEdit} onDelete={onDelete} onView={onView}
+                selectMode={selectMode} selectedIds={selectedIds} onSelect={onSelect} />
             ))}
           </div>
         )
@@ -364,18 +381,20 @@ function CommandKanbanView({ commands, onCopy, onFavorite, onEdit, onDelete, onV
   )
 }
 
-function KanbanCard({ cmd, colColor, onCopy, onFavorite, onEdit, onDelete, onView }) {
+function KanbanCard({ cmd, colColor, onCopy, onFavorite, onEdit, onDelete, onView, selectMode, selectedIds, onSelect }) {
   const { copied, handle: handleCopy } = useCopy(cmd.command, () => onCopy?.(cmd.id))
   const shellColor = SHELL_COLORS[cmd.shell] || '#8E8E93'
+  const isSelected = selectedIds?.has(cmd.id)
+  const isSelectActive = selectMode || (selectedIds?.size > 0)
 
   return (
-    <div className="glass-card" style={{ padding: 0, overflow: 'hidden', cursor: 'pointer', transition: 'transform 0.12s, box-shadow 0.12s' }}
-      onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = `0 4px 20px ${colColor}20` }}
-      onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = 'none' }}
-      onClick={() => onView?.(cmd)}>
-      {/* Left accent */}
-      <div style={{ display: 'flex' }}>
-        <div style={{ width: 3, background: colColor, opacity: 0.7, flexShrink: 0 }} />
+    <div className="glass-card" style={{ padding: 0, overflow: 'hidden', cursor: 'pointer', transition: 'transform 0.12s, box-shadow 0.12s', outline: isSelected ? '2px solid var(--blue)' : 'none', outlineOffset: 2, background: isSelected ? 'color-mix(in srgb, var(--blue) 8%, var(--glass-bg))' : undefined }}
+      onMouseEnter={e => { if (!isSelected) { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = `0 4px 20px ${colColor}20` } }}
+      onMouseLeave={e => { if (!isSelected) { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = 'none' } }}
+      onClick={() => isSelectActive ? onSelect?.(cmd.id) : onView?.(cmd)}>
+          {/* Left accent */}
+          <div style={{ display: 'flex' }}>
+            <div style={{ width: 3, background: isSelected ? 'var(--blue)' : colColor, opacity: isSelected ? 1 : 0.7, flexShrink: 0 }} />
         <div style={{ flex: 1, padding: '10px 12px' }}>
           {/* Title */}
           <div style={{ display: 'flex', alignItems: 'flex-start', gap: 6, marginBottom: 8 }}>
@@ -417,7 +436,7 @@ function KanbanCard({ cmd, colColor, onCopy, onFavorite, onEdit, onDelete, onVie
 
 // ── 6. Spotlight View ─────────────────────────────────────────
 // macOS Spotlight-style: list on left, large preview on right
-function CommandSpotlightView({ commands, onCopy, onFavorite, onEdit, onDelete, onView }) {
+function CommandSpotlightView({ commands, onCopy, onFavorite, onEdit, onDelete, onView, selectMode, selectedIds, onSelect }) {
   const [selected, setSelected] = useState(commands[0] || null)
   const [spotSearch, setSpotSearch] = useState('')
   const inputRef = useRef(null)
@@ -492,13 +511,18 @@ function CommandSpotlightView({ commands, onCopy, onFavorite, onEdit, onDelete, 
             const sc = SHELL_COLORS[cmd.shell] || '#8E8E93'
             return (
               <div key={cmd.id}
-                onClick={() => setSelected(cmd)}
-                style={{ padding: '9px 14px', cursor: 'pointer', background: isActive ? 'rgba(0,122,255,0.12)' : 'transparent', borderLeft: isActive ? '2px solid #007AFF' : '2px solid transparent', transition: 'background 0.1s' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                  <div style={{ width: 6, height: 6, borderRadius: '50%', background: sc, flexShrink: 0 }} />
-                  <span style={{ fontSize: 12, fontWeight: isActive ? 600 : 400, flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: isActive ? 'rgba(255,255,255,0.95)' : 'rgba(255,255,255,0.7)' }}>{cmd.title}</span>
-                  {cmd.is_favorite && <Star size={9} color="var(--yellow)" fill="var(--yellow)" />}
-                </div>
+                onClick={() => (selectMode || selectedIds?.size > 0) ? onSelect?.(cmd.id) : setSelected(cmd)}
+                style={{ padding: '9px 14px', cursor: 'pointer', background: selectedIds?.has(cmd.id) ? 'color-mix(in srgb, var(--blue) 12%, transparent)' : isActive ? 'rgba(0,122,255,0.12)' : 'transparent', borderLeft: selectedIds?.has(cmd.id) ? '2px solid var(--blue)' : isActive ? '2px solid #007AFF' : '2px solid transparent', transition: 'background 0.1s' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                    {(selectMode || selectedIds?.size > 0) && (
+                      <div style={{ width: 14, height: 14, borderRadius: 3, border: `1.5px solid ${selectedIds?.has(cmd.id) ? 'var(--blue)' : 'rgba(255,255,255,0.2)'}`, background: selectedIds?.has(cmd.id) ? 'var(--blue)' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                        {selectedIds?.has(cmd.id) && <Check size={9} color="white" strokeWidth={3} />}
+                      </div>
+                    )}
+                    <div style={{ width: 6, height: 6, borderRadius: '50%', background: sc, flexShrink: 0 }} />
+                    <span style={{ fontSize: 12, fontWeight: isActive ? 600 : 400, flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: isActive ? 'rgba(255,255,255,0.95)' : 'rgba(255,255,255,0.7)' }}>{cmd.title}</span>
+                    {cmd.is_favorite && <Star size={9} color="var(--yellow)" fill="var(--yellow)" />}
+                  </div>
                 <div style={{ fontSize: 10, color: 'var(--c-tick)', fontFamily: 'monospace', marginTop: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', paddingLeft: 12 }}>
                   {cmd.command}
                 </div>
@@ -818,50 +842,47 @@ export default function CommandsPage() {
   const allCategories = [...new Set((allData?.data || []).map(c => c.category))].filter(Boolean).sort()
   const allShells = [...new Set((allData?.data || []).map(c => c.shell))].filter(Boolean).sort()
 
+  const isSelectActive = selectMode || selectedIds.size > 0
+
   const commonProps = {
     onCopy: id => useMut.mutate(id),
     onFavorite: id => favMut.mutate(id),
     onEdit: cmd => setModal({ cmd }),
     onDelete: id => deleteMut.mutate(id),
-    onView: setViewCmd,
+    // Disable onView when select mode is active so cards don't open detail modal
+    onView: isSelectActive ? undefined : setViewCmd,
   }
 
   return (
     <div className="page-content">
-      {/* Header */}
-      <style>{`
-        .cmd-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; gap: 10px; flex-wrap: wrap; }
-        .cmd-header-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-      `}</style>
-      <div className="cmd-header">
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <div style={{ width: 40, height: 40, borderRadius: 10, background: 'rgba(48,209,88,0.12)', border: '1px solid rgba(48,209,88,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-            <TerminalSquare size={20} color="#30D158" />
-          </div>
-          <div>
-            <h1 style={{ fontSize: 20, fontWeight: 700, letterSpacing: -0.4, lineHeight: 1 }}>Commands</h1>
-            <p style={{ fontSize: 12, color: 'var(--text-tertiary)', marginTop: 3 }}>{total} command{total !== 1 ? 's' : ''} saved</p>
-          </div>
+      {/* ── Toolbar (single row, like Skills) ── */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16, flexWrap: 'wrap' }}>
+        <div className="search-bar" style={{ flex: 1, minWidth: 200 }}>
+          <Search size={15} color="var(--text-tertiary)" />
+          <input ref={searchRef} placeholder="Search commands… (press / to focus)" value={search} onChange={e => setSearch(e.target.value)} />
+          {search && (
+            <button onClick={() => setSearch('')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--c-tick)', display: 'flex', padding: 0, flexShrink: 0 }}>
+              <X size={14} />
+            </button>
+          )}
         </div>
-        <div className="cmd-header-actions">
-          {/* View mode toggle */}
-          <div style={{ display: 'flex', background: 'var(--c-surface)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 8, padding: 2, gap: 1 }}>
-            {VIEW_MODES.map(({ id, icon: Icon, label }) => (
-              <button key={id} onClick={() => setView(id)} title={label}
-                style={{ width: 30, height: 28, borderRadius: 6, border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', background: viewMode === id ? 'rgba(255,255,255,0.1)' : 'transparent', color: viewMode === id ? 'rgba(255,255,255,0.9)' : 'rgba(255,255,255,0.35)', transition: 'all 0.15s' }}>
-                <Icon size={14} />
-              </button>
-            ))}
-          </div>
-          <button className={`btn btn-glass btn-sm ${(selectMode || selectedIds.size > 0) ? 'active' : ''}`}
-            onClick={() => { setSelectMode(m => !m); if (selectMode || selectedIds.size > 0) clearSelection() }}
-            style={(selectMode || selectedIds.size > 0) ? { borderColor: 'color-mix(in srgb, var(--blue) 40%, transparent)', color: 'var(--blue-light)', gap: 5 } : { gap: 5 }}>
-            <Check size={13} /> Select
-          </button>
-          <button className="btn btn-primary" onClick={() => setModal({})} style={{ gap: 7 }}>
-            <Plus size={14} /> New command
-          </button>
+        {/* View mode toggle */}
+        <div style={{ display: 'flex', background: 'var(--c-surface)', borderRadius: 10, padding: 3, gap: 2 }}>
+          {VIEW_MODES.map(({ id, icon: Icon, label }) => (
+            <button key={id} onClick={() => setView(id)} title={label}
+              style={{ padding: '5px 9px', borderRadius: 7, border: 'none', cursor: 'pointer', background: viewMode === id ? 'rgba(255,255,255,0.1)' : 'transparent', color: viewMode === id ? 'var(--text-primary)' : 'var(--text-tertiary)', transition: 'all 0.15s' }}>
+              <Icon size={14} />
+            </button>
+          ))}
         </div>
+        <button className={`btn btn-glass btn-sm ${isSelectActive ? 'active' : ''}`}
+          onClick={() => { setSelectMode(m => !m); if (isSelectActive) clearSelection() }}
+          style={isSelectActive ? { borderColor: 'color-mix(in srgb, var(--blue) 40%, transparent)', color: 'var(--blue-light)', gap: 5 } : { gap: 5 }}>
+          <Check size={13} /> Select
+        </button>
+        <button className="btn btn-primary" onClick={() => setModal({})} style={{ gap: 7 }}>
+          <Plus size={14} /> New command
+        </button>
       </div>
 
       {selectedIds.size > 0 && (
@@ -875,17 +896,6 @@ export default function CommandsPage() {
           <button className="btn btn-glass btn-sm" onClick={clearSelection} style={{ marginLeft: 'auto', gap: 5 }}>Cancel</button>
         </div>
       )}
-
-      {/* Search bar */}
-      <div className="search-bar" style={{ marginBottom: 12 }}>
-        <Search size={15} style={{ color: 'var(--c-tick)', flexShrink: 0 }} />
-        <input ref={searchRef} placeholder="Search commands… (press / to focus)" value={search} onChange={e => setSearch(e.target.value)} />
-        {search && (
-          <button onClick={() => setSearch('')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--c-tick)', display: 'flex', padding: 0, flexShrink: 0 }}>
-            <X size={14} />
-          </button>
-        )}
-      </div>
 
       {/* Filters */}
       <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 20, alignItems: 'center' }}>
@@ -943,38 +953,41 @@ export default function CommandsPage() {
         </div>
       )}
 
-      {/* Grid view */}
-      {commands.length > 0 && viewMode === 'grid' && (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(380px, 100%), 1fr))', gap: 14 }}>
-          {commands.map(cmd => <CommandCardGrid key={cmd.id} cmd={cmd} {...commonProps} />)}
+      {/* All views wrapped with SelectOverlay for universal select support */}
+      {commands.length > 0 && (
+        <div style={{ position: 'relative' }}>
+          {viewMode === 'grid' && (
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(380px, 100%), 1fr))', gap: 14 }}>
+              {commands.map(cmd => (
+                <CommandCardGrid key={cmd.id} cmd={cmd} {...commonProps} />
+              ))}
+            </div>
+          )}
+
+          {viewMode === 'compact' && (
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(280px, 100%), 1fr))', gap: 8 }}>
+              {commands.map(cmd => (
+                <CommandCardCompact key={cmd.id} cmd={cmd} {...commonProps} />
+              ))}
+            </div>
+          )}
+
+          {viewMode === 'code' && (
+            <CommandCodeView commands={commands} {...commonProps} selectMode={selectMode} selectedIds={selectedIds} onSelect={(id) => { toggleSelect(id); setSelectMode(true) }} />
+          )}
+
+          {viewMode === 'terminal' && (
+            <CommandTerminalView commands={commands} {...commonProps} selectMode={selectMode} selectedIds={selectedIds} onSelect={(id) => { toggleSelect(id); setSelectMode(true) }} />
+          )}
+
+          {viewMode === 'kanban' && (
+            <CommandKanbanView commands={commands} {...commonProps} selectMode={selectMode} selectedIds={selectedIds} onSelect={(id) => { toggleSelect(id); setSelectMode(true) }} />
+          )}
+
+          {viewMode === 'spotlight' && (
+            <CommandSpotlightView commands={commands} {...commonProps} selectMode={selectMode} selectedIds={selectedIds} onSelect={(id) => { toggleSelect(id); setSelectMode(true) }} />
+          )}
         </div>
-      )}
-
-      {/* Compact view */}
-      {commands.length > 0 && viewMode === 'compact' && (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(280px, 100%), 1fr))', gap: 8 }}>
-          {commands.map(cmd => <CommandCardCompact key={cmd.id} cmd={cmd} {...commonProps} />)}
-        </div>
-      )}
-
-      {/* Code view */}
-      {commands.length > 0 && viewMode === 'code' && (
-        <CommandCodeView commands={commands} {...commonProps} />
-      )}
-
-      {/* Terminal view */}
-      {commands.length > 0 && viewMode === 'terminal' && (
-        <CommandTerminalView commands={commands} {...commonProps} />
-      )}
-
-      {/* Kanban view */}
-      {commands.length > 0 && viewMode === 'kanban' && (
-        <CommandKanbanView commands={commands} {...commonProps} />
-      )}
-
-      {/* Spotlight view */}
-      {commands.length > 0 && viewMode === 'spotlight' && (
-        <CommandSpotlightView commands={commands} {...commonProps} />
       )}
 
       {/* Edit Modal */}

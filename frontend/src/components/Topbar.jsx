@@ -7,7 +7,7 @@ const pageTitles = {
   '/prompts': { title: 'Prompts', subtitle: 'Manage your AI prompt templates' },
   '/skills': { title: 'Skills', subtitle: 'Reusable AI skill definitions' },
   '/steering': { title: 'Steering', subtitle: 'Behavioral guidance & system instructions' },
-  '/mcp': { title: 'MCP Configs', subtitle: 'Model Context Protocol server configurations' },
+  '/mcp': { title: 'MCP', subtitle: 'Model Context Protocol server configurations' },
   '/commands': { title: 'Commands', subtitle: 'Shell commands & scripts' },
   '/settings': { title: 'Settings', subtitle: 'App preferences & configuration' },
   '/trash': { title: 'Trash', subtitle: 'Deleted items — auto-purged after 5 days' },

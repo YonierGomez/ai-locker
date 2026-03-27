@@ -18,7 +18,7 @@ const baseDefaultForm = {
 
 // ── Cheatsheet View ───────────────────────────────────────────
 // Grouped by category, shows full prompt content — like a reference sheet
-function CheatsheetView({ prompts, onView, onCopy }) {
+function CheatsheetView({ prompts, onView, onCopy, isSelectMode, selectedIds, onSelect }) {
   const grouped = prompts.reduce((acc, p) => {
     const cat = p.category || 'general'
     if (!acc[cat]) acc[cat] = []
@@ -42,19 +42,32 @@ function CheatsheetView({ prompts, onView, onCopy }) {
             </div>
             {/* Prompt blocks */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(480px,100%), 1fr))', gap: 12 }}>
-              {items.map(p => (
-                <div key={p.id} className="glass-card" style={{ padding: 0, overflow: 'hidden', borderLeft: `3px solid ${color}` }}>
+              {items.map(p => {
+                const sel = selectedIds?.has(p.id)
+                return (
+                <div key={p.id} data-item-id={p.id} className="glass-card"
+                  style={{ padding: 0, overflow: 'hidden', borderLeft: `3px solid ${sel ? 'var(--blue)' : color}`, outline: sel ? '2px solid var(--blue)' : 'none', outlineOffset: 2, background: sel ? 'color-mix(in srgb, var(--blue) 8%, var(--glass-bg))' : undefined, cursor: isSelectMode ? 'pointer' : 'default' }}
+                  onClick={() => isSelectMode && onSelect?.(p.id)}>
                   {/* Header */}
-                  <div style={{ padding: '10px 14px 8px', display: 'flex', alignItems: 'center', gap: 8, borderBottom: '1px solid var(--c-divider)', background: `${color}08` }}>
+                  <div style={{ padding: '10px 14px 8px', display: 'flex', alignItems: 'center', gap: 8, borderBottom: '1px solid var(--c-divider)', background: sel ? 'rgba(0,122,255,0.06)' : `${color}08` }}>
+                    {isSelectMode && (
+                      <div style={{ width: 16, height: 16, borderRadius: 4, border: `1.5px solid ${sel ? 'var(--blue)' : 'rgba(255,255,255,0.2)'}`, background: sel ? 'var(--blue)' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                        {sel && <Check size={10} color="white" strokeWidth={3} />}
+                      </div>
+                    )}
                     <span style={{ fontSize: 13, fontWeight: 600, flex: 1 }}>{p.title}</span>
                     {p.is_favorite && <Star size={11} color="var(--yellow)" fill="var(--yellow)" />}
                     {p.use_count > 0 && <span style={{ fontSize: 10, color: 'var(--text-quaternary)' }}>{p.use_count}×</span>}
-                    <button className="btn-icon" style={{ width: 26, height: 26 }} onClick={() => onCopy(p)} title="Copy prompt">
-                      <Copy size={11} color="rgba(255,255,255,0.4)" />
-                    </button>
-                    <button className="btn-icon" style={{ width: 26, height: 26 }} onClick={() => onView(p)} title="Open detail">
-                      <MessageSquare size={11} color="rgba(255,255,255,0.4)" />
-                    </button>
+                    {!isSelectMode && (
+                      <>
+                        <button className="btn-icon" style={{ width: 26, height: 26 }} onClick={e => { e.stopPropagation(); onCopy(p) }} title="Copy prompt">
+                          <Copy size={11} color="rgba(255,255,255,0.4)" />
+                        </button>
+                        <button className="btn-icon" style={{ width: 26, height: 26 }} onClick={e => { e.stopPropagation(); onView(p) }} title="Open detail">
+                          <MessageSquare size={11} color="rgba(255,255,255,0.4)" />
+                        </button>
+                      </>
+                    )}
                   </div>
                   {/* Content */}
                   <div style={{ padding: '10px 14px' }}>
@@ -70,7 +83,8 @@ function CheatsheetView({ prompts, onView, onCopy }) {
                     </div>
                   )}
                 </div>
-              ))}
+                )
+              })}
             </div>
           </div>
         )
@@ -362,48 +376,16 @@ export default function PromptsPage() {
 
   return (
     <div className="page-content">
-      {/* Toolbar */}
-      <style>{`
-        .prompts-toolbar { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; }
-        .prompts-toolbar-row2 { display: flex; align-items: center; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
-        @media (max-width: 599px) {
-          .prompts-toolbar { gap: 8px; }
-        }
-      `}</style>
-      {/* Row 1: search + primary actions */}
-      <div className="prompts-toolbar">
+      {/* ── Toolbar (single row, like Skills) ── */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16, flexWrap: 'wrap' }}>
         <div className="search-bar" style={{ flex: 1, minWidth: 160 }}>
           <Search size={15} color="var(--text-tertiary)" />
-          <input
-            placeholder="Search prompts…"
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-          />
+          <input placeholder="Search prompts…" value={search} onChange={e => setSearch(e.target.value)} />
         </div>
-        <button
-          className={`btn btn-glass btn-sm ${isSelectMode ? 'active' : ''}`}
-          onClick={() => { setSelectMode(m => !m); if (isSelectMode) clearSelection() }}
-          title="Select items"
-          style={isSelectMode ? { borderColor: 'color-mix(in srgb, var(--blue) 40%, transparent)', color: 'var(--blue-light)', gap: 5 } : { gap: 5 }}
-        >
-          <MousePointer size={13} />
-          Select
+        <button className={`filter-chip ${showFavorites ? 'active' : ''}`} onClick={() => setShowFavorites(!showFavorites)}>
+          <Star size={12} fill={showFavorites ? 'currentColor' : 'none'} /> Favorites
         </button>
-        <button className="btn btn-primary" onClick={openCreate} style={{ gap: 6 }}>
-          <Plus size={15} />
-          New Prompt
-        </button>
-      </div>
-      {/* Row 2: filters + view toggle */}
-      <div className="prompts-toolbar-row2">
-        <button
-          className={`filter-chip ${showFavorites ? 'active' : ''}`}
-          onClick={() => setShowFavorites(!showFavorites)}
-        >
-          <Star size={12} fill={showFavorites ? 'currentColor' : 'none'} />
-          Favorites
-        </button>
-        <div style={{ marginLeft: 'auto', display: 'flex', background: 'var(--c-surface)', borderRadius: 10, padding: 3, gap: 2 }}>
+        <div style={{ display: 'flex', background: 'var(--c-surface)', borderRadius: 10, padding: 3, gap: 2 }}>
           {[
             { id: 'cards', icon: <LayoutGrid size={14} />, title: 'Card view' },
             { id: 'table', icon: <List size={14} />, title: 'Table view' },
@@ -417,6 +399,16 @@ export default function PromptsPage() {
             </button>
           ))}
         </div>
+        <button
+          className={`btn btn-glass btn-sm ${isSelectMode ? 'active' : ''}`}
+          onClick={() => { setSelectMode(m => !m); if (isSelectMode) clearSelection() }}
+          style={isSelectMode ? { borderColor: 'color-mix(in srgb, var(--blue) 40%, transparent)', color: 'var(--blue-light)', gap: 5 } : { gap: 5 }}
+        >
+          <MousePointer size={13} /> Select
+        </button>
+        <button className="btn btn-primary" onClick={openCreate} style={{ gap: 6 }}>
+          <Plus size={15} /> New Prompt
+        </button>
       </div>
 
       {/* Category filters */}
@@ -483,19 +475,23 @@ export default function PromptsPage() {
             </button>
           )}
         </div>
-      ) : viewMode === 'table' ? (
+      ) : (
+      <div style={{ position: 'relative' }}>
+      {viewMode === 'table' ? (
         /* ── Table view ── */
         <div className="glass-card" style={{ padding: 0, overflow: 'auto' }}>
           <table style={{ width: '100%', minWidth: 560, borderCollapse: 'collapse', fontSize: 13 }}>
             <thead>
               <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
-                <th                     style={{ padding: '10px 14px', textAlign: 'left', fontSize: 11, fontWeight: 600, color: 'var(--text-tertiary)', textTransform: 'uppercase', letterSpacing: 0.5, width: 36 }}>
+                <th style={{ padding: '10px 14px', textAlign: 'left', fontSize: 11, fontWeight: 600, color: 'var(--text-tertiary)', textTransform: 'uppercase', letterSpacing: 0.5, width: 36 }}>
+                  {isSelectMode && (
                   <div
                     style={{ width: 16, height: 16, borderRadius: 4, border: '1.5px solid rgba(255,255,255,0.2)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', background: selectedIds.size === prompts.length && prompts.length > 0 ? 'var(--blue)' : 'transparent' }}
                     onClick={() => selectedIds.size === prompts.length ? clearSelection() : selectAll(prompts)}
                   >
                     {selectedIds.size === prompts.length && prompts.length > 0 && <Check size={10} color="white" strokeWidth={3} />}
                   </div>
+                  )}
                 </th>
                 <th style={{ padding: '10px 14px', textAlign: 'left', fontSize: 11, fontWeight: 600, color: 'var(--text-tertiary)', textTransform: 'uppercase', letterSpacing: 0.5 }}>Title</th>
                 <th style={{ padding: '10px 14px', textAlign: 'left', fontSize: 11, fontWeight: 600, color: 'var(--text-tertiary)', textTransform: 'uppercase', letterSpacing: 0.5 }}>Category</th>
@@ -510,6 +506,7 @@ export default function PromptsPage() {
                 return (
                   <tr
                     key={prompt.id}
+                    data-item-id={prompt.id}
                     style={{
                       borderBottom: '1px solid rgba(255,255,255,0.04)',
                       background: sel ? 'color-mix(in srgb, var(--blue) 6%, transparent)' : 'transparent',
@@ -518,7 +515,7 @@ export default function PromptsPage() {
                     }}
                     onMouseEnter={e => { if (!sel) e.currentTarget.style.background = 'rgba(255,255,255,0.03)' }}
                     onMouseLeave={e => { if (!sel) e.currentTarget.style.background = 'transparent' }}
-                    onClick={() => setViewItem(prompt)}
+                    onClick={() => isSelectMode ? toggleSelect(prompt.id) : setViewItem(prompt)}
                   >
                     <td style={{ padding: '10px 14px' }} onClick={e => { e.stopPropagation(); toggleSelect(prompt.id) }}>
                       <div style={{ width: 16, height: 16, borderRadius: 4, border: `1.5px solid ${sel ? 'var(--blue)' : 'rgba(255,255,255,0.2)'}`, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', background: sel ? 'var(--blue)' : 'transparent' }}>
@@ -556,10 +553,16 @@ export default function PromptsPage() {
         /* ── Compact view ── */
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(240px,100%), 1fr))', gap: 8 }}>
           {prompts.map(prompt => (
-            <div key={prompt.id} className="glass-card" style={{ padding: '10px 12px', cursor: 'pointer', borderTop: '2px solid #007AFF', transition: 'box-shadow 0.15s' }}
-              onMouseEnter={e => e.currentTarget.style.boxShadow = '0 0 0 1px rgba(0,122,255,0.3)'}
-              onMouseLeave={e => e.currentTarget.style.boxShadow = 'none'}
-              onClick={() => setViewItem(prompt)}>
+            <div key={prompt.id} data-item-id={prompt.id} className="glass-card"
+              style={{ padding: '10px 12px', cursor: 'pointer', borderTop: '2px solid #007AFF', transition: 'box-shadow 0.15s', outline: selectedIds.has(prompt.id) ? '2px solid var(--blue)' : 'none', outlineOffset: 2, background: selectedIds.has(prompt.id) ? 'color-mix(in srgb, var(--blue) 8%, var(--glass-bg))' : undefined }}
+              onMouseEnter={e => { if (!selectedIds.has(prompt.id)) e.currentTarget.style.boxShadow = '0 0 0 1px rgba(0,122,255,0.3)' }}
+              onMouseLeave={e => { if (!selectedIds.has(prompt.id)) e.currentTarget.style.boxShadow = 'none' }}
+              onClick={() => isSelectMode ? (toggleSelect(prompt.id), setSelectMode(true)) : setViewItem(prompt)}>
+              {isSelectMode && (
+                <div style={{ width: 14, height: 14, borderRadius: 3, border: `1.5px solid ${selectedIds.has(prompt.id) ? 'var(--blue)' : 'rgba(255,255,255,0.2)'}`, background: selectedIds.has(prompt.id) ? 'var(--blue)' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginBottom: 4 }}>
+                  {selectedIds.has(prompt.id) && <Check size={9} color="white" strokeWidth={3} />}
+                </div>
+              )}
               <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
                 <span style={{ fontSize: 12, fontWeight: 600, flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{prompt.title}</span>
                 {prompt.is_favorite && <Star size={9} color="var(--yellow)" fill="var(--yellow)" />}
@@ -574,10 +577,35 @@ export default function PromptsPage() {
         </div>
       ) : viewMode === 'cheatsheet' ? (
         /* ── Cheatsheet view — grouped by category, full content visible ── */
-        <CheatsheetView prompts={prompts} onView={setViewItem} onCopy={async (p) => { await navigator.clipboard.writeText(p.content); toast.success('Copied!') }} />
+        <CheatsheetView
+          prompts={prompts}
+          onView={setViewItem}
+          onCopy={async (p) => { await navigator.clipboard.writeText(p.content); toast.success('Copied!') }}
+          isSelectMode={isSelectMode}
+          selectedIds={selectedIds}
+          onSelect={(id) => { toggleSelect(id); setSelectMode(true) }}
+        />
       ) : viewMode === 'flashcard' ? (
-        /* ── Flashcard view — one at a time, flip to reveal content ── */
-        <FlashcardView prompts={prompts} onView={setViewItem} onFavorite={(id) => favMutation.mutate(id)} />
+        /* ── Flashcard view — select mode not applicable, show cards instead ── */
+        isSelectMode ? (
+          <div className="cards-grid">
+            {prompts.map(prompt => (
+              <div key={prompt.id} data-item-id={prompt.id} className="glass-card"
+                style={{ padding: '14px 16px', cursor: 'pointer', borderTop: '2px solid #007AFF', outline: selectedIds.has(prompt.id) ? '2px solid var(--blue)' : 'none', outlineOffset: 2, background: selectedIds.has(prompt.id) ? 'color-mix(in srgb, var(--blue) 8%, var(--glass-bg))' : undefined }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <div style={{ width: 16, height: 16, borderRadius: 4, border: `1.5px solid ${selectedIds.has(prompt.id) ? 'var(--blue)' : 'rgba(255,255,255,0.2)'}`, background: selectedIds.has(prompt.id) ? 'var(--blue)' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                    {selectedIds.has(prompt.id) && <Check size={10} color="white" strokeWidth={3} />}
+                  </div>
+                  <span style={{ fontSize: 13, fontWeight: 600, flex: 1 }}>{prompt.title}</span>
+                  {prompt.is_favorite && <Star size={11} color="var(--yellow)" fill="var(--yellow)" />}
+                </div>
+                {prompt.description && <p style={{ fontSize: 11, color: 'var(--text-tertiary)', margin: '4px 0 0 24px' }}>{prompt.description}</p>}
+              </div>
+            ))}
+          </div>
+        ) : (
+          <FlashcardView prompts={prompts} onView={setViewItem} onFavorite={(id) => favMutation.mutate(id)} />
+        )
       ) : (
         /* ── Cards view ── */
         <div className={`cards-grid${!gridMounted.current ? ' stagger-children' : ''}`}
@@ -596,6 +624,8 @@ export default function PromptsPage() {
             />
           ))}
         </div>
+      )}
+      </div>
       )}
 
       {/* Create/Edit Modal */}

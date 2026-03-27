@@ -202,13 +202,20 @@ export default function SteeringPage() {
           <div className="empty-state-desc">{search || category || scope ? 'Try adjusting your filters' : 'Create behavioral guidance and system instructions for your AI'}</div>
           {!search && !category && !scope && <button className="btn btn-primary" onClick={openCreate} style={{ marginTop: 8 }}><Plus size={15} /> Create Steering</button>}
         </div>
-      ) : viewMode === 'list' ? (
+      ) : (
+      <div style={{ position: 'relative' }}>
+      {viewMode === 'list' ? (
         <div className="glass-card" style={{ padding: 0, overflow: 'hidden' }}>
           {items.map((item, idx) => (
-            <div key={item.id} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 16px', borderBottom: idx < items.length - 1 ? '1px solid rgba(255,255,255,0.05)' : 'none', cursor: 'pointer', transition: 'background 0.12s' }}
-              onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.03)'}
-              onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
-              onClick={() => setViewItem(item)}>
+            <div key={item.id} data-item-id={item.id} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 16px', borderBottom: idx < items.length - 1 ? '1px solid rgba(255,255,255,0.05)' : 'none', cursor: 'pointer', transition: 'background 0.12s', background: selectedIds.has(item.id) ? 'color-mix(in srgb, var(--blue) 8%, transparent)' : 'transparent', outline: selectedIds.has(item.id) ? '2px solid var(--blue)' : 'none', outlineOffset: -2 }}
+              onMouseEnter={e => { if (!selectedIds.has(item.id)) e.currentTarget.style.background = 'rgba(255,255,255,0.03)' }}
+              onMouseLeave={e => { if (!selectedIds.has(item.id)) e.currentTarget.style.background = 'transparent' }}
+              onClick={() => (selectMode || selectedIds.size > 0) ? (toggleSelect(item.id), setSelectMode(true)) : setViewItem(item)}>
+              {(selectMode || selectedIds.size > 0) && (
+                <div style={{ width: 16, height: 16, borderRadius: 4, border: `1.5px solid ${selectedIds.has(item.id) ? 'var(--blue)' : 'rgba(255,255,255,0.2)'}`, background: selectedIds.has(item.id) ? 'var(--blue)' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  {selectedIds.has(item.id) && <Check size={10} color="white" strokeWidth={3} />}
+                </div>
+              )}
               <div style={{ width: 8, height: 8, borderRadius: '50%', background: item.is_active ? '#BF5AF2' : '#8E8E93', flexShrink: 0 }} />
               <span style={{ fontSize: 13, fontWeight: 500, flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.title}</span>
               {item.is_favorite && <Star size={11} color="var(--yellow)" fill="var(--yellow)" />}
@@ -220,14 +227,19 @@ export default function SteeringPage() {
       ) : viewMode === 'compact' ? (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(240px,100%), 1fr))', gap: 8 }}>
           {items.map(item => (
-            <div key={item.id} className="glass-card" style={{ padding: '10px 12px', cursor: 'pointer', borderTop: `2px solid #BF5AF2`, transition: 'box-shadow 0.15s' }}
-              onMouseEnter={e => e.currentTarget.style.boxShadow = '0 0 0 1px rgba(191,90,242,0.3)'}
-              onMouseLeave={e => e.currentTarget.style.boxShadow = 'none'}
-              onClick={() => setViewItem(item)}>
+            <div key={item.id} data-item-id={item.id} className="glass-card" style={{ padding: '10px 12px', cursor: 'pointer', borderTop: `2px solid #BF5AF2`, transition: 'box-shadow 0.15s', outline: selectedIds.has(item.id) ? '2px solid var(--blue)' : 'none', outlineOffset: 2, background: selectedIds.has(item.id) ? 'color-mix(in srgb, var(--blue) 8%, var(--glass-bg))' : undefined }}
+              onMouseEnter={e => { if (!selectedIds.has(item.id)) e.currentTarget.style.boxShadow = '0 0 0 1px rgba(191,90,242,0.3)' }}
+              onMouseLeave={e => { if (!selectedIds.has(item.id)) e.currentTarget.style.boxShadow = 'none' }}
+              onClick={() => (selectMode || selectedIds.size > 0) ? (toggleSelect(item.id), setSelectMode(true)) : setViewItem(item)}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
                 <span style={{ fontSize: 12, fontWeight: 600, flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.title}</span>
                 {item.is_favorite && <Star size={9} color="var(--yellow)" fill="var(--yellow)" />}
               </div>
+              {(selectMode || selectedIds.size > 0) && (
+                <div style={{ width: 14, height: 14, borderRadius: 3, border: `1.5px solid ${selectedIds.has(item.id) ? 'var(--blue)' : 'rgba(255,255,255,0.2)'}`, background: selectedIds.has(item.id) ? 'var(--blue)' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginBottom: 4 }}>
+                  {selectedIds.has(item.id) && <Check size={9} color="white" strokeWidth={3} />}
+                </div>
+              )}
               {item.description && <p style={{ fontSize: 11, color: 'var(--text-tertiary)', margin: '0 0 6px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.description}</p>}
               <div style={{ display: 'flex', gap: 5 }}>
                 <span style={{ fontSize: 9, color: '#BF5AF2', background: 'rgba(191,90,242,0.1)', padding: '1px 5px', borderRadius: 3 }}>{item.scope}</span>
@@ -243,11 +255,18 @@ export default function SteeringPage() {
             const pct = Math.min((item.priority || 0), 100)
             const pColor = pct >= 70 ? '#FF375F' : pct >= 40 ? '#FF9500' : '#30D158'
             return (
-              <div key={item.id} className="glass-card" style={{ padding: 0, overflow: 'hidden', cursor: 'pointer' }}
-                onClick={() => setViewItem(item)}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 0 }}>
-                  {/* Priority bar */}
-                  <div style={{ width: 4, alignSelf: 'stretch', background: pColor, opacity: 0.8, flexShrink: 0 }} />
+            <div key={item.id} data-item-id={item.id} className="glass-card" style={{ padding: 0, overflow: 'hidden', cursor: 'pointer', outline: selectedIds.has(item.id) ? '2px solid var(--blue)' : 'none', outlineOffset: 2 }}
+                onClick={() => (selectMode || selectedIds.size > 0) ? (toggleSelect(item.id), setSelectMode(true)) : setViewItem(item)}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 0 }}>
+                {/* Priority bar */}
+                <div style={{ width: 4, alignSelf: 'stretch', background: selectedIds.has(item.id) ? 'var(--blue)' : pColor, opacity: selectedIds.has(item.id) ? 1 : 0.8, flexShrink: 0 }} />
+                {(selectMode || selectedIds.size > 0) && (
+                  <div style={{ display: 'flex', alignItems: 'center', padding: '0 10px', flexShrink: 0 }} onClick={e => e.stopPropagation()}>
+                    <div style={{ width: 16, height: 16, borderRadius: 4, border: `1.5px solid ${selectedIds.has(item.id) ? 'var(--blue)' : 'rgba(255,255,255,0.2)'}`, background: selectedIds.has(item.id) ? 'var(--blue)' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      {selectedIds.has(item.id) && <Check size={10} color="white" strokeWidth={3} />}
+                    </div>
+                  </div>
+                )}
                   {/* Priority number */}
                   <div style={{ width: 52, padding: '12px 10px', textAlign: 'center', flexShrink: 0, borderRight: '1px solid rgba(255,255,255,0.06)' }}>
                     <div style={{ fontSize: 18, fontWeight: 800, color: pColor, letterSpacing: -1, lineHeight: 1 }}>{item.priority || 0}</div>
@@ -288,11 +307,16 @@ export default function SteeringPage() {
                   <span style={{ fontSize: 11, color: `${color}80`, marginLeft: 'auto', background: `${color}18`, padding: '1px 7px', borderRadius: 10 }}>{group.length}</span>
                 </div>
                 {group.map(item => (
-                  <div key={item.id} className="glass-card" style={{ padding: '10px 12px', cursor: 'pointer', borderLeft: `3px solid ${color}`, transition: 'transform 0.12s' }}
-                    onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-2px)'}
-                    onMouseLeave={e => e.currentTarget.style.transform = 'translateY(0)'}
-                    onClick={() => setViewItem(item)}>
+                  <div key={item.id} data-item-id={item.id} className="glass-card" style={{ padding: '10px 12px', cursor: 'pointer', borderLeft: `3px solid ${selectedIds.has(item.id) ? 'var(--blue)' : color}`, transition: 'transform 0.12s', outline: selectedIds.has(item.id) ? '2px solid var(--blue)' : 'none', outlineOffset: 2, background: selectedIds.has(item.id) ? 'color-mix(in srgb, var(--blue) 8%, var(--glass-bg))' : undefined }}
+                    onMouseEnter={e => { if (!selectedIds.has(item.id)) e.currentTarget.style.transform = 'translateY(-2px)' }}
+                    onMouseLeave={e => { if (!selectedIds.has(item.id)) e.currentTarget.style.transform = 'translateY(0)' }}
+                    onClick={() => (selectMode || selectedIds.size > 0) ? (toggleSelect(item.id), setSelectMode(true)) : setViewItem(item)}>
                     <div style={{ display: 'flex', alignItems: 'flex-start', gap: 6, marginBottom: item.description ? 6 : 0 }}>
+                      {(selectMode || selectedIds.size > 0) && (
+                        <div style={{ width: 14, height: 14, borderRadius: 3, border: `1.5px solid ${selectedIds.has(item.id) ? 'var(--blue)' : 'rgba(255,255,255,0.2)'}`, background: selectedIds.has(item.id) ? 'var(--blue)' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: 1 }}>
+                          {selectedIds.has(item.id) && <Check size={9} color="white" strokeWidth={3} />}
+                        </div>
+                      )}
                       <span style={{ fontSize: 12, fontWeight: 600, flex: 1, lineHeight: 1.4 }}>{item.title}</span>
                       {item.is_favorite && <Star size={9} color="var(--yellow)" fill="var(--yellow)" />}
                     </div>
@@ -325,6 +349,8 @@ export default function SteeringPage() {
             />
           ))}
         </div>
+      )}
+      </div>
       )}
 
       <Modal isOpen={modalOpen} onClose={closeModal} title={editItem ? 'Edit Steering' : 'New Steering'} fullscreen={editFullscreen}
