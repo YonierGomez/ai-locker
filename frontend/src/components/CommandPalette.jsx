@@ -178,7 +178,7 @@ export default function CommandPalette({ isOpen, onClose }) {
     >
       <div
         style={{
-          width: '100%', maxWidth: 580,
+          width: '100%', maxWidth: 720,
           background: 'rgba(22,22,26,0.95)',
           border: '1px solid rgba(255,255,255,0.12)',
           borderRadius: 18,

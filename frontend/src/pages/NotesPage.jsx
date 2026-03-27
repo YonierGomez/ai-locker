@@ -40,7 +40,7 @@ function stripMarkdown(md) {
 }
 
 // ── Note Card (grid view) ──────────────────────────────────────
-function NoteCard({ note, onFavorite, onPin, onEdit, onDelete, onView }) {
+function NoteCard({ note, onFavorite, onPin, onEdit, onDelete, onView, selectable, selected, onSelect }) {
   const color = note.color || '#FFD60A'
   const preview = stripMarkdown(note.content)
   const timeAgo = note.updated_at ? formatDistanceToNow(new Date(note.updated_at), { addSuffix: true }) : ''
@@ -61,7 +61,7 @@ function NoteCard({ note, onFavorite, onPin, onEdit, onDelete, onView }) {
         e.currentTarget.style.transform = 'translateY(0)'
         e.currentTarget.style.boxShadow = ''
       }}
-      onClick={() => onView?.(note)}
+      onClick={() => selectable ? onSelect?.(note.id) : onView?.(note)}
     >
       {/* Header */}
       <div style={{ padding: '12px 14px 8px', display: 'flex', alignItems: 'flex-start', gap: 8 }}>
@@ -171,7 +171,7 @@ function NoteBoardCard({ note, onFavorite, onPin, onEdit, onDelete, onView }) {
         e.currentTarget.style.boxShadow = `0 4px 18px rgba(0,0,0,0.35), 0 0 0 1px ${color}20`
         e.currentTarget.style.zIndex = 1
       }}
-      onClick={() => onView?.(note)}
+      onClick={() => selectable ? onSelect?.(note.id) : onView?.(note)}
     >
       {/* Pin icon if pinned */}
       {note.is_pinned && (
@@ -268,7 +268,7 @@ function NotePostItCard({ note, onFavorite, onPin, onEdit, onDelete, onView }) {
           e.currentTarget.style.transform = `rotate(${rotation}deg) translateY(0)`
           e.currentTarget.style.boxShadow = '3px 5px 18px rgba(0,0,0,0.5), 1px 1px 4px rgba(0,0,0,0.25)'
         }}
-        onClick={() => onView?.(note)}
+        onClick={() => selectable ? onSelect?.(note.id) : onView?.(note)}
       >
         {/* Folded corner */}
         <div style={{
@@ -402,7 +402,7 @@ function NoteTimelineItem({ note, onFavorite, onPin, onEdit, onDelete, onView })
           e.currentTarget.style.background = 'var(--glass-bg)'
           e.currentTarget.style.boxShadow = 'none'
         }}
-        onClick={() => onView?.(note)}
+        onClick={() => selectable ? onSelect?.(note.id) : onView?.(note)}
       >
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8, marginBottom: preview ? 6 : 0 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, flex: 1, minWidth: 0 }}>
@@ -448,7 +448,7 @@ function NoteTimelineItem({ note, onFavorite, onPin, onEdit, onDelete, onView })
 }
 
 // ── Note Row (list view) ───────────────────────────────────────
-function NoteListRow({ note, onFavorite, onPin, onEdit, onDelete, onView }) {
+function NoteListRow({ note, onFavorite, onPin, onEdit, onDelete, onView, selectable, selected, onSelect }) {
   const color = note.color || '#FFD60A'
   const timeAgo = note.updated_at ? formatDistanceToNow(new Date(note.updated_at), { addSuffix: true }) : ''
 
@@ -468,7 +468,7 @@ function NoteListRow({ note, onFavorite, onPin, onEdit, onDelete, onView }) {
         }}
         onMouseEnter={e => e.currentTarget.style.background = 'var(--glass-bg-hover)'}
         onMouseLeave={e => e.currentTarget.style.background = 'var(--glass-bg)'}
-        onClick={() => onView?.(note)}
+        onClick={() => selectable ? onSelect?.(note.id) : onView?.(note)}
       >
         {note.is_pinned && <Pin size={10} color={color} fill={color} style={{ flexShrink: 0 }} />}
         <span style={{
@@ -540,7 +540,7 @@ function NoteKanbanView({ notes, onFavorite, onPin, onEdit, onDelete, onView }) 
                   style={{ padding: 0, overflow: 'hidden', cursor: 'pointer', transition: 'transform 0.12s, box-shadow 0.12s', borderLeft: `3px solid ${noteColor}` }}
                   onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = `0 4px 20px ${noteColor}20` }}
                   onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = 'none' }}
-                  onClick={() => onView?.(note)}>
+                  onClick={() => selectable ? onSelect?.(note.id) : onView?.(note)}>
                   <div style={{ padding: '10px 12px' }}>
                     {/* Title */}
                     <div style={{ display: 'flex', alignItems: 'flex-start', gap: 5, marginBottom: preview ? 7 : 0 }}>
@@ -1091,11 +1091,14 @@ export default function NotesPage() {
             <NoteCard
               key={note.id}
               note={note}
-              onFavorite={id => favMut.mutate(id)}
-              onPin={id => pinMut.mutate(id)}
-              onEdit={openEdit}
-              onDelete={id => setDeleteConfirm(id)}
-              onView={n => setViewItem(n)}
+              onFavorite={selectMode ? undefined : id => favMut.mutate(id)}
+              onPin={selectMode ? undefined : id => pinMut.mutate(id)}
+              onEdit={selectMode ? undefined : openEdit}
+              onDelete={selectMode ? undefined : id => setDeleteConfirm(id)}
+              onView={selectMode ? undefined : n => setViewItem(n)}
+              selectable={selectMode || selectedIds.size > 0}
+              selected={selectedIds.has(note.id)}
+              onSelect={(id) => { toggleSelect(id); setSelectMode(true) }}
             />
           ))}
         </div>
@@ -1207,11 +1210,14 @@ export default function NotesPage() {
             <NoteListRow
               key={note.id}
               note={note}
-              onFavorite={id => favMut.mutate(id)}
-              onPin={id => pinMut.mutate(id)}
-              onEdit={openEdit}
-              onDelete={id => setDeleteConfirm(id)}
-              onView={n => setViewItem(n)}
+              onFavorite={selectMode ? undefined : id => favMut.mutate(id)}
+              onPin={selectMode ? undefined : id => pinMut.mutate(id)}
+              onEdit={selectMode ? undefined : openEdit}
+              onDelete={selectMode ? undefined : id => setDeleteConfirm(id)}
+              onView={selectMode ? undefined : n => setViewItem(n)}
+              selectable={selectMode || selectedIds.size > 0}
+              selected={selectedIds.has(note.id)}
+              onSelect={(id) => { toggleSelect(id); setSelectMode(true) }}
             />
           ))}
         </div>
