@@ -470,10 +470,20 @@ function CommandSpotlightView({ commands, onCopy, onFavorite, onEdit, onDelete, 
         <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.2)', background: 'rgba(255,255,255,0.06)', padding: '2px 7px', borderRadius: 5 }}>{filtered.length}</span>
       </div>
 
-      {/* Body: list + preview */}
-      <div style={{ display: 'flex', flex: 1, minHeight: 0 }}>
+      {/* Body: list + preview — stacks vertically on mobile */}
+      <style>{`
+        .spotlight-body { display: flex; flex: 1; min-height: 0; }
+        .spotlight-list { width: 260px; border-right: 1px solid rgba(255,255,255,0.06); overflow-y: auto; flex-shrink: 0; }
+        .spotlight-preview { flex: 1; padding: 24px 28px; overflow-y: auto; display: flex; flex-direction: column; gap: 20px; }
+        @media (max-width: 640px) {
+          .spotlight-body { flex-direction: column; }
+          .spotlight-list { width: 100%; border-right: none; border-bottom: 1px solid rgba(255,255,255,0.06); max-height: 220px; }
+          .spotlight-preview { padding: 16px; }
+        }
+      `}</style>
+      <div className="spotlight-body">
         {/* Left: results list */}
-        <div style={{ width: 260, borderRight: '1px solid rgba(255,255,255,0.06)', overflowY: 'auto', flexShrink: 0 }}>
+        <div className="spotlight-list">
           {filtered.length === 0 && (
             <div style={{ padding: '32px 16px', textAlign: 'center', color: 'var(--text-quaternary)', fontSize: 12 }}>No results</div>
           )}
@@ -609,9 +619,16 @@ function CommandModal({ cmd, onClose, onSave, fullscreen: initialFullscreen = fa
   }
 
   return (
-    <div style={{ position: 'fixed', inset: 0, zIndex: 1000, display: 'flex', alignItems: maximized ? 'stretch' : 'center', justifyContent: 'center', padding: maximized ? 0 : 20, background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(8px)' }}
+    <>
+      <style>{`
+        @media (max-width: 599px) {
+          .cmd-modal-overlay { align-items: flex-end !important; padding: 0 !important; }
+          .cmd-modal-inner { border-radius: 20px 20px 0 0 !important; max-height: 95vh !important; }
+        }
+      `}</style>
+    <div className="cmd-modal-overlay" style={{ position: 'fixed', inset: 0, zIndex: 1000, display: 'flex', alignItems: maximized ? 'stretch' : 'center', justifyContent: 'center', padding: maximized ? 0 : 20, background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(8px)' }}
       onClick={e => e.target === e.currentTarget && onClose()}>
-      <div style={{ background: 'var(--surface-2)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: maximized ? 0 : 16, width: '100%', maxWidth: maximized ? '100vw' : 560, boxShadow: maximized ? 'none' : '0 32px 80px rgba(0,0,0,0.6)', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+      <div className="cmd-modal-inner" style={{ background: 'var(--surface-2)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: maximized ? 0 : 16, width: '100%', maxWidth: maximized ? '100vw' : 560, boxShadow: maximized ? 'none' : '0 32px 80px rgba(0,0,0,0.6)', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
         <div style={{ padding: '18px 20px 14px', borderBottom: '1px solid rgba(255,255,255,0.07)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
             <div style={{ width: 32, height: 32, borderRadius: 8, background: 'rgba(48,209,88,0.12)', border: '1px solid rgba(48,209,88,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -684,6 +701,7 @@ function CommandModal({ cmd, onClose, onSave, fullscreen: initialFullscreen = fa
         </form>
       </div>
     </div>
+    </>
   )
 }
 
@@ -811,9 +829,13 @@ export default function CommandsPage() {
   return (
     <div className="page-content">
       {/* Header */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
+      <style>{`
+        .cmd-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; gap: 10px; flex-wrap: wrap; }
+        .cmd-header-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+      `}</style>
+      <div className="cmd-header">
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <div style={{ width: 40, height: 40, borderRadius: 10, background: 'rgba(48,209,88,0.12)', border: '1px solid rgba(48,209,88,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div style={{ width: 40, height: 40, borderRadius: 10, background: 'rgba(48,209,88,0.12)', border: '1px solid rgba(48,209,88,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
             <TerminalSquare size={20} color="#30D158" />
           </div>
           <div>
@@ -821,7 +843,7 @@ export default function CommandsPage() {
             <p style={{ fontSize: 12, color: 'var(--text-tertiary)', marginTop: 3 }}>{total} command{total !== 1 ? 's' : ''} saved</p>
           </div>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+        <div className="cmd-header-actions">
           {/* View mode toggle */}
           <div style={{ display: 'flex', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 8, padding: 2, gap: 1 }}>
             {VIEW_MODES.map(({ id, icon: Icon, label }) => (

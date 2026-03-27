@@ -55,6 +55,15 @@ export default function Topbar({ onMenuClick, onSearchClick }) {
 
   return (
     <header className={`topbar ${scrolled ? 'scrolled' : ''}`}>
+      <style>{`
+        .topbar-subtitle-text { display: block; }
+        .search-shortcut-badge { display: inline-block; }
+        @media (max-width: 600px) {
+          .topbar-subtitle-text { display: none; }
+          .search-shortcut-badge { display: none; }
+        }
+      `}</style>
+
       <button
         className="mobile-menu-btn"
         onClick={onMenuClick}
@@ -63,16 +72,20 @@ export default function Topbar({ onMenuClick, onSearchClick }) {
         <Menu size={18} />
       </button>
 
-      <div style={{ flex: 1 }}>
-        <div className="topbar-title">{pageInfo.title}</div>
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div className="topbar-title" style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+          {pageInfo.title}
+        </div>
         {pageInfo.subtitle && (
-          <div className="topbar-subtitle">{pageInfo.subtitle}</div>
+          <div className="topbar-subtitle topbar-subtitle-text" style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            {pageInfo.subtitle}
+          </div>
         )}
       </div>
 
       {/* Right actions */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-        {/* Cmd+K search trigger */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
+        {/* Search trigger — shows ⌘K badge on desktop, just icon on mobile */}
         <button
           className="btn-icon search-trigger-btn"
           onClick={onSearchClick}

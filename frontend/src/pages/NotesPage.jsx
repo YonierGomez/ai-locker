@@ -1,14 +1,15 @@
 import { useState, useEffect } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { notesApi } from '../utils/api'
+import { notesApi, tagsApi } from '../utils/api'
 import DetailModal from '../components/DetailModal'
 import MarkdownEditor from '../components/MarkdownEditor'
 import CategorySelector from '../components/CategorySelector'
+import TagsSelector from '../components/TagsSelector'
 import toast from 'react-hot-toast'
 import { formatDistanceToNow, format, isToday, isYesterday, isThisWeek, isThisMonth } from 'date-fns'
 import {
   StickyNote, Plus, Search, Star, Trash2, Edit3, X,
-  LayoutGrid, List, Pin, Maximize2, Minimize2, Kanban, Clock, Columns2, Check, MousePointer,
+  LayoutGrid, List, Pin, Maximize2, Minimize2, Kanban, Clock, Columns2, Check, MousePointer, Tag,
 } from 'lucide-react'
 
 // ── Color presets ──────────────────────────────────────────────
@@ -43,7 +44,6 @@ function NoteCard({ note, onFavorite, onPin, onEdit, onDelete, onView }) {
   const color = note.color || '#FFD60A'
   const preview = stripMarkdown(note.content)
   const timeAgo = note.updated_at ? formatDistanceToNow(new Date(note.updated_at), { addSuffix: true }) : ''
-  const [hovered, setHovered] = useState(false)
 
   return (
     <div
@@ -54,12 +54,10 @@ function NoteCard({ note, onFavorite, onPin, onEdit, onDelete, onView }) {
         borderTop: `3px solid ${color}`,
       }}
       onMouseEnter={e => {
-        setHovered(true)
         e.currentTarget.style.transform = 'translateY(-2px)'
         e.currentTarget.style.boxShadow = `0 12px 40px rgba(0,0,0,0.5), 0 0 0 1px ${color}30`
       }}
       onMouseLeave={e => {
-        setHovered(false)
         e.currentTarget.style.transform = 'translateY(0)'
         e.currentTarget.style.boxShadow = ''
       }}
@@ -69,15 +67,11 @@ function NoteCard({ note, onFavorite, onPin, onEdit, onDelete, onView }) {
       <div style={{ padding: '12px 14px 8px', display: 'flex', alignItems: 'flex-start', gap: 8 }}>
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
-            {note.is_pinned && (
-              <Pin size={10} color={color} fill={color} style={{ flexShrink: 0 }} />
-            )}
+            {note.is_pinned && <Pin size={10} color={color} fill={color} style={{ flexShrink: 0 }} />}
             <span style={{ fontSize: 13, fontWeight: 600, lineHeight: 1.3, wordBreak: 'break-word' }}>
               {note.title}
             </span>
-            {note.is_favorite && (
-              <Star size={11} color="var(--yellow)" fill="var(--yellow)" style={{ flexShrink: 0 }} />
-            )}
+            {note.is_favorite && <Star size={11} color="var(--yellow)" fill="var(--yellow)" style={{ flexShrink: 0 }} />}
           </div>
           {note.description && (
             <p style={{ fontSize: 11, color: 'var(--text-tertiary)', marginTop: 2, lineHeight: 1.4 }}>
@@ -85,34 +79,19 @@ function NoteCard({ note, onFavorite, onPin, onEdit, onDelete, onView }) {
             </p>
           )}
         </div>
-        <div style={{ display: 'flex', gap: 3, flexShrink: 0 }}>
-          <button
-            className="btn-icon" style={{ width: 28, height: 28 }}
-            onClick={e => { e.stopPropagation(); onPin(note.id) }}
-            title={note.is_pinned ? 'Unpin' : 'Pin'}
-          >
-            <Pin size={14} color={note.is_pinned ? color : 'rgba(255,255,255,0.6)'} fill={note.is_pinned ? color : 'none'} />
+        {/* Actions — always visible (touch-friendly) */}
+        <div style={{ display: 'flex', gap: 2, flexShrink: 0 }}>
+          <button className="btn-icon" style={{ width: 32, height: 32 }}
+            onClick={e => { e.stopPropagation(); onPin(note.id) }} title={note.is_pinned ? 'Unpin' : 'Pin'}>
+            <Pin size={14} color={note.is_pinned ? color : 'rgba(255,255,255,0.5)'} fill={note.is_pinned ? color : 'none'} />
           </button>
-          <button
-            className="btn-icon" style={{ width: 28, height: 28 }}
-            onClick={e => { e.stopPropagation(); onFavorite(note.id) }}
-            title="Favorite"
-          >
-            <Star size={14} color={note.is_favorite ? 'var(--yellow)' : 'rgba(255,255,255,0.6)'} fill={note.is_favorite ? 'var(--yellow)' : 'none'} />
+          <button className="btn-icon" style={{ width: 32, height: 32 }}
+            onClick={e => { e.stopPropagation(); onEdit(note) }} title="Edit">
+            <Edit3 size={14} color="rgba(255,255,255,0.5)" />
           </button>
-          <button
-            className="btn-icon" style={{ width: 28, height: 28 }}
-            onClick={e => { e.stopPropagation(); onEdit(note) }}
-            title="Edit"
-          >
-            <Edit3 size={14} color="rgba(255,255,255,0.6)" />
-          </button>
-          <button
-            className="btn-icon" style={{ width: 28, height: 28 }}
-            onClick={e => { e.stopPropagation(); onDelete(note.id) }}
-            title="Delete"
-          >
-            <Trash2 size={14} color="rgba(255,55,95,0.8)" />
+          <button className="btn-icon" style={{ width: 32, height: 32 }}
+            onClick={e => { e.stopPropagation(); onDelete(note.id) }} title="Delete">
+            <Trash2 size={14} color="rgba(255,55,95,0.7)" />
           </button>
         </div>
       </div>
@@ -136,13 +115,14 @@ function NoteCard({ note, onFavorite, onPin, onEdit, onDelete, onView }) {
         background: 'rgba(255,255,255,0.015)', borderTop: '1px solid rgba(255,255,255,0.04)',
       }}>
         <div style={{ width: 7, height: 7, borderRadius: '50%', background: color, flexShrink: 0 }} />
-        <span style={{
-          fontSize: 10, color: 'rgba(255,255,255,0.3)',
-          background: 'rgba(255,255,255,0.05)', padding: '2px 6px', borderRadius: 4,
-        }}>
+        <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.3)', background: 'rgba(255,255,255,0.05)', padding: '2px 6px', borderRadius: 4 }}>
           {note.category || 'general'}
         </span>
-        <span style={{ fontSize: 10, color: 'var(--text-quaternary)', marginLeft: 'auto' }}>{timeAgo}</span>
+        <button className="btn-icon" style={{ width: 24, height: 24, marginLeft: 'auto' }}
+          onClick={e => { e.stopPropagation(); onFavorite(note.id) }}>
+          <Star size={12} color={note.is_favorite ? 'var(--yellow)' : 'rgba(255,255,255,0.3)'} fill={note.is_favorite ? 'var(--yellow)' : 'none'} />
+        </button>
+        <span style={{ fontSize: 10, color: 'var(--text-quaternary)' }}>{timeAgo}</span>
       </div>
     </div>
   )
@@ -326,6 +306,7 @@ function NotePostItCard({ note, onFavorite, onPin, onEdit, onDelete, onView }) {
             <span style={{ fontSize: 9, color: 'rgba(0,0,0,0.3)', marginLeft: 6 }}>{timeAgo}</span>
           </div>
           <div
+            className="postit-actions"
             style={{ display: 'flex', gap: 1, opacity: hovered ? 1 : 0, transition: 'opacity 0.15s', pointerEvents: hovered ? 'auto' : 'none' }}
             onClick={e => e.stopPropagation()}
           >
@@ -472,50 +453,56 @@ function NoteListRow({ note, onFavorite, onPin, onEdit, onDelete, onView }) {
   const timeAgo = note.updated_at ? formatDistanceToNow(new Date(note.updated_at), { addSuffix: true }) : ''
 
   return (
-    <div
-      style={{
-        display: 'flex', alignItems: 'center', gap: 12,
-        padding: '10px 16px', borderRadius: 10,
-        background: 'var(--glass-bg)', border: '1px solid var(--glass-border)',
-        borderLeft: `3px solid ${color}`,
-        cursor: 'pointer', transition: 'background 0.15s',
-      }}
-      onMouseEnter={e => e.currentTarget.style.background = 'var(--glass-bg-hover)'}
-      onMouseLeave={e => e.currentTarget.style.background = 'var(--glass-bg)'}
-      onClick={() => onView?.(note)}
-    >
-      {note.is_pinned && <Pin size={10} color={color} fill={color} style={{ flexShrink: 0 }} />}
-      <span style={{
-        flex: 1, fontSize: 13, fontWeight: 500, minWidth: 0,
-        overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-      }}>
-        {note.title}
-      </span>
-      {note.is_favorite && <Star size={11} color="var(--yellow)" fill="var(--yellow)" style={{ flexShrink: 0 }} />}
-      <span style={{
-        fontSize: 11, color: 'rgba(255,255,255,0.25)',
-        background: 'rgba(255,255,255,0.05)', padding: '2px 8px', borderRadius: 4, flexShrink: 0,
-      }}>
-        {note.category || 'general'}
-      </span>
-      <span style={{ fontSize: 11, color: 'var(--text-quaternary)', flexShrink: 0, minWidth: 80, textAlign: 'right' }}>
-        {timeAgo}
-      </span>
-      <div style={{ display: 'flex', gap: 3, flexShrink: 0 }}>
-        <button className="btn-icon" style={{ width: 28, height: 28 }} onClick={e => { e.stopPropagation(); onPin(note.id) }}>
-          <Pin size={14} color={note.is_pinned ? color : 'rgba(255,255,255,0.65)'} fill={note.is_pinned ? color : 'none'} />
-        </button>
-        <button className="btn-icon" style={{ width: 28, height: 28 }} onClick={e => { e.stopPropagation(); onFavorite(note.id) }}>
-          <Star size={14} color={note.is_favorite ? 'var(--yellow)' : 'rgba(255,255,255,0.65)'} fill={note.is_favorite ? 'var(--yellow)' : 'none'} />
-        </button>
-        <button className="btn-icon" style={{ width: 28, height: 28 }} onClick={e => { e.stopPropagation(); onEdit(note) }}>
-          <Edit3 size={14} color="rgba(255,255,255,0.65)" />
-        </button>
-        <button className="btn-icon" style={{ width: 28, height: 28 }} onClick={e => { e.stopPropagation(); onDelete(note.id) }}>
-          <Trash2 size={14} color="rgba(255,55,95,0.75)" />
-        </button>
+    <>
+      <style>{`
+        .note-list-meta { display: flex; }
+        @media (max-width: 480px) { .note-list-meta { display: none !important; } }
+      `}</style>
+      <div
+        style={{
+          display: 'flex', alignItems: 'center', gap: 10,
+          padding: '10px 12px', borderRadius: 10,
+          background: 'var(--glass-bg)', border: '1px solid var(--glass-border)',
+          borderLeft: `3px solid ${color}`,
+          cursor: 'pointer', transition: 'background 0.15s',
+        }}
+        onMouseEnter={e => e.currentTarget.style.background = 'var(--glass-bg-hover)'}
+        onMouseLeave={e => e.currentTarget.style.background = 'var(--glass-bg)'}
+        onClick={() => onView?.(note)}
+      >
+        {note.is_pinned && <Pin size={10} color={color} fill={color} style={{ flexShrink: 0 }} />}
+        <span style={{
+          flex: 1, fontSize: 13, fontWeight: 500, minWidth: 0,
+          overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+        }}>
+          {note.title}
+        </span>
+        {note.is_favorite && <Star size={11} color="var(--yellow)" fill="var(--yellow)" style={{ flexShrink: 0 }} />}
+        <span className="note-list-meta" style={{
+          fontSize: 11, color: 'rgba(255,255,255,0.25)',
+          background: 'rgba(255,255,255,0.05)', padding: '2px 8px', borderRadius: 4, flexShrink: 0,
+        }}>
+          {note.category || 'general'}
+        </span>
+        <span className="note-list-meta" style={{ fontSize: 11, color: 'var(--text-quaternary)', flexShrink: 0, minWidth: 72, textAlign: 'right' }}>
+          {timeAgo}
+        </span>
+        <div style={{ display: 'flex', gap: 2, flexShrink: 0 }}>
+          <button className="btn-icon" style={{ width: 30, height: 30 }} onClick={e => { e.stopPropagation(); onPin(note.id) }}>
+            <Pin size={14} color={note.is_pinned ? color : 'rgba(255,255,255,0.65)'} fill={note.is_pinned ? color : 'none'} />
+          </button>
+          <button className="btn-icon" style={{ width: 30, height: 30 }} onClick={e => { e.stopPropagation(); onFavorite(note.id) }}>
+            <Star size={14} color={note.is_favorite ? 'var(--yellow)' : 'rgba(255,255,255,0.65)'} fill={note.is_favorite ? 'var(--yellow)' : 'none'} />
+          </button>
+          <button className="btn-icon" style={{ width: 30, height: 30 }} onClick={e => { e.stopPropagation(); onEdit(note) }}>
+            <Edit3 size={14} color="rgba(255,255,255,0.65)" />
+          </button>
+          <button className="btn-icon" style={{ width: 30, height: 30 }} onClick={e => { e.stopPropagation(); onDelete(note.id) }}>
+            <Trash2 size={14} color="rgba(255,55,95,0.75)" />
+          </button>
+        </div>
       </div>
-    </div>
+    </>
   )
 }
 
@@ -605,6 +592,7 @@ function NoteModal({ note, onClose, onSave }) {
     description: note?.description || '',
     category: note?.category || 'general',
     color: note?.color || '#FFD60A',
+    tags: note?.tags?.map(t => t.id) || [],
   })
 
   useEffect(() => {
@@ -633,22 +621,29 @@ function NoteModal({ note, onClose, onSave }) {
       style={{
         position: 'fixed', inset: 0, zIndex: 1000,
         display: 'flex',
-        alignItems: maximized ? 'stretch' : 'center',
+        alignItems: maximized ? 'stretch' : 'flex-end',
         justifyContent: 'center',
-        padding: maximized ? 0 : 20,
+        padding: maximized ? 0 : 0,
         background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(8px)',
       }}
+      className="note-modal-overlay"
       onClick={e => e.target === e.currentTarget && onClose()}
     >
-      <div style={{
+      <style>{`
+        @media (min-width: 600px) {
+          .note-modal-overlay { align-items: center !important; padding: 20px !important; }
+          .note-modal-inner { border-radius: 16px !important; max-height: 90vh !important; }
+        }
+      `}</style>
+      <div className="note-modal-inner" style={{
         background: 'var(--surface-2)',
         border: '1px solid rgba(255,255,255,0.1)',
         borderTop: `3px solid ${color}`,
-        borderRadius: maximized ? 0 : 16,
+        borderRadius: maximized ? 0 : '16px 16px 0 0',
         width: '100%', maxWidth: maximized ? '100vw' : 620,
-        boxShadow: maximized ? 'none' : '0 32px 80px rgba(0,0,0,0.6)',
+        boxShadow: maximized ? 'none' : '0 -8px 40px rgba(0,0,0,0.5)',
         overflow: 'hidden', display: 'flex', flexDirection: 'column',
-        maxHeight: maximized ? '100vh' : '90vh',
+        maxHeight: maximized ? '100vh' : '95vh',
       }}>
         {/* Header */}
         <div style={{
@@ -690,8 +685,12 @@ function NoteModal({ note, onClose, onSave }) {
             />
           </div>
 
-          {/* Color + Category */}
-          <div style={{ display: 'flex', gap: 16, alignItems: 'flex-start' }}>
+          {/* Color + Category — stacks vertically on mobile */}
+          <style>{`
+            .note-color-row { display: flex; gap: 16px; align-items: flex-start; }
+            @media (max-width: 480px) { .note-color-row { flex-direction: column; gap: 12px; } }
+          `}</style>
+          <div className="note-color-row">
             <div style={{ flex: 1 }}>
               <label style={{ fontSize: 11, color: 'var(--text-tertiary)', display: 'block', marginBottom: 8 }}>COLOR</label>
               <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
@@ -744,6 +743,12 @@ function NoteModal({ note, onClose, onSave }) {
               <label style={{ fontSize: 11, color: 'var(--text-tertiary)', display: 'block', marginBottom: 6 }}>CATEGORY</label>
               <CategorySelector value={form.category} onChange={v => set('category', v)} />
             </div>
+          </div>
+
+          {/* Tags */}
+          <div>
+            <label style={{ fontSize: 11, color: 'var(--text-tertiary)', display: 'block', marginBottom: 6 }}>TAGS</label>
+            <TagsSelector value={form.tags} onChange={v => set('tags', v)} />
           </div>
 
           {/* Description */}
@@ -816,6 +821,7 @@ export default function NotesPage() {
   const qc = useQueryClient()
   const [search, setSearch] = useState('')
   const [showFavorites, setShowFavorites] = useState(false)
+  const [activeTag, setActiveTag] = useState(null) // tag id or null
   const [viewMode, setViewMode] = useState(() => {
     const saved = localStorage.getItem('notes_view')
     return (saved === 'bento' ? 'postit' : saved) || 'postit'
@@ -851,9 +857,13 @@ export default function NotesPage() {
     } catch (err) { toast.error(err.message) }
   }
 
+  // Load all tags for the filter chips
+  const { data: tagsData } = useQuery({ queryKey: ['tags'], queryFn: () => tagsApi.list(), staleTime: 60000 })
+  const allTags = tagsData?.data || []
+
   const { data, isLoading } = useQuery({
-    queryKey: ['notes', search, showFavorites],
-    queryFn: () => notesApi.list({ search, favorite: showFavorites ? 'true' : undefined }),
+    queryKey: ['notes', search, showFavorites, activeTag],
+    queryFn: () => notesApi.list({ search, favorite: showFavorites ? 'true' : undefined, tag: activeTag || undefined }),
     staleTime: 5000,
   })
 
@@ -969,8 +979,8 @@ export default function NotesPage() {
         )}
       </div>
 
-      {/* Filters */}
-      <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 20, alignItems: 'center' }}>
+      {/* Filters — row 1: chips (wrap freely) */}
+      <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center', marginBottom: 8 }}>
         <button
           onClick={() => setShowFavorites(f => !f)}
           className={`filter-chip${showFavorites ? ' active' : ''}`}
@@ -979,7 +989,25 @@ export default function NotesPage() {
           <Star size={11} fill={showFavorites ? 'currentColor' : 'none'} /> Favorites
         </button>
 
-        <div style={{ marginLeft: 'auto', display: 'flex', gap: 2, background: 'var(--glass-bg)', border: '1px solid var(--glass-border)', borderRadius: 8, padding: 2 }}>
+        {/* Tag filter chips */}
+        {allTags.map(tag => (
+          <button
+            key={tag.id}
+            onClick={() => setActiveTag(t => t === tag.id ? null : tag.id)}
+            className={`filter-chip${activeTag === tag.id ? ' active' : ''}`}
+            style={activeTag === tag.id
+              ? { background: `${tag.color}18`, borderColor: `${tag.color}50`, color: tag.color }
+              : {}}
+          >
+            <div style={{ width: 6, height: 6, borderRadius: '50%', background: activeTag === tag.id ? tag.color : 'rgba(255,255,255,0.3)', flexShrink: 0 }} />
+            {tag.name}
+          </button>
+        ))}
+      </div>
+
+      {/* Filters — row 2: view switcher (always right-aligned) */}
+      <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 16 }}>
+        <div style={{ display: 'flex', gap: 2, background: 'var(--glass-bg)', border: '1px solid var(--glass-border)', borderRadius: 8, padding: 2 }}>
           <button
             className={`btn-icon${viewMode === 'postit' ? ' active' : ''}`}
             style={{ width: 28, height: 28, borderRadius: 6 }}
@@ -1072,41 +1100,65 @@ export default function NotesPage() {
           ))}
         </div>
       ) : viewMode === 'board' ? (
-        <div style={{
-          columnCount: 3, columnGap: 16,
-          '@media(max-width:900px)': { columnCount: 2 },
-        }}>
-          {notes.map(note => (
-            <NoteBoardCard
-              key={note.id}
-              note={note}
-              onFavorite={id => favMut.mutate(id)}
-              onPin={id => pinMut.mutate(id)}
-              onEdit={openEdit}
-              onDelete={id => setDeleteConfirm(id)}
-              onView={n => setViewItem(n)}
-            />
-          ))}
-        </div>
+        <>
+          <style>{`
+            .notes-board-grid { column-count: 3; column-gap: 16px; }
+            @media (max-width: 900px) { .notes-board-grid { column-count: 2; } }
+            @media (max-width: 540px) { .notes-board-grid { column-count: 1; } }
+          `}</style>
+          <div className="notes-board-grid">
+            {notes.map(note => (
+              <NoteBoardCard
+                key={note.id}
+                note={note}
+                onFavorite={id => favMut.mutate(id)}
+                onPin={id => pinMut.mutate(id)}
+                onEdit={openEdit}
+                onDelete={id => setDeleteConfirm(id)}
+                onView={n => setViewItem(n)}
+              />
+            ))}
+          </div>
+        </>
       ) : viewMode === 'postit' ? (
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fill, minmax(190px, 1fr))',
-          gap: 28,
-          padding: '8px 4px 24px',
-        }}>
-          {notes.map(note => (
-            <NotePostItCard
-              key={note.id}
-              note={note}
-              onFavorite={id => favMut.mutate(id)}
-              onPin={id => pinMut.mutate(id)}
-              onEdit={openEdit}
-              onDelete={id => setDeleteConfirm(id)}
-              onView={n => setViewItem(n)}
-            />
-          ))}
-        </div>
+        <>
+          <style>{`
+            .notes-postit-grid {
+              display: grid;
+              grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+              gap: 28px;
+              padding: 8px 4px 24px;
+            }
+            @media (max-width: 480px) {
+              .notes-postit-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 20px;
+              }
+            }
+            @media (max-width: 340px) {
+              .notes-postit-grid {
+                grid-template-columns: 1fr;
+              }
+            }
+            /* Post-it actions always visible on touch devices */
+            @media (hover: none) {
+              .postit-actions { opacity: 1 !important; pointer-events: auto !important; }
+            }
+          `}</style>
+          <div className="notes-postit-grid">
+            {notes.map(note => (
+              <NotePostItCard
+                key={note.id}
+                note={note}
+                onFavorite={id => favMut.mutate(id)}
+                onPin={id => pinMut.mutate(id)}
+                onEdit={openEdit}
+                onDelete={id => setDeleteConfirm(id)}
+                onView={n => setViewItem(n)}
+              />
+            ))}
+          </div>
+        </>
       ) : viewMode === 'timeline' ? (
         <div style={{ paddingLeft: 4 }}>
           {groupByDate(notes).map(group => (

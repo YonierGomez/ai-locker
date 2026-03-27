@@ -363,8 +363,16 @@ export default function PromptsPage() {
   return (
     <div className="page-content">
       {/* Toolbar */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 20, flexWrap: 'wrap' }}>
-        <div className="search-bar" style={{ flex: 1, minWidth: 200 }}>
+      <style>{`
+        .prompts-toolbar { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; }
+        .prompts-toolbar-row2 { display: flex; align-items: center; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
+        @media (max-width: 599px) {
+          .prompts-toolbar { gap: 8px; }
+        }
+      `}</style>
+      {/* Row 1: search + primary actions */}
+      <div className="prompts-toolbar">
+        <div className="search-bar" style={{ flex: 1, minWidth: 160 }}>
           <Search size={15} color="var(--text-tertiary)" />
           <input
             placeholder="Search prompts…"
@@ -372,7 +380,22 @@ export default function PromptsPage() {
             onChange={e => setSearch(e.target.value)}
           />
         </div>
-
+        <button
+          className={`btn btn-glass btn-sm ${isSelectMode ? 'active' : ''}`}
+          onClick={() => { setSelectMode(m => !m); if (isSelectMode) clearSelection() }}
+          title="Select items"
+          style={isSelectMode ? { borderColor: 'color-mix(in srgb, var(--blue) 40%, transparent)', color: 'var(--blue-light)', gap: 5 } : { gap: 5 }}
+        >
+          <MousePointer size={13} />
+          Select
+        </button>
+        <button className="btn btn-primary" onClick={openCreate} style={{ gap: 6 }}>
+          <Plus size={15} />
+          New Prompt
+        </button>
+      </div>
+      {/* Row 2: filters + view toggle */}
+      <div className="prompts-toolbar-row2">
         <button
           className={`filter-chip ${showFavorites ? 'active' : ''}`}
           onClick={() => setShowFavorites(!showFavorites)}
@@ -380,46 +403,20 @@ export default function PromptsPage() {
           <Star size={12} fill={showFavorites ? 'currentColor' : 'none'} />
           Favorites
         </button>
-
-        {/* View toggle */}
-        <div style={{ display: 'flex', background: 'rgba(255,255,255,0.05)', borderRadius: 10, padding: 3, gap: 2 }}>
-          <button onClick={() => setView('cards')} title="Card view"
-            style={{ padding: '5px 9px', borderRadius: 7, border: 'none', cursor: 'pointer', background: viewMode === 'cards' ? 'rgba(255,255,255,0.1)' : 'transparent', color: viewMode === 'cards' ? 'var(--text-primary)' : 'var(--text-tertiary)', transition: 'all 0.15s' }}>
-            <LayoutGrid size={14} />
-          </button>
-          <button onClick={() => setView('table')} title="Table view"
-            style={{ padding: '5px 9px', borderRadius: 7, border: 'none', cursor: 'pointer', background: viewMode === 'table' ? 'rgba(255,255,255,0.1)' : 'transparent', color: viewMode === 'table' ? 'var(--text-primary)' : 'var(--text-tertiary)', transition: 'all 0.15s' }}>
-            <List size={14} />
-          </button>
-          <button onClick={() => setView('compact')} title="Compact view"
-            style={{ padding: '5px 9px', borderRadius: 7, border: 'none', cursor: 'pointer', background: viewMode === 'compact' ? 'rgba(255,255,255,0.1)' : 'transparent', color: viewMode === 'compact' ? 'var(--text-primary)' : 'var(--text-tertiary)', transition: 'all 0.15s' }}>
-            <AlignJustify size={14} />
-          </button>
-          <button onClick={() => setView('cheatsheet')} title="Cheatsheet — grouped by category with full content"
-            style={{ padding: '5px 9px', borderRadius: 7, border: 'none', cursor: 'pointer', background: viewMode === 'cheatsheet' ? 'rgba(255,255,255,0.1)' : 'transparent', color: viewMode === 'cheatsheet' ? 'var(--text-primary)' : 'var(--text-tertiary)', transition: 'all 0.15s' }}>
-            <BookOpen size={14} />
-          </button>
-          <button onClick={() => setView('flashcard')} title="Flashcard — one at a time, flip to see content"
-            style={{ padding: '5px 9px', borderRadius: 7, border: 'none', cursor: 'pointer', background: viewMode === 'flashcard' ? 'rgba(255,255,255,0.1)' : 'transparent', color: viewMode === 'flashcard' ? 'var(--text-primary)' : 'var(--text-tertiary)', transition: 'all 0.15s' }}>
-            <Layers size={14} />
-          </button>
+        <div style={{ marginLeft: 'auto', display: 'flex', background: 'rgba(255,255,255,0.05)', borderRadius: 10, padding: 3, gap: 2 }}>
+          {[
+            { id: 'cards', icon: <LayoutGrid size={14} />, title: 'Card view' },
+            { id: 'table', icon: <List size={14} />, title: 'Table view' },
+            { id: 'compact', icon: <AlignJustify size={14} />, title: 'Compact view' },
+            { id: 'cheatsheet', icon: <BookOpen size={14} />, title: 'Cheatsheet' },
+            { id: 'flashcard', icon: <Layers size={14} />, title: 'Flashcard' },
+          ].map(({ id, icon, title }) => (
+            <button key={id} onClick={() => setView(id)} title={title}
+              style={{ padding: '5px 9px', borderRadius: 7, border: 'none', cursor: 'pointer', background: viewMode === id ? 'rgba(255,255,255,0.1)' : 'transparent', color: viewMode === id ? 'var(--text-primary)' : 'var(--text-tertiary)', transition: 'all 0.15s' }}>
+              {icon}
+            </button>
+          ))}
         </div>
-
-        {/* Select mode toggle */}
-        <button
-          className={`btn btn-glass btn-sm ${isSelectMode ? 'active' : ''}`}
-          onClick={() => { setSelectMode(m => !m); if (isSelectMode) clearSelection() }}
-          title="Select items"
-          style={isSelectMode ? { borderColor: 'color-mix(in srgb, var(--blue) 40%, transparent)', color: 'var(--blue-light)' } : {}}
-        >
-          <MousePointer size={13} />
-          Select
-        </button>
-
-        <button className="btn btn-primary" onClick={openCreate}>
-          <Plus size={15} />
-          New Prompt
-        </button>
       </div>
 
       {/* Category filters */}
@@ -488,8 +485,8 @@ export default function PromptsPage() {
         </div>
       ) : viewMode === 'table' ? (
         /* ── Table view ── */
-        <div className="glass-card" style={{ padding: 0, overflow: 'hidden' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+        <div className="glass-card" style={{ padding: 0, overflow: 'auto' }}>
+          <table style={{ width: '100%', minWidth: 560, borderCollapse: 'collapse', fontSize: 13 }}>
             <thead>
               <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
                 <th                     style={{ padding: '10px 14px', textAlign: 'left', fontSize: 11, fontWeight: 600, color: 'var(--text-tertiary)', textTransform: 'uppercase', letterSpacing: 0.5, width: 36 }}>

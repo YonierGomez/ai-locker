@@ -544,6 +544,18 @@ body::before {
 .btn-sm { padding: 5px 12px; font-size: 13px; border-radius: var(--radius-sm); }
 .btn-lg { padding: 12px 24px; font-size: 15px; border-radius: var(--radius-lg); }
 
+.btn-ghost {
+  background: transparent;
+  color: var(--text-secondary);
+  border: 1px solid rgba(255, 255, 255, 0.10);
+}
+
+.btn-ghost:hover {
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--text-primary);
+  border-color: rgba(255, 255, 255, 0.16);
+}
+
 /* ── Cards Grid ── */
 .cards-grid {
   display: grid;
@@ -656,11 +668,9 @@ body::before {
   display: flex;
   align-items: center;
   gap: 4px;
-  opacity: 0;
+  opacity: 1;
   transition: opacity var(--duration-fast);
 }
-
-.item-card:hover .item-card-actions { opacity: 1; }
 
 /* ── Tags ── */
 .tag {

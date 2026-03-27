@@ -31,13 +31,20 @@ export default function Modal({ isOpen, onClose, title, children, footer, size =
   const maxWidths = { sm: 480, md: 680, lg: 860, xl: 1000 }
 
   return (
+    <>
+      <style>{`
+        @media (max-width: 599px) {
+          .modal-overlay-inner { align-items: flex-end !important; padding: 0 !important; }
+          .modal-inner { border-radius: 20px 20px 0 0 !important; max-height: 95vh !important; }
+        }
+      `}</style>
     <div
-      className="modal-overlay"
+      className="modal-overlay modal-overlay-inner"
       onClick={(e) => e.target === e.currentTarget && onClose?.()}
       style={maximized ? { alignItems: 'stretch', padding: 0 } : {}}
     >
       <div
-        className="modal"
+        className="modal modal-inner"
         style={maximized
           ? { maxWidth: '100vw', width: '100vw', maxHeight: '100vh', height: '100vh', borderRadius: 0, transition: 'border-radius 0.15s' }
           : { maxWidth: maxWidths[size], transition: 'border-radius 0.15s' }
@@ -66,5 +73,6 @@ export default function Modal({ isOpen, onClose, title, children, footer, size =
         )}
       </div>
     </div>
+    </>
   )
 }

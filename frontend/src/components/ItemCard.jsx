@@ -206,7 +206,7 @@ export default function ItemCard({
           )}
         </div>
 
-        <div className="item-card-actions">
+        <div className="item-card-actions" style={{ opacity: 1 }}>
           {extraActions}
           {contentHasMd && (
             <button
