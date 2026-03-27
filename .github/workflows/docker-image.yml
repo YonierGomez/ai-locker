@@ -106,7 +106,7 @@ jobs:
           [ -z "$CHANGELOG" ] && CHANGELOG="- Release v${VERSION}"
           echo "$CHANGELOG" > /tmp/changelog.txt
 
-      - name: Create GitHub Release
+      - name: Create or update GitHub Release
         if: steps.compare.outputs.new_version == 'true' || github.event.inputs.force_build == 'true'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -149,6 +149,13 @@ jobs:
 
           Abre **http://localhost:3001**
           EOF
+
+          # Si el release ya existe, eliminarlo primero (force_build o re-release)
+          if gh release view "$TAG" &>/dev/null; then
+            echo "Release $TAG ya existe — eliminando para recrear"
+            gh release delete "$TAG" --yes --cleanup-tag || true
+            git push origin ":refs/tags/$TAG" || true
+          fi
 
           gh release create "$TAG" \
             --title "AI Locker $VERSION" \
