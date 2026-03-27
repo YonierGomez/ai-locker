@@ -98,6 +98,7 @@ export default function DetailModal({ item, onClose, onEdit, onDelete, onToggleF
       style={{
         alignItems: maximized ? 'stretch' : 'center',
         padding: maximized ? 0 : '20px',
+        zIndex: maximized ? 9000 : 200,
       }}
     >
       <div className="detail-modal-container" style={{
