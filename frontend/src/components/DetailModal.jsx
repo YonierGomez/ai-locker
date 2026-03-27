@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { X, Copy, Edit2, Trash2, Star, Check, Eye, EyeOff, Tag, Clock, Hash, Cpu, Zap, Calendar, Server, Wifi, Monitor, Terminal, Maximize2, Minimize2 } from 'lucide-react'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
@@ -91,14 +92,14 @@ export default function DetailModal({ item, onClose, onEdit, onDelete, onToggleF
     td: ({ children }) => <td style={{ padding: '6px 10px', borderBottom: '1px solid var(--glass-border)', color: 'var(--text-tertiary)' }}>{children}</td>,
   }
 
-  return (
+  return createPortal(
     <div
       className="modal-overlay"
       onClick={(e) => e.target === e.currentTarget && !maximized && onClose?.()}
       style={{
         alignItems: maximized ? 'stretch' : 'center',
         padding: maximized ? 0 : '20px',
-        zIndex: maximized ? 9000 : 200,
+        zIndex: 9000,
       }}
     >
       <div className="detail-modal-container" style={{
@@ -342,7 +343,8 @@ export default function DetailModal({ item, onClose, onEdit, onDelete, onToggleF
           </div>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   )
 }
 
