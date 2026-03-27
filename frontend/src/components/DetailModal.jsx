@@ -94,15 +94,18 @@ export default function DetailModal({ item, onClose, onEdit, onDelete, onToggleF
   return (
     <div
       className="modal-overlay"
-      onClick={(e) => e.target === e.currentTarget && onClose?.()}
-      style={{ alignItems: 'center' }}
+      onClick={(e) => e.target === e.currentTarget && !maximized && onClose?.()}
+      style={{
+        alignItems: maximized ? 'stretch' : 'center',
+        padding: maximized ? 0 : '20px',
+      }}
     >
       <div className="detail-modal-container" style={{
         borderRadius: maximized ? 0 : 'var(--radius-2xl)',
-        width: maximized ? '100vw' : '100%',
-        maxWidth: maximized ? '100vw' : (maxWidth || 780),
-        height: maximized ? '100vh' : undefined,
-        maxHeight: maximized ? '100vh' : '90vh',
+        width: '100%',
+        maxWidth: maximized ? '100%' : (maxWidth || 780),
+        height: maximized ? '100%' : undefined,
+        maxHeight: maximized ? '100%' : '90vh',
         display: 'flex',
         flexDirection: 'column',
         overflow: 'hidden',
