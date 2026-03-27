@@ -97,7 +97,7 @@ export default function Sidebar({ isOpen, onClose }) {
           {appLogo ? (
             <img src={appLogo} alt="logo" style={{ width: 32, height: 32, borderRadius: 8, objectFit: 'cover' }} />
           ) : (
-            <img src="/icon.svg" alt="AI Locker" style={{ width: 32, height: 32, borderRadius: 8 }} />
+            <img src="/icon.svg" alt="AI Locker" style={{ width: 36, height: 36, borderRadius: 9 }} />
           )}
         </div>
         <span className="sidebar-logo-text">{appName}</span>
