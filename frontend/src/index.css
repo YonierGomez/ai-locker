@@ -1183,6 +1183,33 @@ body::before {
   will-change: transform, opacity;
 }
 
+/* ── Terminal / code row light mode fixes ── */
+.cmd-terminal-row {
+  background: var(--c-code-bg) !important;
+}
+.cmd-terminal-text {
+  color: var(--text-primary) !important;
+}
+.cmd-terminal-prompt {
+  color: var(--text-quaternary) !important;
+}
+.cmd-icon-btn {
+  color: var(--c-icon) !important;
+}
+
+[data-theme="light"] .cmd-terminal-row {
+  background: rgba(0,0,0,0.04) !important;
+}
+[data-theme="light"] .cmd-terminal-text {
+  color: rgba(0,0,0,0.85) !important;
+}
+[data-theme="light"] .cmd-terminal-prompt {
+  color: rgba(0,0,0,0.35) !important;
+}
+[data-theme="light"] .cmd-icon-btn {
+  color: rgba(0,0,0,0.40) !important;
+}
+
 /* ── AI Chat mobile fixes ── */
 @media (max-width: 768px) {
   /* Bubble max-width más generoso en mobile */
