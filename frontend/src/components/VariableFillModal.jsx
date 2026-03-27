@@ -1,7 +1,17 @@
 import { useState, useEffect, useRef } from 'react'
 import { createPortal } from 'react-dom'
-import { Copy, X, Eye } from 'lucide-react'
+import { Copy, X, Eye, EyeOff, Lock } from 'lucide-react'
 import toast from 'react-hot-toast'
+
+// Variables that should be treated as sensitive (password input)
+const SENSITIVE_PATTERNS = [
+  /key/i, /secret/i, /token/i, /password/i, /passwd/i,
+  /api/i, /auth/i, /credential/i, /private/i, /access/i,
+]
+
+function isSensitive(varName) {
+  return SENSITIVE_PATTERNS.some(p => p.test(varName))
+}
 
 // Extract unique {{variable}} names from content
 export function extractVariables(content) {
@@ -21,7 +31,7 @@ export function fillVariables(content, values) {
   })
 }
 
-// Render preview with highlighted filled/unfilled variables
+// Render preview — sensitive vars show ••••••
 function PreviewContent({ content, values }) {
   const parts = []
   let lastIdx = 0
@@ -33,7 +43,7 @@ function PreviewContent({ content, values }) {
     }
     const key = match[1].trim()
     const filled = values[key] && values[key].trim()
-    parts.push({ type: 'var', key, value: filled || null })
+    parts.push({ type: 'var', key, value: filled || null, sensitive: isSensitive(key) })
     lastIdx = match.index + match[0].length
   }
   if (lastIdx < content.length) {
@@ -52,8 +62,9 @@ function PreviewContent({ content, values }) {
               borderRadius: 4,
               padding: '0 3px',
               fontWeight: 600,
+              fontFamily: 'var(--font-mono)',
             }}>
-              {part.value}
+              {part.sensitive ? '•'.repeat(Math.min(part.value.length, 12)) : part.value}
             </mark>
           )
         }
@@ -77,14 +88,17 @@ export default function VariableFillModal({ content, onClose }) {
   const variables = extractVariables(content)
   const [values, setValues] = useState(() => Object.fromEntries(variables.map(v => [v, ''])))
   const [showPreview, setShowPreview] = useState(true)
+  const [revealedVars, setRevealedVars] = useState({})
   const firstInputRef = useRef(null)
+  const inputRefs = useRef([])
 
   useEffect(() => {
     setValues(Object.fromEntries(variables.map(v => [v, ''])))
+    setRevealedVars({})
   }, [content])
 
   useEffect(() => {
-    setTimeout(() => firstInputRef.current?.focus(), 50)
+    setTimeout(() => inputRefs.current[0]?.focus(), 50)
   }, [])
 
   const allFilled = variables.every(v => values[v]?.trim())
@@ -101,6 +115,10 @@ export default function VariableFillModal({ content, onClose }) {
     }
   }
 
+  const toggleReveal = (varName) => {
+    setRevealedVars(r => ({ ...r, [varName]: !r[varName] }))
+  }
+
   return createPortal(
     <div
       style={{
@@ -114,7 +132,7 @@ export default function VariableFillModal({ content, onClose }) {
     >
       <div
         style={{
-          width: '100%', maxWidth: 560,
+          width: '100%', maxWidth: 580,
           background: 'rgba(22,22,26,0.98)',
           border: '1px solid rgba(255,255,255,0.12)',
           borderRadius: 18,
@@ -133,6 +151,11 @@ export default function VariableFillModal({ content, onClose }) {
             <div style={{ fontSize: 14, fontWeight: 600 }}>Fill in variables</div>
             <div style={{ fontSize: 12, color: 'var(--text-tertiary)', marginTop: 2 }}>
               {variables.length} variable{variables.length !== 1 ? 's' : ''} detected
+              {variables.some(v => isSensitive(v)) && (
+                <span style={{ color: 'rgba(255,159,10,0.7)', marginLeft: 8, display: 'inline-flex', alignItems: 'center', gap: 3 }}>
+                  <Lock size={10} /> sensitive fields detected
+                </span>
+              )}
               {anyFilled && !allFilled && (
                 <span style={{ color: '#FF9500', marginLeft: 8 }}>
                   · {variables.filter(v => !values[v]?.trim()).length} remaining
@@ -161,40 +184,74 @@ export default function VariableFillModal({ content, onClose }) {
           <div style={{ flex: 1, padding: '16px 20px', display: 'flex', flexDirection: 'column', gap: 14, overflowY: 'auto' }}>
             {variables.map((varName, i) => {
               const isFilled = !!values[varName]?.trim()
+              const sensitive = isSensitive(varName)
+              const revealed = revealedVars[varName]
+              const inputType = sensitive && !revealed ? 'password' : 'text'
+
               return (
                 <div key={varName} className="form-group" style={{ margin: 0 }}>
                   <label className="form-label" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                     <code style={{
                       fontSize: 11,
-                      color: isFilled ? '#30D158' : 'var(--blue-light)',
-                      background: isFilled ? 'rgba(48,209,88,0.12)' : 'color-mix(in srgb, var(--blue) 12%, transparent)',
-                      border: `1px solid ${isFilled ? 'rgba(48,209,88,0.25)' : 'color-mix(in srgb, var(--blue) 25%, transparent)'}`,
+                      color: isFilled ? '#30D158' : sensitive ? '#FF9500' : 'var(--blue-light)',
+                      background: isFilled
+                        ? 'rgba(48,209,88,0.12)'
+                        : sensitive
+                        ? 'rgba(255,159,10,0.10)'
+                        : 'color-mix(in srgb, var(--blue) 12%, transparent)',
+                      border: `1px solid ${isFilled
+                        ? 'rgba(48,209,88,0.25)'
+                        : sensitive
+                        ? 'rgba(255,159,10,0.25)'
+                        : 'color-mix(in srgb, var(--blue) 25%, transparent)'}`,
                       borderRadius: 5, padding: '1px 6px',
                       fontFamily: 'var(--font-mono)',
                       transition: 'all 0.2s',
                     }}>
                       {`{{${varName}}}`}
                     </code>
+                    {sensitive && (
+                      <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3, fontSize: 10, color: 'rgba(255,159,10,0.6)' }}>
+                        <Lock size={9} /> sensitive
+                      </span>
+                    )}
                     {isFilled && <span style={{ fontSize: 10, color: '#30D158' }}>✓</span>}
                   </label>
-                  <input
-                    ref={i === 0 ? firstInputRef : null}
-                    className="form-input"
-                    placeholder={`Value for ${varName}…`}
-                    value={values[varName] || ''}
-                    onChange={e => setValues(v => ({ ...v, [varName]: e.target.value }))}
-                    onKeyDown={e => {
-                      if (e.key === 'Enter') {
-                        if (i < variables.length - 1) {
-                          const inputs = document.querySelectorAll('.var-fill-input')
-                          inputs[i + 1]?.focus()
-                        } else if (allFilled) {
-                          handleCopy()
+                  <div style={{ position: 'relative', marginTop: 6 }}>
+                    <input
+                      ref={el => inputRefs.current[i] = el}
+                      className="form-input"
+                      type={inputType}
+                      placeholder={sensitive ? `••••••••` : `Value for ${varName}…`}
+                      value={values[varName] || ''}
+                      onChange={e => setValues(v => ({ ...v, [varName]: e.target.value }))}
+                      onKeyDown={e => {
+                        if (e.key === 'Enter') {
+                          if (i < variables.length - 1) {
+                            inputRefs.current[i + 1]?.focus()
+                          } else if (allFilled) {
+                            handleCopy()
+                          }
                         }
-                      }
-                    }}
-                    style={{ marginTop: 6 }}
-                  />
+                      }}
+                      style={{ paddingRight: sensitive ? 36 : undefined }}
+                    />
+                    {sensitive && (
+                      <button
+                        onClick={() => toggleReveal(varName)}
+                        style={{
+                          position: 'absolute', right: 10, top: '50%',
+                          transform: 'translateY(-50%)',
+                          background: 'none', border: 'none', cursor: 'pointer',
+                          color: 'var(--text-tertiary)', display: 'flex',
+                          padding: 0,
+                        }}
+                        title={revealed ? 'Hide' : 'Show'}
+                      >
+                        {revealed ? <EyeOff size={14} /> : <Eye size={14} />}
+                      </button>
+                    )}
+                  </div>
                 </div>
               )
             })}
@@ -240,6 +297,10 @@ export default function VariableFillModal({ content, onClose }) {
                   <div style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 10, color: '#FF9500' }}>
                     <div style={{ width: 8, height: 8, borderRadius: 2, background: 'rgba(255,159,10,0.3)' }} />
                     pending
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 10, color: 'rgba(255,255,255,0.3)' }}>
+                    <Lock size={8} />
+                    masked
                   </div>
                 </div>
               </div>
