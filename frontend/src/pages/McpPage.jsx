@@ -38,13 +38,13 @@ function JsonTreeItem({ item, onView, onCopy, copiedId, onToggle }) {
   return (
     <div className="glass-card" style={{ padding: 0, overflow: 'hidden' }}>
       {/* Header */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 0, cursor: 'pointer', background: 'rgba(255,255,255,0.02)' }}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 0, cursor: 'pointer', background: 'var(--c-surface)' }}
         onClick={() => setExpanded(e => !e)}>
         <div style={{ width: 4, alignSelf: 'stretch', background: item.is_active ? '#30D158' : '#8E8E93', flexShrink: 0 }} />
         <div style={{ padding: '10px 14px', display: 'flex', alignItems: 'center', gap: 10, flex: 1 }}>
-          <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.3)', fontFamily: 'monospace', userSelect: 'none' }}>{expanded ? '▼' : '▶'}</span>
+          <span style={{ fontSize: 12, color: 'var(--c-tick)', fontFamily: 'monospace', userSelect: 'none' }}>{expanded ? '▼' : '▶'}</span>
           <code style={{ fontSize: 13, color: '#5AC8FA', fontFamily: 'monospace', fontWeight: 600 }}>"{item.server_name}"</code>
-          <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.2)' }}>:</span>
+          <span style={{ fontSize: 11, color: 'var(--text-quaternary)' }}>:</span>
           <span style={{ fontSize: 11, color: 'var(--text-tertiary)' }}>{item.title}</span>
           {item.is_favorite && <Star size={10} color="var(--yellow)" fill="var(--yellow)" />}
           <span style={{ fontSize: 9, color: item.is_active ? '#30D158' : '#8E8E93', background: item.is_active ? 'rgba(48,209,88,0.1)' : 'rgba(255,255,255,0.05)', padding: '1px 6px', borderRadius: 4 }}>{item.is_active ? 'active' : 'inactive'}</span>
@@ -61,7 +61,7 @@ function JsonTreeItem({ item, onView, onCopy, copiedId, onToggle }) {
       </div>
       {/* JSON content */}
       {expanded && (
-        <div style={{ background: 'rgba(0,0,0,0.3)', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
+        <div style={{  background: 'var(--c-code-bg)', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
           <pre style={{ margin: 0, padding: '12px 16px 12px 28px', fontFamily: "'JetBrains Mono','Fira Code',monospace", fontSize: 12, lineHeight: 1.7, color: '#5AC8FA', whiteSpace: 'pre-wrap', wordBreak: 'break-all' }}>
             {configStr.split('\n').map((line, i) => {
               // Syntax highlight keys vs values
@@ -69,15 +69,15 @@ function JsonTreeItem({ item, onView, onCopy, copiedId, onToggle }) {
               if (keyMatch) {
                 return (
                   <span key={i}>
-                    <span style={{ color: 'rgba(255,255,255,0.3)' }}>{keyMatch[1]}</span>
+                    <span style={{ color: 'var(--c-tick)' }}>{keyMatch[1]}</span>
                     <span style={{ color: '#BF5AF2' }}>"{keyMatch[2]}"</span>
-                    <span style={{ color: 'rgba(255,255,255,0.3)' }}>{keyMatch[3]}</span>
+                    <span style={{ color: 'var(--c-tick)' }}>{keyMatch[3]}</span>
                     <span style={{ color: line.includes('"') && !line.match(/:\s*"/) ? '#30D158' : '#FF9500' }}>{keyMatch[4]}</span>
                     {'\n'}
                   </span>
                 )
               }
-              return <span key={i} style={{ color: 'rgba(255,255,255,0.4)' }}>{line}{'\n'}</span>
+              return <span key={i} style={{ color: 'var(--c-icon)' }}>{line}{'\n'}</span>
             })}
           </pre>
         </div>
@@ -282,7 +282,7 @@ export default function McpPage() {
         <button className="btn btn-glass" onClick={handleExport}>
           <Download size={14} /> Export Active
         </button>
-        <div style={{ display: 'flex', background: 'rgba(255,255,255,0.05)', borderRadius: 10, padding: 3, gap: 2 }}>
+        <div style={{ display: 'flex', background: 'var(--c-surface)', borderRadius: 10, padding: 3, gap: 2 }}>
           {[['cards', LayoutGrid], ['list', List], ['compact', AlignJustify], ['serverstatus', Server], ['jsontree', FileJson]].map(([id, Icon]) => (
             <button key={id} onClick={() => setView(id)} title={`${id} view`}
               style={{ padding: '5px 9px', borderRadius: 7, border: 'none', cursor: 'pointer', background: viewMode === id ? 'rgba(255,255,255,0.1)' : 'transparent', color: viewMode === id ? 'var(--text-primary)' : 'var(--text-tertiary)', transition: 'all 0.15s' }}>

@@ -45,7 +45,7 @@ function CheatsheetView({ prompts, onView, onCopy }) {
               {items.map(p => (
                 <div key={p.id} className="glass-card" style={{ padding: 0, overflow: 'hidden', borderLeft: `3px solid ${color}` }}>
                   {/* Header */}
-                  <div style={{ padding: '10px 14px 8px', display: 'flex', alignItems: 'center', gap: 8, borderBottom: '1px solid rgba(255,255,255,0.06)', background: `${color}08` }}>
+                  <div style={{ padding: '10px 14px 8px', display: 'flex', alignItems: 'center', gap: 8, borderBottom: '1px solid var(--c-divider)', background: `${color}08` }}>
                     <span style={{ fontSize: 13, fontWeight: 600, flex: 1 }}>{p.title}</span>
                     {p.is_favorite && <Star size={11} color="var(--yellow)" fill="var(--yellow)" />}
                     {p.use_count > 0 && <span style={{ fontSize: 10, color: 'var(--text-quaternary)' }}>{p.use_count}×</span>}
@@ -110,7 +110,7 @@ function FlashcardView({ prompts, onView, onFavorite }) {
       {/* Progress */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
         <span style={{ fontSize: 12, color: 'var(--text-tertiary)' }}>{idx + 1} / {prompts.length}</span>
-        <div style={{ width: 200, height: 3, background: 'rgba(255,255,255,0.08)', borderRadius: 99, overflow: 'hidden' }}>
+        <div style={{ width: 200, height: 3, background: 'var(--c-border)', borderRadius: 99, overflow: 'hidden' }}>
           <div style={{ height: '100%', width: `${((idx + 1) / prompts.length) * 100}%`, background: '#007AFF', borderRadius: 99, transition: 'width 0.3s' }} />
         </div>
         <span style={{ fontSize: 11, color: 'var(--text-quaternary)' }}>{current.category}</span>
@@ -144,7 +144,7 @@ function FlashcardView({ prompts, onView, onFavorite }) {
             <div style={{ fontSize: 10, fontWeight: 600, color: '#007AFF', letterSpacing: 1, textTransform: 'uppercase', marginBottom: 4 }}>{current.category}</div>
             <h2 style={{ fontSize: 24, fontWeight: 700, letterSpacing: -0.5, margin: 0, lineHeight: 1.3 }}>{current.title}</h2>
             {current.description && <p style={{ fontSize: 14, color: 'var(--text-tertiary)', margin: 0, lineHeight: 1.6, maxWidth: 400 }}>{current.description}</p>}
-            <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.2)', marginTop: 8 }}>Click or press Space to reveal</div>
+            <div style={{ fontSize: 11, color: 'var(--text-quaternary)', marginTop: 8 }}>Click or press Space to reveal</div>
           </div>
 
           {/* Back — full content */}
@@ -182,7 +182,7 @@ function FlashcardView({ prompts, onView, onFavorite }) {
         </button>
         <button className="btn btn-glass" onClick={next} disabled={idx === prompts.length - 1} style={{ gap: 6 }}>Next →</button>
       </div>
-      <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.2)' }}>← → navigate · Space flip</div>
+      <div style={{ fontSize: 11, color: 'var(--text-quaternary)' }}>← → navigate · Space flip</div>
     </div>
   )
 }
@@ -403,7 +403,7 @@ export default function PromptsPage() {
           <Star size={12} fill={showFavorites ? 'currentColor' : 'none'} />
           Favorites
         </button>
-        <div style={{ marginLeft: 'auto', display: 'flex', background: 'rgba(255,255,255,0.05)', borderRadius: 10, padding: 3, gap: 2 }}>
+        <div style={{ marginLeft: 'auto', display: 'flex', background: 'var(--c-surface)', borderRadius: 10, padding: 3, gap: 2 }}>
           {[
             { id: 'cards', icon: <LayoutGrid size={14} />, title: 'Card view' },
             { id: 'table', icon: <List size={14} />, title: 'Table view' },

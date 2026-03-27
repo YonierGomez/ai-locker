@@ -115,7 +115,7 @@ function NoteCard({ note, onFavorite, onPin, onEdit, onDelete, onView }) {
         background: 'rgba(255,255,255,0.015)', borderTop: '1px solid rgba(255,255,255,0.04)',
       }}>
         <div style={{ width: 7, height: 7, borderRadius: '50%', background: color, flexShrink: 0 }} />
-        <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.3)', background: 'rgba(255,255,255,0.05)', padding: '2px 6px', borderRadius: 4 }}>
+        <span style={{ fontSize: 10, color: 'var(--c-tick)', background: 'var(--c-surface)', padding: '2px 6px', borderRadius: 4 }}>
           {note.category || 'general'}
         </span>
         <button className="btn-icon" style={{ width: 24, height: 24, marginLeft: 'auto' }}
@@ -321,7 +321,7 @@ function NotePostItCard({ note, onFavorite, onPin, onEdit, onDelete, onView }) {
                 onClick={btn.onClick}
                 style={{
                   width: 28, height: 28, borderRadius: 6, border: 'none',
-                  background: 'rgba(0,0,0,0.1)', cursor: 'pointer',
+                   background: 'var(--c-code-bg)', cursor: 'pointer',
                   display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
                   transition: 'background 0.15s',
                 }}
@@ -479,8 +479,8 @@ function NoteListRow({ note, onFavorite, onPin, onEdit, onDelete, onView }) {
         </span>
         {note.is_favorite && <Star size={11} color="var(--yellow)" fill="var(--yellow)" style={{ flexShrink: 0 }} />}
         <span className="note-list-meta" style={{
-          fontSize: 11, color: 'rgba(255,255,255,0.25)',
-          background: 'rgba(255,255,255,0.05)', padding: '2px 8px', borderRadius: 4, flexShrink: 0,
+          fontSize: 11, color: 'var(--c-icon-sm)',
+          background: 'var(--c-surface)', padding: '2px 8px', borderRadius: 4, flexShrink: 0,
         }}>
           {note.category || 'general'}
         </span>
@@ -624,7 +624,7 @@ function NoteModal({ note, onClose, onSave }) {
         alignItems: maximized ? 'stretch' : 'flex-end',
         justifyContent: 'center',
         padding: maximized ? 0 : 0,
-        background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(8px)',
+         background: 'var(--c-code-bg)', backdropFilter: 'blur(8px)',
       }}
       className="note-modal-overlay"
       onClick={e => e.target === e.currentTarget && onClose()}
@@ -637,7 +637,7 @@ function NoteModal({ note, onClose, onSave }) {
       `}</style>
       <div className="note-modal-inner" style={{
         background: 'var(--surface-2)',
-        border: '1px solid rgba(255,255,255,0.1)',
+        border: '1px solid var(--c-border-md)',
         borderTop: `3px solid ${color}`,
         borderRadius: maximized ? 0 : '16px 16px 0 0',
         width: '100%', maxWidth: maximized ? '100vw' : 620,
@@ -794,7 +794,7 @@ function DeleteDialog({ onConfirm, onCancel }) {
     <div style={{
       position: 'fixed', inset: 0, zIndex: 1100,
       display: 'flex', alignItems: 'center', justifyContent: 'center',
-      padding: 20, background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(8px)',
+      padding: 20,  background: 'var(--c-code-bg)', backdropFilter: 'blur(8px)',
     }}>
       <div className="glass-card" style={{ maxWidth: 380, width: '100%', padding: 24 }}>
         <p style={{ fontWeight: 600, marginBottom: 8, fontSize: 15 }}>Move to Trash?</p>
@@ -966,14 +966,14 @@ export default function NotesPage() {
 
       {/* Search */}
       <div className="search-bar" style={{ marginBottom: 12 }}>
-        <Search size={15} style={{ color: 'rgba(255,255,255,0.3)', flexShrink: 0 }} />
+        <Search size={15} style={{ color: 'var(--c-tick)', flexShrink: 0 }} />
         <input
           placeholder="Search notes…"
           value={search}
           onChange={e => setSearch(e.target.value)}
         />
         {search && (
-          <button onClick={() => setSearch('')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(255,255,255,0.3)', display: 'flex', padding: 0, flexShrink: 0 }}>
+          <button onClick={() => setSearch('')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--c-tick)', display: 'flex', padding: 0, flexShrink: 0 }}>
             <X size={14} />
           </button>
         )}

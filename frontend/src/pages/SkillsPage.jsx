@@ -140,7 +140,7 @@ export default function SkillsPage() {
           Active only
         </button>
         {/* View toggle */}
-        <div style={{ display: 'flex', background: 'rgba(255,255,255,0.05)', borderRadius: 10, padding: 3, gap: 2 }}>
+        <div style={{ display: 'flex', background: 'var(--c-surface)', borderRadius: 10, padding: 3, gap: 2 }}>
           {[['cards', LayoutGrid], ['list', List], ['compact', AlignJustify], ['status', Activity], ['pipeline', GitBranch]].map(([id, Icon]) => (
             <button key={id} onClick={() => setView(id)} title={`${id} view`}
               style={{ padding: '5px 9px', borderRadius: 7, border: 'none', cursor: 'pointer', background: viewMode === id ? 'rgba(255,255,255,0.1)' : 'transparent', color: viewMode === id ? 'var(--text-primary)' : 'var(--text-tertiary)', transition: 'all 0.15s' }}>
@@ -198,7 +198,7 @@ export default function SkillsPage() {
               <div style={{ width: 8, height: 8, borderRadius: '50%', background: skill.is_active ? '#30D158' : '#8E8E93', flexShrink: 0 }} />
               <span style={{ fontSize: 13, fontWeight: 500, flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{skill.title}</span>
               {skill.is_favorite && <Star size={11} color="var(--yellow)" fill="var(--yellow)" />}
-              <span style={{ fontSize: 11, color: 'var(--text-quaternary)', background: 'rgba(255,255,255,0.05)', padding: '1px 7px', borderRadius: 4 }}>{skill.category}</span>
+              <span style={{ fontSize: 11, color: 'var(--text-quaternary)', background: 'var(--c-surface)', padding: '1px 7px', borderRadius: 4 }}>{skill.category}</span>
               <span style={{ fontSize: 10, color: skill.is_active ? '#30D158' : 'var(--text-quaternary)', background: skill.is_active ? 'rgba(48,209,88,0.1)' : 'rgba(255,255,255,0.04)', padding: '1px 7px', borderRadius: 4 }}>{skill.is_active ? 'active' : 'inactive'}</span>
             </div>
           ))}
@@ -216,7 +216,7 @@ export default function SkillsPage() {
               </div>
               {skill.description && <p style={{ fontSize: 11, color: 'var(--text-tertiary)', margin: '0 0 6px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{skill.description}</p>}
               <div style={{ display: 'flex', gap: 5 }}>
-                <span style={{ fontSize: 9, color: 'var(--text-quaternary)', background: 'rgba(255,255,255,0.05)', padding: '1px 5px', borderRadius: 3 }}>{skill.category}</span>
+                <span style={{ fontSize: 9, color: 'var(--text-quaternary)', background: 'var(--c-surface)', padding: '1px 5px', borderRadius: 3 }}>{skill.category}</span>
                 <span style={{ fontSize: 9, color: skill.is_active ? '#30D158' : 'var(--text-quaternary)', background: skill.is_active ? 'rgba(48,209,88,0.1)' : 'rgba(255,255,255,0.04)', padding: '1px 5px', borderRadius: 3 }}>{skill.is_active ? 'active' : 'inactive'}</span>
               </div>
             </div>
@@ -251,7 +251,7 @@ export default function SkillsPage() {
                       {skill.trigger_phrase && <div style={{ fontSize: 10, color: '#FF9500', fontFamily: 'monospace', marginTop: 4 }}>{skill.trigger_phrase}</div>}
                     </div>
                   ))}
-                  {group.length === 0 && <div style={{ padding: '20px', textAlign: 'center', color: 'var(--text-quaternary)', fontSize: 12, background: 'rgba(255,255,255,0.02)', borderRadius: 8 }}>No {label.toLowerCase()} skills</div>}
+                  {group.length === 0 && <div style={{ padding: '20px', textAlign: 'center', color: 'var(--text-quaternary)', fontSize: 12, background: 'var(--c-surface)', borderRadius: 8 }}>No {label.toLowerCase()} skills</div>}
                 </div>
               </div>
             )
@@ -276,18 +276,18 @@ export default function SkillsPage() {
                   )}
                 </div>
                 {/* Arrow */}
-                <div style={{ width: 32, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'rgba(255,255,255,0.2)', fontSize: 16, flexShrink: 0 }}>→</div>
+                <div style={{ width: 32, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-quaternary)', fontSize: 16, flexShrink: 0 }}>→</div>
                 {/* Skill info */}
                 <div style={{ flex: 1, padding: '12px 14px', display: 'flex', flexDirection: 'column', justifyContent: 'center', minWidth: 0 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 3 }}>
                     <span style={{ fontSize: 13, fontWeight: 600 }}>{skill.title}</span>
                     {skill.is_favorite && <Star size={10} color="var(--yellow)" fill="var(--yellow)" />}
-                    <span style={{ fontSize: 9, color: 'var(--text-quaternary)', background: 'rgba(255,255,255,0.05)', padding: '1px 5px', borderRadius: 3 }}>{skill.category}</span>
+                    <span style={{ fontSize: 9, color: 'var(--text-quaternary)', background: 'var(--c-surface)', padding: '1px 5px', borderRadius: 3 }}>{skill.category}</span>
                   </div>
                   {skill.description && <p style={{ fontSize: 11, color: 'var(--text-tertiary)', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{skill.description}</p>}
                 </div>
                 {/* Arrow */}
-                <div style={{ width: 32, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'rgba(255,255,255,0.2)', fontSize: 16, flexShrink: 0 }}>→</div>
+                <div style={{ width: 32, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-quaternary)', fontSize: 16, flexShrink: 0 }}>→</div>
                 {/* Content preview */}
                 <div style={{ width: 220, padding: '12px 14px', borderLeft: '1px solid rgba(255,255,255,0.06)', display: 'flex', flexDirection: 'column', justifyContent: 'center', flexShrink: 0, background: 'rgba(255,255,255,0.01)' }}>
                   <div style={{ fontSize: 9, color: 'var(--text-quaternary)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 4 }}>Behavior</div>

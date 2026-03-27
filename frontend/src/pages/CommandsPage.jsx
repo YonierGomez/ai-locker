@@ -52,7 +52,7 @@ function CommandCardGrid({ cmd, onCopy, onFavorite, onEdit, onDelete, onView }) 
       onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-1px)'}
       onMouseLeave={e => e.currentTarget.style.transform = 'translateY(0)'}
       onClick={() => onView?.(cmd)}>
-      <div style={{ padding: '12px 16px 10px', display: 'flex', alignItems: 'flex-start', gap: 10, borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+      <div style={{ padding: '12px 16px 10px', display: 'flex', alignItems: 'flex-start', gap: 10, borderBottom: '1px solid var(--c-divider)' }}>
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
             <span style={{ fontSize: 13, fontWeight: 600, lineHeight: 1.3 }}>{cmd.title}</span>
@@ -74,19 +74,19 @@ function CommandCardGrid({ cmd, onCopy, onFavorite, onEdit, onDelete, onView }) 
           </button>
         </div>
       </div>
-      <div style={{ background: 'rgba(0,0,0,0.4)', padding: '10px 14px', position: 'relative' }}>
+      <div style={{ background: 'var(--c-code-bg)', padding: '10px 14px', position: 'relative' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 7 }}>
           <div style={{ display: 'flex', gap: 4 }}>
             {['#FF5F57','#FEBC2E','#28C840'].map((c, i) => (
               <div key={i} style={{ width: 8, height: 8, borderRadius: '50%', background: c, opacity: 0.7 }} />
             ))}
           </div>
-          <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.25)', marginLeft: 4 }}>
+          <span style={{ fontSize: 10, color: 'var(--c-icon-sm)', marginLeft: 4 }}>
             {cmd.shell} {PLATFORM_ICONS[cmd.platform] || ''} {cmd.platform !== 'all' ? cmd.platform : ''}
           </span>
         </div>
         <pre style={{ margin: 0, fontFamily: "'JetBrains Mono','Fira Code','Cascadia Code','SF Mono',monospace", fontSize: 12.5, lineHeight: 1.6, color: shellColor, whiteSpace: 'pre-wrap', wordBreak: 'break-all', maxHeight: 120, overflowY: 'auto' }}>
-          <span style={{ color: 'rgba(255,255,255,0.25)', userSelect: 'none' }}>$ </span>{cmd.command}
+          <span style={{ color: 'var(--c-icon-sm)', userSelect: 'none' }}>$ </span>{cmd.command}
         </pre>
         <button onClick={handleCopy} style={{ position: 'absolute', right: 10, bottom: 10, background: copied ? 'rgba(48,209,88,0.15)' : 'rgba(255,255,255,0.08)', border: `1px solid ${copied ? 'rgba(48,209,88,0.3)' : 'rgba(255,255,255,0.1)'}`, borderRadius: 6, padding: '4px 10px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 5, fontSize: 11, color: copied ? '#30D158' : 'rgba(255,255,255,0.6)', transition: 'all 0.2s' }}>
           {copied ? <Check size={11} /> : <Copy size={11} />}
@@ -95,7 +95,7 @@ function CommandCardGrid({ cmd, onCopy, onFavorite, onEdit, onDelete, onView }) 
       </div>
       <div style={{ padding: '7px 14px', display: 'flex', alignItems: 'center', gap: 8, background: 'rgba(255,255,255,0.015)' }}>
         <span style={{ fontSize: 10, fontWeight: 600, color: shellColor, background: `${shellColor}18`, padding: '2px 7px', borderRadius: 4 }}>{cmd.shell}</span>
-        <span style={{ fontSize: 10, color: 'var(--text-quaternary)', background: 'rgba(255,255,255,0.05)', padding: '2px 7px', borderRadius: 4 }}>{cmd.category}</span>
+        <span style={{ fontSize: 10, color: 'var(--text-quaternary)', background: 'var(--c-surface)', padding: '2px 7px', borderRadius: 4 }}>{cmd.category}</span>
         {cmd.use_count > 0 && <span style={{ fontSize: 10, color: 'var(--text-quaternary)', marginLeft: 'auto' }}>used {cmd.use_count}×</span>}
       </div>
     </div>
@@ -122,15 +122,15 @@ function CommandCardCompact({ cmd, onCopy, onFavorite, onEdit, onDelete, onView 
           {cmd.is_favorite && <Star size={10} color="var(--yellow)" fill="var(--yellow)" style={{ flexShrink: 0 }} />}
         </div>
         {/* Command */}
-        <div style={{ background: 'rgba(0,0,0,0.35)', borderRadius: 6, padding: '6px 10px', marginBottom: 8 }}>
+        <div style={{ background: 'var(--c-code-bg)', borderRadius: 6, padding: '6px 10px', marginBottom: 8 }}>
           <code style={{ fontSize: 11, color: shellColor, fontFamily: "'JetBrains Mono','Fira Code',monospace", display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-            <span style={{ color: 'rgba(255,255,255,0.2)', userSelect: 'none' }}>$ </span>{cmd.command}
+            <span style={{ color: 'var(--text-quaternary)', userSelect: 'none' }}>$ </span>{cmd.command}
           </code>
         </div>
         {/* Footer */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
           <span style={{ fontSize: 9, fontWeight: 600, color: shellColor, background: `${shellColor}18`, padding: '1px 5px', borderRadius: 3 }}>{cmd.shell}</span>
-          {cmd.category && <span style={{ fontSize: 9, color: 'var(--text-quaternary)', background: 'rgba(255,255,255,0.04)', padding: '1px 5px', borderRadius: 3 }}>{cmd.category}</span>}
+          {cmd.category && <span style={{ fontSize: 9, color: 'var(--text-quaternary)', background: 'var(--c-surface)', padding: '1px 5px', borderRadius: 3 }}>{cmd.category}</span>}
           <div style={{ flex: 1 }} />
           <div style={{ display: 'flex', gap: 1 }} onClick={e => e.stopPropagation()}>
             <button className="btn-icon" style={{ width: 22, height: 22 }} onClick={handleCopy}>
@@ -167,9 +167,9 @@ function CommandCodeView({ commands, onCopy, onFavorite, onEdit, onDelete, onVie
       {Object.entries(grouped).map(([category, cmds]) => (
         <div key={category}>
           <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-quaternary)', letterSpacing: 0.5, textTransform: 'uppercase', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 8 }}>
-            <div style={{ height: 1, flex: 1, background: 'rgba(255,255,255,0.06)' }} />
+            <div style={{ height: 1, flex: 1, background: 'var(--c-divider)' }} />
             {category}
-            <div style={{ height: 1, flex: 1, background: 'rgba(255,255,255,0.06)' }} />
+            <div style={{ height: 1, flex: 1, background: 'var(--c-divider)' }} />
           </div>
           <div className="glass-card" style={{ padding: 0, overflow: 'hidden' }}>
             {cmds.map((cmd, idx) => (
@@ -189,17 +189,17 @@ function CodeRow({ cmd, isLast, onCopy, onFavorite, onEdit, onDelete, onView }) 
 
   return (
     <div style={{ borderBottom: isLast ? 'none' : '1px solid rgba(255,255,255,0.05)' }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 0, background: 'rgba(0,0,0,0.35)', cursor: 'pointer' }}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 0, background: 'var(--c-code-bg)', cursor: 'pointer' }}
         onClick={() => onView?.(cmd)}>
         <div style={{ width: 4, alignSelf: 'stretch', background: shellColor, opacity: 0.6, flexShrink: 0 }} />
         <div style={{ padding: '10px 14px', display: 'flex', alignItems: 'flex-start', gap: 8, flex: 1, minWidth: 0 }}>
-          <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.2)', fontFamily: 'monospace', userSelect: 'none', flexShrink: 0, marginTop: 1 }}>$</span>
+          <span style={{ fontSize: 12, color: 'var(--text-quaternary)', fontFamily: 'monospace', userSelect: 'none', flexShrink: 0, marginTop: 1 }}>$</span>
           <pre style={{ margin: 0, fontFamily: "'JetBrains Mono','Fira Code',monospace", fontSize: 12.5, color: shellColor, whiteSpace: 'pre-wrap', wordBreak: 'break-all', flex: 1, lineHeight: 1.5 }}>
             {cmd.command}
           </pre>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '0 12px', flexShrink: 0 }} onClick={e => e.stopPropagation()}>
-          {cmd.title && <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.3)', maxWidth: 140, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{cmd.title}</span>}
+          {cmd.title && <span style={{ fontSize: 10, color: 'var(--c-tick)', maxWidth: 140, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{cmd.title}</span>}
           <span style={{ fontSize: 10, color: shellColor, background: `${shellColor}15`, padding: '1px 6px', borderRadius: 4 }}>{cmd.shell}</span>
           <button className="btn-icon" style={{ width: 26, height: 26 }} onClick={handleCopy}>
             {copied ? <Check size={11} color="#30D158" /> : <Copy size={11} color="rgba(255,255,255,0.3)" />}
@@ -216,7 +216,7 @@ function CodeRow({ cmd, isLast, onCopy, onFavorite, onEdit, onDelete, onView }) 
         </div>
       </div>
       {cmd.description && (
-        <div style={{ padding: '4px 14px 4px 26px', fontSize: 11, color: 'var(--text-quaternary)', background: 'rgba(255,255,255,0.01)', fontStyle: 'italic' }}>
+        <div style={{ padding: '4px 14px 4px 26px', fontSize: 11, color: 'var(--text-quaternary)', background: 'var(--c-surface)', fontStyle: 'italic' }}>
           # {cmd.description}
         </div>
       )}
@@ -236,13 +236,13 @@ function CommandTerminalView({ commands, onCopy, onFavorite, onEdit, onDelete, o
       {/* Terminal window */}
       <div className="glass-card" style={{ padding: 0, overflow: 'hidden', background: 'rgba(10,10,12,0.95)' }}>
         {/* Title bar */}
-        <div style={{ padding: '10px 16px', borderBottom: '1px solid rgba(255,255,255,0.07)', display: 'flex', alignItems: 'center', gap: 10, background: 'rgba(255,255,255,0.03)' }}>
+        <div style={{ padding: '10px 16px', borderBottom: '1px solid var(--c-surface-hover)', display: 'flex', alignItems: 'center', gap: 10, background: 'var(--c-surface)' }}>
           <div style={{ display: 'flex', gap: 6 }}>
             {['#FF5F57','#FEBC2E','#28C840'].map((c, i) => (
               <div key={i} style={{ width: 12, height: 12, borderRadius: '50%', background: c }} />
             ))}
           </div>
-          <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)', flex: 1, textAlign: 'center', fontFamily: 'monospace' }}>
+          <span style={{ fontSize: 12, color: 'var(--c-icon)', flex: 1, textAlign: 'center', fontFamily: 'monospace' }}>
             terminal — {filtered.length} command{filtered.length !== 1 ? 's' : ''}
           </span>
           {/* Shell tabs */}
@@ -262,7 +262,7 @@ function CommandTerminalView({ commands, onCopy, onFavorite, onEdit, onDelete, o
         {/* Terminal body */}
         <div style={{ padding: '16px 20px', fontFamily: "'JetBrains Mono','Fira Code',monospace", fontSize: 13, lineHeight: 1.8 }}>
           {/* Welcome line */}
-          <div style={{ color: 'rgba(255,255,255,0.2)', marginBottom: 12, fontSize: 11 }}>
+          <div style={{ color: 'var(--text-quaternary)', marginBottom: 12, fontSize: 11 }}>
             Last login: {new Date().toDateString()} — AI Locker Command Library
           </div>
 
@@ -295,7 +295,7 @@ function TerminalLine({ cmd, idx, onCopy, onFavorite, onEdit, onDelete, onView }
       onMouseLeave={() => setHovered(false)}>
       {/* Comment / title line */}
       {cmd.title && (
-        <div style={{ color: 'rgba(255,255,255,0.25)', fontSize: 11, marginBottom: 1 }}>
+        <div style={{ color: 'var(--c-icon-sm)', fontSize: 11, marginBottom: 1 }}>
           # {cmd.title}{cmd.description ? ` — ${cmd.description}` : ''}
         </div>
       )}
@@ -383,7 +383,7 @@ function KanbanCard({ cmd, colColor, onCopy, onFavorite, onEdit, onDelete, onVie
             {cmd.is_favorite && <Star size={10} color="var(--yellow)" fill="var(--yellow)" style={{ flexShrink: 0, marginTop: 2 }} />}
           </div>
           {/* Command preview */}
-          <div style={{ background: 'rgba(0,0,0,0.3)', borderRadius: 5, padding: '5px 8px', marginBottom: 8 }}>
+          <div style={{ background: 'var(--c-code-bg)', borderRadius: 5, padding: '5px 8px', marginBottom: 8 }}>
             <code style={{ fontSize: 10.5, color: shellColor, fontFamily: 'monospace', display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
               $ {cmd.command}
             </code>
@@ -452,7 +452,7 @@ function CommandSpotlightView({ commands, onCopy, onFavorite, onEdit, onDelete, 
   return (
     <div className="glass-card" style={{ padding: 0, overflow: 'hidden', display: 'flex', flexDirection: 'column', minHeight: 500 }}>
       {/* Search bar */}
-      <div style={{ padding: '14px 16px', borderBottom: '1px solid rgba(255,255,255,0.07)', display: 'flex', alignItems: 'center', gap: 10, background: 'rgba(255,255,255,0.02)' }}>
+      <div style={{ padding: '14px 16px', borderBottom: '1px solid var(--c-surface-hover)', display: 'flex', alignItems: 'center', gap: 10, background: 'var(--c-surface)' }}>
         <Search size={16} color="rgba(255,255,255,0.4)" />
         <input
           ref={inputRef}
@@ -460,14 +460,14 @@ function CommandSpotlightView({ commands, onCopy, onFavorite, onEdit, onDelete, 
           onChange={e => setSpotSearch(e.target.value)}
           onKeyDown={handleKey}
           placeholder="Search commands…"
-          style={{ flex: 1, background: 'transparent', border: 'none', outline: 'none', fontSize: 15, color: 'rgba(255,255,255,0.9)', fontFamily: 'inherit' }}
+          style={{ flex: 1, background: 'transparent', border: 'none', outline: 'none', fontSize: 15, color: 'var(--text-primary)', fontFamily: 'inherit' }}
         />
         {spotSearch && (
-          <button onClick={() => setSpotSearch('')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(255,255,255,0.3)', display: 'flex', padding: 0 }}>
+          <button onClick={() => setSpotSearch('')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--c-tick)', display: 'flex', padding: 0 }}>
             <X size={14} />
           </button>
         )}
-        <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.2)', background: 'rgba(255,255,255,0.06)', padding: '2px 7px', borderRadius: 5 }}>{filtered.length}</span>
+        <span style={{ fontSize: 10, color: 'var(--text-quaternary)', background: 'var(--c-divider)', padding: '2px 7px', borderRadius: 5 }}>{filtered.length}</span>
       </div>
 
       {/* Body: list + preview — stacks vertically on mobile */}
@@ -499,7 +499,7 @@ function CommandSpotlightView({ commands, onCopy, onFavorite, onEdit, onDelete, 
                   <span style={{ fontSize: 12, fontWeight: isActive ? 600 : 400, flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: isActive ? 'rgba(255,255,255,0.95)' : 'rgba(255,255,255,0.7)' }}>{cmd.title}</span>
                   {cmd.is_favorite && <Star size={9} color="var(--yellow)" fill="var(--yellow)" />}
                 </div>
-                <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.3)', fontFamily: 'monospace', marginTop: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', paddingLeft: 12 }}>
+                <div style={{ fontSize: 10, color: 'var(--c-tick)', fontFamily: 'monospace', marginTop: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', paddingLeft: 12 }}>
                   {cmd.command}
                 </div>
               </div>
@@ -535,12 +535,12 @@ function CommandSpotlightView({ commands, onCopy, onFavorite, onEdit, onDelete, 
             </div>
 
             {/* Command block */}
-            <div style={{ background: 'rgba(0,0,0,0.5)', borderRadius: 12, overflow: 'hidden', border: `1px solid ${shellColor}20` }}>
+            <div style={{ background: 'var(--c-code-bg-deep)', borderRadius: 12, overflow: 'hidden', border: `1px solid ${shellColor}20` }}>
               <div style={{ padding: '8px 14px', borderBottom: `1px solid ${shellColor}15`, display: 'flex', alignItems: 'center', gap: 8 }}>
                 <div style={{ display: 'flex', gap: 5 }}>
                   {['#FF5F57','#FEBC2E','#28C840'].map((c, i) => <div key={i} style={{ width: 9, height: 9, borderRadius: '50%', background: c, opacity: 0.8 }} />)}
                 </div>
-                <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)', fontFamily: 'monospace', flex: 1 }}>{selected.shell} — {selected.platform !== 'all' ? selected.platform : 'all platforms'}</span>
+                <span style={{ fontSize: 11, color: 'var(--c-tick)', fontFamily: 'monospace', flex: 1 }}>{selected.shell} — {selected.platform !== 'all' ? selected.platform : 'all platforms'}</span>
                 <button onClick={handleCopy} style={{ background: copied ? 'rgba(48,209,88,0.15)' : 'rgba(255,255,255,0.07)', border: `1px solid ${copied ? 'rgba(48,209,88,0.3)' : 'rgba(255,255,255,0.1)'}`, borderRadius: 6, padding: '4px 12px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 5, fontSize: 11, color: copied ? '#30D158' : 'rgba(255,255,255,0.6)' }}>
                   {copied ? <Check size={11} /> : <Copy size={11} />}
                   {copied ? 'Copied!' : 'Copy'}
@@ -548,27 +548,27 @@ function CommandSpotlightView({ commands, onCopy, onFavorite, onEdit, onDelete, 
               </div>
               <div style={{ padding: '16px 18px' }}>
                 <pre style={{ margin: 0, fontFamily: "'JetBrains Mono','Fira Code',monospace", fontSize: 14, color: shellColor, whiteSpace: 'pre-wrap', wordBreak: 'break-all', lineHeight: 1.7 }}>
-                  <span style={{ color: 'rgba(255,255,255,0.2)', userSelect: 'none' }}>$ </span>{selected.command}
+                  <span style={{ color: 'var(--text-quaternary)', userSelect: 'none' }}>$ </span>{selected.command}
                 </pre>
               </div>
             </div>
 
             {/* Meta */}
             <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-              <div style={{ background: 'rgba(255,255,255,0.04)', borderRadius: 8, padding: '8px 14px' }}>
+              <div style={{ background: 'var(--c-surface)', borderRadius: 8, padding: '8px 14px' }}>
                 <div style={{ fontSize: 10, color: 'var(--text-quaternary)', marginBottom: 3 }}>SHELL</div>
                 <span style={{ fontSize: 13, fontWeight: 600, color: shellColor }}>{selected.shell}</span>
               </div>
-              <div style={{ background: 'rgba(255,255,255,0.04)', borderRadius: 8, padding: '8px 14px' }}>
+              <div style={{ background: 'var(--c-surface)', borderRadius: 8, padding: '8px 14px' }}>
                 <div style={{ fontSize: 10, color: 'var(--text-quaternary)', marginBottom: 3 }}>CATEGORY</div>
                 <span style={{ fontSize: 13, fontWeight: 600 }}>{selected.category || '—'}</span>
               </div>
-              <div style={{ background: 'rgba(255,255,255,0.04)', borderRadius: 8, padding: '8px 14px' }}>
+              <div style={{ background: 'var(--c-surface)', borderRadius: 8, padding: '8px 14px' }}>
                 <div style={{ fontSize: 10, color: 'var(--text-quaternary)', marginBottom: 3 }}>PLATFORM</div>
                 <span style={{ fontSize: 13, fontWeight: 600 }}>{PLATFORM_ICONS[selected.platform]} {selected.platform}</span>
               </div>
               {selected.use_count > 0 && (
-                <div style={{ background: 'rgba(255,255,255,0.04)', borderRadius: 8, padding: '8px 14px' }}>
+                <div style={{ background: 'var(--c-surface)', borderRadius: 8, padding: '8px 14px' }}>
                   <div style={{ fontSize: 10, color: 'var(--text-quaternary)', marginBottom: 3 }}>USED</div>
                   <span style={{ fontSize: 13, fontWeight: 600 }}>{selected.use_count}×</span>
                 </div>
@@ -576,7 +576,7 @@ function CommandSpotlightView({ commands, onCopy, onFavorite, onEdit, onDelete, 
             </div>
 
             {/* Keyboard hint */}
-            <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.2)', display: 'flex', gap: 12 }}>
+            <div style={{ fontSize: 10, color: 'var(--text-quaternary)', display: 'flex', gap: 12 }}>
               <span>↑↓ navigate</span>
               <span>↵ open detail</span>
             </div>
@@ -628,8 +628,8 @@ function CommandModal({ cmd, onClose, onSave, fullscreen: initialFullscreen = fa
       `}</style>
     <div className="cmd-modal-overlay" style={{ position: 'fixed', inset: 0, zIndex: 1000, display: 'flex', alignItems: maximized ? 'stretch' : 'center', justifyContent: 'center', padding: maximized ? 0 : 20, background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(8px)' }}
       onClick={e => e.target === e.currentTarget && onClose()}>
-      <div className="cmd-modal-inner" style={{ background: 'var(--surface-2)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: maximized ? 0 : 16, width: '100%', maxWidth: maximized ? '100vw' : 560, boxShadow: maximized ? 'none' : '0 32px 80px rgba(0,0,0,0.6)', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
-        <div style={{ padding: '18px 20px 14px', borderBottom: '1px solid rgba(255,255,255,0.07)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+      <div className="cmd-modal-inner" style={{ background: 'var(--surface-2)', border: '1px solid var(--c-border-md)', borderRadius: maximized ? 0 : 16, width: '100%', maxWidth: maximized ? '100vw' : 560, boxShadow: maximized ? 'none' : '0 32px 80px rgba(0,0,0,0.6)', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+        <div style={{ padding: '18px 20px 14px', borderBottom: '1px solid var(--c-surface-hover)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
             <div style={{ width: 32, height: 32, borderRadius: 8, background: 'rgba(48,209,88,0.12)', border: '1px solid rgba(48,209,88,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <TerminalSquare size={16} color="#30D158" />
@@ -651,13 +651,13 @@ function CommandModal({ cmd, onClose, onSave, fullscreen: initialFullscreen = fa
           </div>
           <div>
             <label style={{ fontSize: 11, color: 'var(--text-tertiary)', display: 'block', marginBottom: 6 }}>COMMAND</label>
-            <div style={{ background: 'rgba(0,0,0,0.5)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 10, overflow: 'hidden' }}>
-              <div style={{ padding: '7px 12px', borderBottom: '1px solid rgba(255,255,255,0.06)', display: 'flex', gap: 5 }}>
+            <div style={{ background: 'var(--c-code-bg-deep)', border: '1px solid var(--c-border-md)', borderRadius: 10, overflow: 'hidden' }}>
+              <div style={{ padding: '7px 12px', borderBottom: '1px solid var(--c-divider)', display: 'flex', gap: 5 }}>
                 {['#FF5F57','#FEBC2E','#28C840'].map((c, i) => <div key={i} style={{ width: 8, height: 8, borderRadius: '50%', background: c, opacity: 0.7 }} />)}
-                <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.2)', marginLeft: 6 }}>{form.shell}</span>
+                <span style={{ fontSize: 10, color: 'var(--text-quaternary)', marginLeft: 6 }}>{form.shell}</span>
               </div>
               <div style={{ display: 'flex', alignItems: 'flex-start', padding: '10px 12px', gap: 6 }}>
-                <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.25)', fontFamily: 'monospace', marginTop: 1, userSelect: 'none' }}>$</span>
+                <span style={{ fontSize: 12, color: 'var(--c-icon-sm)', fontFamily: 'monospace', marginTop: 1, userSelect: 'none' }}>$</span>
                 <textarea
                   ref={cmdRef}
                   placeholder="lsof -i :3000 | grep LISTEN"
@@ -845,7 +845,7 @@ export default function CommandsPage() {
         </div>
         <div className="cmd-header-actions">
           {/* View mode toggle */}
-          <div style={{ display: 'flex', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 8, padding: 2, gap: 1 }}>
+          <div style={{ display: 'flex', background: 'var(--c-surface)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 8, padding: 2, gap: 1 }}>
             {VIEW_MODES.map(({ id, icon: Icon, label }) => (
               <button key={id} onClick={() => setView(id)} title={label}
                 style={{ width: 30, height: 28, borderRadius: 6, border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', background: viewMode === id ? 'rgba(255,255,255,0.1)' : 'transparent', color: viewMode === id ? 'rgba(255,255,255,0.9)' : 'rgba(255,255,255,0.35)', transition: 'all 0.15s' }}>
@@ -878,10 +878,10 @@ export default function CommandsPage() {
 
       {/* Search bar */}
       <div className="search-bar" style={{ marginBottom: 12 }}>
-        <Search size={15} style={{ color: 'rgba(255,255,255,0.3)', flexShrink: 0 }} />
+        <Search size={15} style={{ color: 'var(--c-tick)', flexShrink: 0 }} />
         <input ref={searchRef} placeholder="Search commands… (press / to focus)" value={search} onChange={e => setSearch(e.target.value)} />
         {search && (
-          <button onClick={() => setSearch('')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(255,255,255,0.3)', display: 'flex', padding: 0, flexShrink: 0 }}>
+          <button onClick={() => setSearch('')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--c-tick)', display: 'flex', padding: 0, flexShrink: 0 }}>
             <X size={14} />
           </button>
         )}
@@ -901,13 +901,13 @@ export default function CommandsPage() {
               style={active ? { background: `${color}18`, borderColor: `${color}50`, color } : {}}>{s}</button>
           )
         })}
-        {allShells.length > 1 && <div style={{ width: 1, height: 16, background: 'rgba(255,255,255,0.08)', margin: '0 2px' }} />}
+        {allShells.length > 1 && <div style={{ width: 1, height: 16, background: 'var(--c-border)', margin: '0 2px' }} />}
         {['linux', 'macos', 'windows'].map(p => (
           <button key={p} onClick={() => setFilterPlatform(filterPlatform === p ? '' : p)} className={`filter-chip${filterPlatform === p ? ' active' : ''}`}>
             {PLATFORM_ICONS[p]} {p}
           </button>
         ))}
-        {allCategories.length > 0 && <div style={{ width: 1, height: 16, background: 'rgba(255,255,255,0.08)', margin: '0 2px' }} />}
+        {allCategories.length > 0 && <div style={{ width: 1, height: 16, background: 'var(--c-border)', margin: '0 2px' }} />}
         {allCategories.map(cat => (
           <button key={cat} onClick={() => setFilterCategory(filterCategory === cat ? '' : cat)} className={`filter-chip${filterCategory === cat ? ' active' : ''}`}
             style={filterCategory === cat ? { background: 'rgba(191,90,242,0.12)', borderColor: 'rgba(191,90,242,0.35)', color: '#BF5AF2' } : {}}>{cat}</button>

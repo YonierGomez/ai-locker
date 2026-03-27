@@ -143,7 +143,7 @@ export default function SteeringPage() {
         <button className={`filter-chip ${showFavorites ? 'active' : ''}`} onClick={() => setShowFavorites(!showFavorites)}>
           <Star size={12} fill={showFavorites ? 'currentColor' : 'none'} /> Favorites
         </button>
-        <div style={{ display: 'flex', background: 'rgba(255,255,255,0.05)', borderRadius: 10, padding: 3, gap: 2 }}>
+        <div style={{ display: 'flex', background: 'var(--c-surface)', borderRadius: 10, padding: 3, gap: 2 }}>
           {[['cards', LayoutGrid], ['list', List], ['compact', AlignJustify], ['priority', BarChart3], ['scope', Columns2]].map(([id, Icon]) => (
             <button key={id} onClick={() => setView(id)} title={`${id} view`}
               style={{ padding: '5px 9px', borderRadius: 7, border: 'none', cursor: 'pointer', background: viewMode === id ? 'rgba(255,255,255,0.1)' : 'transparent', color: viewMode === id ? 'var(--text-primary)' : 'var(--text-tertiary)', transition: 'all 0.15s' }}>
@@ -212,8 +212,8 @@ export default function SteeringPage() {
               <div style={{ width: 8, height: 8, borderRadius: '50%', background: item.is_active ? '#BF5AF2' : '#8E8E93', flexShrink: 0 }} />
               <span style={{ fontSize: 13, fontWeight: 500, flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.title}</span>
               {item.is_favorite && <Star size={11} color="var(--yellow)" fill="var(--yellow)" />}
-              <span style={{ fontSize: 10, color: 'var(--text-quaternary)', background: 'rgba(255,255,255,0.05)', padding: '1px 6px', borderRadius: 4 }}>{item.scope}</span>
-              <span style={{ fontSize: 11, color: 'var(--text-quaternary)', background: 'rgba(255,255,255,0.05)', padding: '1px 7px', borderRadius: 4 }}>{item.category}</span>
+              <span style={{ fontSize: 10, color: 'var(--text-quaternary)', background: 'var(--c-surface)', padding: '1px 6px', borderRadius: 4 }}>{item.scope}</span>
+              <span style={{ fontSize: 11, color: 'var(--text-quaternary)', background: 'var(--c-surface)', padding: '1px 7px', borderRadius: 4 }}>{item.category}</span>
             </div>
           ))}
         </div>
@@ -231,7 +231,7 @@ export default function SteeringPage() {
               {item.description && <p style={{ fontSize: 11, color: 'var(--text-tertiary)', margin: '0 0 6px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.description}</p>}
               <div style={{ display: 'flex', gap: 5 }}>
                 <span style={{ fontSize: 9, color: '#BF5AF2', background: 'rgba(191,90,242,0.1)', padding: '1px 5px', borderRadius: 3 }}>{item.scope}</span>
-                <span style={{ fontSize: 9, color: 'var(--text-quaternary)', background: 'rgba(255,255,255,0.05)', padding: '1px 5px', borderRadius: 3 }}>{item.category}</span>
+                <span style={{ fontSize: 9, color: 'var(--text-quaternary)', background: 'var(--c-surface)', padding: '1px 5px', borderRadius: 3 }}>{item.category}</span>
               </div>
             </div>
           ))}
@@ -264,7 +264,7 @@ export default function SteeringPage() {
                   </div>
                   {/* Priority bar visual */}
                   <div style={{ width: 120, padding: '0 14px', flexShrink: 0 }}>
-                    <div style={{ height: 6, background: 'rgba(255,255,255,0.07)', borderRadius: 99, overflow: 'hidden' }}>
+                    <div style={{ height: 6, background: 'var(--c-surface-hover)', borderRadius: 99, overflow: 'hidden' }}>
                       <div style={{ height: '100%', width: `${pct}%`, background: pColor, borderRadius: 99, transition: 'width 0.4s' }} />
                     </div>
                   </div>
@@ -298,12 +298,12 @@ export default function SteeringPage() {
                     </div>
                     {item.description && <p style={{ fontSize: 11, color: 'var(--text-tertiary)', margin: '0 0 6px', lineHeight: 1.4, overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>{item.description}</p>}
                     <div style={{ display: 'flex', gap: 5, alignItems: 'center' }}>
-                      <span style={{ fontSize: 9, color: 'var(--text-quaternary)', background: 'rgba(255,255,255,0.05)', padding: '1px 5px', borderRadius: 3 }}>{item.category}</span>
+                      <span style={{ fontSize: 9, color: 'var(--text-quaternary)', background: 'var(--c-surface)', padding: '1px 5px', borderRadius: 3 }}>{item.category}</span>
                       {(item.priority || 0) > 0 && <span style={{ fontSize: 9, color: color, background: `${color}15`, padding: '1px 5px', borderRadius: 3 }}>p{item.priority}</span>}
                     </div>
                   </div>
                 ))}
-                {group.length === 0 && <div style={{ padding: '20px', textAlign: 'center', color: 'var(--text-quaternary)', fontSize: 12, background: 'rgba(255,255,255,0.02)', borderRadius: 8 }}>No {scopeKey} steering</div>}
+                {group.length === 0 && <div style={{ padding: '20px', textAlign: 'center', color: 'var(--text-quaternary)', fontSize: 12, background: 'var(--c-surface)', borderRadius: 8 }}>No {scopeKey} steering</div>}
               </div>
             )
           })}
