@@ -192,16 +192,16 @@ function ActivityHeatmap({ heatmap }) {
 function ChartsSection({ stats }) {
   const theme = useTheme()
   const isLight = theme === 'light'
-  const tickColor    = isLight ? 'rgba(0,0,0,0.38)'  : 'rgba(255,255,255,0.30)'
-  const tickColorAlt = isLight ? 'rgba(0,0,0,0.50)'  : 'rgba(255,255,255,0.45)'
-  const gridColor    = isLight ? 'rgba(0,0,0,0.06)'  : 'rgba(255,255,255,0.05)'
-  const cursorFill   = isLight ? 'rgba(0,0,0,0.04)'  : 'rgba(255,255,255,0.04)'
-  const cursorStroke = isLight ? 'rgba(0,0,0,0.10)'  : 'rgba(255,255,255,0.10)'
-  const barBg        = isLight ? 'rgba(0,0,0,0.07)'  : 'rgba(255,255,255,0.07)'
-  const mutedText    = isLight ? 'rgba(0,0,0,0.45)'  : 'rgba(255,255,255,0.45)'
-  const dimText      = isLight ? 'rgba(0,0,0,0.38)'  : 'rgba(255,255,255,0.40)'
-  const labelFill    = isLight ? 'rgba(0,0,0,0.40)'  : 'rgba(255,255,255,0.40)'
-  const subText      = isLight ? 'rgba(0,0,0,0.38)'  : 'rgba(255,255,255,0.30)'
+  const tickColor    = 'var(--c-tick)'
+  const tickColorAlt = 'var(--c-tick-alt)'
+  const gridColor    = 'var(--c-grid)'
+  const cursorFill   = 'var(--c-cursor)'
+  const cursorStroke = 'var(--c-border-md)'
+  const barBg        = 'var(--c-surface-hover)'
+  const mutedText    = 'var(--c-muted)'
+  const dimText      = 'var(--c-dim)'
+  const labelFill    = 'var(--c-label)'
+  const subText      = 'var(--c-sub)'
 
   const activityData = buildActivityData(stats?.activity)
   const hasActivity = activityData.some(d => d.prompts + d.skills + d.steering + d.mcp + d.commands + d.notes > 0)

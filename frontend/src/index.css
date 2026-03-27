@@ -78,6 +78,29 @@
   /* Sidebar */
   --sidebar-width: 240px;
   --topbar-height: 60px;
+
+  /* ── Semantic inline-style tokens (used in JSX inline styles) ── */
+  /* These replace hardcoded rgba(255,255,255,...) values */
+  --c-border:        rgba(255,255,255,0.08);
+  --c-border-md:     rgba(255,255,255,0.10);
+  --c-border-lg:     rgba(255,255,255,0.14);
+  --c-surface:       rgba(255,255,255,0.04);
+  --c-surface-hover: rgba(255,255,255,0.07);
+  --c-surface-active:rgba(255,255,255,0.10);
+  --c-divider:       rgba(255,255,255,0.06);
+  --c-icon:          rgba(255,255,255,0.40);
+  --c-icon-sm:       rgba(255,255,255,0.25);
+  --c-code-bg:       rgba(0,0,0,0.35);
+  --c-code-bg-deep:  rgba(0,0,0,0.50);
+  --c-overlay:       rgba(0,0,0,0.30);
+  --c-tick:          rgba(255,255,255,0.30);
+  --c-tick-alt:      rgba(255,255,255,0.45);
+  --c-grid:          rgba(255,255,255,0.05);
+  --c-cursor:        rgba(255,255,255,0.04);
+  --c-label:         rgba(255,255,255,0.40);
+  --c-muted:         rgba(255,255,255,0.45);
+  --c-dim:           rgba(255,255,255,0.38);
+  --c-sub:           rgba(255,255,255,0.30);
 }
 
 /* ── Reset & Base ── */
@@ -1407,6 +1430,28 @@ body::before {
   --text-secondary: rgba(0,0,0,0.56);
   --text-tertiary: rgba(0,0,0,0.40);
   --text-quaternary: rgba(0,0,0,0.25);
+
+  /* ── Semantic inline-style tokens — light mode overrides ── */
+  --c-border:        rgba(0,0,0,0.08);
+  --c-border-md:     rgba(0,0,0,0.10);
+  --c-border-lg:     rgba(0,0,0,0.14);
+  --c-surface:       rgba(0,0,0,0.03);
+  --c-surface-hover: rgba(0,0,0,0.05);
+  --c-surface-active:rgba(0,0,0,0.08);
+  --c-divider:       rgba(0,0,0,0.07);
+  --c-icon:          rgba(0,0,0,0.40);
+  --c-icon-sm:       rgba(0,0,0,0.28);
+  --c-code-bg:       rgba(0,0,0,0.04);
+  --c-code-bg-deep:  rgba(0,0,0,0.06);
+  --c-overlay:       rgba(0,0,0,0.08);
+  --c-tick:          rgba(0,0,0,0.30);
+  --c-tick-alt:      rgba(0,0,0,0.45);
+  --c-grid:          rgba(0,0,0,0.06);
+  --c-cursor:        rgba(0,0,0,0.04);
+  --c-label:         rgba(0,0,0,0.40);
+  --c-muted:         rgba(0,0,0,0.45);
+  --c-dim:           rgba(0,0,0,0.38);
+  --c-sub:           rgba(0,0,0,0.30);
 }
 
 /* ── Base ─────────────────────────────────────────────────── */
