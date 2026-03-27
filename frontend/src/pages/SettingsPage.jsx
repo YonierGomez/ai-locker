@@ -6,7 +6,8 @@ import ModelSelector from '../components/ModelSelector'
 import {
   Database, Palette, Info, Save, ExternalLink, Tag, FolderOpen,
   Cloud, Upload, Download, RefreshCw, Trash2, Plus, Check, X,
-  AlertCircle, Clock, Image, Cpu, Pipette, RotateCcw, ShieldAlert, Sparkles, Key, Eye, EyeOff
+  AlertCircle, Clock, Image, Cpu, Pipette, RotateCcw, ShieldAlert, Sparkles, Key, Eye, EyeOff,
+  PackageOpen, PackageCheck
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { formatDistanceToNow } from 'date-fns'
@@ -778,6 +779,65 @@ export default function SettingsPage() {
             <button className="btn btn-primary btn-sm" onClick={() => newTag.name && createTagMutation.mutate(newTag)} disabled={!newTag.name}>
               <Plus size={13} /> Add
             </button>
+          </div>
+        </div>
+      </Section>
+
+      {/* ── Library Export / Import ── */}
+      <Section icon={PackageOpen} title="Library Export / Import" color="var(--blue)">
+        <div className="glass-card" style={{ padding: 20, display: 'flex', flexDirection: 'column', gap: 16 }}>
+          <div style={{ fontSize: 13, color: 'var(--text-secondary)', lineHeight: 1.6 }}>
+            Export your entire library as a portable JSON file. Import it on any AI Locker instance to restore or share your collection.
+          </div>
+
+          {/* Export */}
+          <div style={{ borderBottom: '1px solid rgba(255,255,255,0.07)', paddingBottom: 16 }}>
+            <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-tertiary)', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 12 }}>Export</div>
+            <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center' }}>
+              <button
+                className="btn btn-primary btn-sm"
+                onClick={() => {
+                  backupApi.exportJson()
+                  toast.success('Library exported!')
+                }}
+                style={{ gap: 6 }}
+              >
+                <Download size={13} /> Export Full Library
+              </button>
+              <span style={{ fontSize: 12, color: 'var(--text-quaternary)' }}>
+                Includes prompts, skills, steering, MCP configs, commands & notes
+              </span>
+            </div>
+          </div>
+
+          {/* Import */}
+          <div>
+            <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-tertiary)', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 12 }}>Import</div>
+            <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center' }}>
+              <label className="btn btn-glass btn-sm" style={{ cursor: 'pointer', gap: 6 }}>
+                <Upload size={13} /> Choose File
+                <input
+                  type="file"
+                  accept=".json"
+                  style={{ display: 'none' }}
+                  onChange={handleImportFile}
+                />
+              </label>
+              <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: 'var(--text-secondary)', cursor: 'pointer' }}>
+                <input
+                  type="checkbox"
+                  checked={importMerge}
+                  onChange={e => setImportMerge(e.target.checked)}
+                  style={{ accentColor: 'var(--blue)' }}
+                />
+                Merge mode <span style={{ color: 'var(--text-quaternary)' }}>(keep existing items)</span>
+              </label>
+            </div>
+            <div style={{ marginTop: 10, fontSize: 11, color: 'var(--text-quaternary)', lineHeight: 1.6 }}>
+              {importMerge
+                ? '⚡ Merge: existing items are kept, only new items are added.'
+                : '⚠️ Replace: existing items with the same ID will be overwritten.'}
+            </div>
           </div>
         </div>
       </Section>

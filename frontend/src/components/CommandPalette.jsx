@@ -1,8 +1,9 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
-import { promptsApi, skillsApi, steeringApi, mcpApi, commandsApi } from '../utils/api'
-import { MessageSquare, Zap, Navigation, Settings, LayoutDashboard, TerminalSquare, Search, ArrowRight, Hash, Clock } from 'lucide-react'
+import { promptsApi, skillsApi, steeringApi, commandsApi } from '../utils/api'
+import { MessageSquare, Zap, Navigation, Settings, LayoutDashboard, TerminalSquare, Search, ArrowRight, Hash, Copy, Check } from 'lucide-react'
+import toast from 'react-hot-toast'
 
 function McpIcon({ size = 14 }) {
   return (
@@ -39,10 +40,20 @@ function highlight(text, query) {
   )
 }
 
+// Items that can be copied directly (have copyable content)
+function getCopyContent(item) {
+  if (item.type === 'prompt') return item.item?.content
+  if (item.type === 'skill') return item.item?.content
+  if (item.type === 'command') return item.item?.command
+  if (item.type === 'steering') return item.item?.content
+  return null
+}
+
 export default function CommandPalette({ isOpen, onClose }) {
   const navigate = useNavigate()
   const [query, setQuery] = useState('')
   const [activeIdx, setActiveIdx] = useState(0)
+  const [copiedId, setCopiedId] = useState(null)
   const inputRef = useRef(null)
   const listRef = useRef(null)
 
@@ -91,28 +102,57 @@ export default function CommandPalette({ isOpen, onClose }) {
     if (isOpen) {
       setQuery('')
       setActiveIdx(0)
+      setCopiedId(null)
       setTimeout(() => inputRef.current?.focus(), 50)
     }
   }, [isOpen])
 
   useEffect(() => { setActiveIdx(0) }, [query])
 
-  const handleSelect = useCallback((item) => {
+  // Navigate to page
+  const handleNavigate = useCallback((item) => {
     navigate(item.path)
     onClose()
   }, [navigate, onClose])
+
+  // Copy content directly
+  const handleCopy = useCallback(async (item) => {
+    const content = getCopyContent(item)
+    if (!content) {
+      handleNavigate(item)
+      return
+    }
+    try {
+      await navigator.clipboard.writeText(content)
+      setCopiedId(item.id)
+      toast.success(`"${item.label}" copied!`)
+      setTimeout(() => {
+        setCopiedId(null)
+        onClose()
+      }, 800)
+    } catch {
+      toast.error('Failed to copy')
+    }
+  }, [handleNavigate, onClose])
 
   useEffect(() => {
     if (!isOpen) return
     const handler = (e) => {
       if (e.key === 'ArrowDown') { e.preventDefault(); setActiveIdx(i => Math.min(i + 1, filtered.length - 1)) }
       if (e.key === 'ArrowUp') { e.preventDefault(); setActiveIdx(i => Math.max(i - 1, 0)) }
-      if (e.key === 'Enter') { e.preventDefault(); if (filtered[activeIdx]) handleSelect(filtered[activeIdx]) }
+      if (e.key === 'Enter') {
+        e.preventDefault()
+        if (filtered[activeIdx]) handleCopy(filtered[activeIdx])
+      }
+      if (e.key === 'Tab') {
+        e.preventDefault()
+        if (filtered[activeIdx]) handleNavigate(filtered[activeIdx])
+      }
       if (e.key === 'Escape') onClose()
     }
     window.addEventListener('keydown', handler)
     return () => window.removeEventListener('keydown', handler)
-  }, [isOpen, filtered, activeIdx, handleSelect, onClose])
+  }, [isOpen, filtered, activeIdx, handleCopy, handleNavigate, onClose])
 
   // Scroll active item into view
   useEffect(() => {
@@ -186,10 +226,12 @@ export default function CommandPalette({ isOpen, onClose }) {
           {filtered.map((item, idx) => {
             const Icon = item.icon
             const isActive = idx === activeIdx
+            const copyable = !!getCopyContent(item)
+            const isCopied = copiedId === item.id
             return (
               <div
                 key={item.id}
-                onClick={() => handleSelect(item)}
+                onClick={() => handleCopy(item)}
                 onMouseEnter={() => setActiveIdx(idx)}
                 style={{
                   display: 'flex', alignItems: 'center', gap: 12,
@@ -200,16 +242,17 @@ export default function CommandPalette({ isOpen, onClose }) {
               >
                 <div style={{
                   width: 30, height: 30, borderRadius: 8, flexShrink: 0,
-                  background: `${item.color}18`,
-                  border: `1px solid ${item.color}30`,
+                  background: isCopied ? 'rgba(48,209,88,0.15)' : `${item.color}18`,
+                  border: `1px solid ${isCopied ? 'rgba(48,209,88,0.3)' : item.color + '30'}`,
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  color: item.color,
+                  color: isCopied ? '#30D158' : item.color,
+                  transition: 'all 0.2s',
                 }}>
-                  <Icon size={14} />
+                  {isCopied ? <Check size={14} /> : <Icon size={14} />}
                 </div>
 
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-primary)' }}>
+                  <div style={{ fontSize: 13, fontWeight: 500, color: isCopied ? '#30D158' : 'var(--text-primary)', transition: 'color 0.2s' }}>
                     {highlight(item.label, query)}
                   </div>
                   {item.description && (
@@ -223,7 +266,12 @@ export default function CommandPalette({ isOpen, onClose }) {
                   <span style={{ fontSize: 10, color: typeColors[item.type], background: `${typeColors[item.type]}18`, border: `1px solid ${typeColors[item.type]}30`, borderRadius: 4, padding: '1px 6px', flexShrink: 0 }}>
                     {typeLabel[item.type]}
                   </span>
-                  {isActive && <ArrowRight size={12} color="rgba(255,255,255,0.3)" />}
+                  {isActive && copyable && (
+                    <Copy size={11} color="rgba(255,255,255,0.3)" />
+                  )}
+                  {isActive && !copyable && (
+                    <ArrowRight size={12} color="rgba(255,255,255,0.3)" />
+                  )}
                 </div>
               </div>
             )
@@ -238,7 +286,8 @@ export default function CommandPalette({ isOpen, onClose }) {
           fontSize: 11, color: 'rgba(255,255,255,0.2)',
         }}>
           <span><kbd style={{ fontFamily: 'var(--font-mono)', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 4, padding: '1px 5px' }}>↑↓</kbd> navigate</span>
-          <span><kbd style={{ fontFamily: 'var(--font-mono)', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 4, padding: '1px 5px' }}>↵</kbd> select</span>
+          <span><kbd style={{ fontFamily: 'var(--font-mono)', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 4, padding: '1px 5px' }}>↵</kbd> copy</span>
+          <span><kbd style={{ fontFamily: 'var(--font-mono)', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 4, padding: '1px 5px' }}>tab</kbd> go to page</span>
           <span><kbd style={{ fontFamily: 'var(--font-mono)', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 4, padding: '1px 5px' }}>esc</kbd> close</span>
           <span style={{ marginLeft: 'auto' }}>{filtered.length} result{filtered.length !== 1 ? 's' : ''}</span>
         </div>
