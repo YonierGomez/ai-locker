@@ -42,15 +42,17 @@ function ChartTooltip({ active, payload, label }) {
   if (!active || !payload?.length) return null
   return (
     <div className="chart-tooltip" style={{
-      background: 'rgba(13,17,23,0.96)', border: '1px solid rgba(255,255,255,0.1)',
+      background: 'var(--bg-secondary)',
+      border: '1px solid var(--glass-border)',
       borderRadius: 8, padding: '8px 12px', fontSize: 12,
+      boxShadow: '0 4px 20px rgba(0,0,0,0.15)',
     }}>
-      <div style={{ color: 'var(--c-muted)', marginBottom: 4 }}>{label}</div>
+      <div style={{ color: 'var(--text-tertiary)', marginBottom: 4 }}>{label}</div>
       {payload.map(p => (
         <div key={p.name} style={{ display: 'flex', gap: 8, alignItems: 'center', marginTop: 2 }}>
           <div style={{ width: 8, height: 8, borderRadius: '50%', background: p.color, flexShrink: 0 }} />
-          <span style={{ color: 'rgba(255,255,255,0.6)', textTransform: 'capitalize' }}>{p.name}</span>
-          <span style={{ color: '#fff', fontWeight: 600, marginLeft: 'auto' }}>{p.value}</span>
+          <span style={{ color: 'var(--text-secondary)', textTransform: 'capitalize' }}>{p.name}</span>
+          <span style={{ color: 'var(--text-primary)', fontWeight: 600, marginLeft: 'auto' }}>{p.value}</span>
         </div>
       ))}
     </div>
