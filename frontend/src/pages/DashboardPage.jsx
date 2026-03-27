@@ -45,7 +45,7 @@ function ChartTooltip({ active, payload, label }) {
       background: 'rgba(13,17,23,0.96)', border: '1px solid rgba(255,255,255,0.1)',
       borderRadius: 8, padding: '8px 12px', fontSize: 12,
     }}>
-      <div style={{ color: 'rgba(255,255,255,0.45)', marginBottom: 4 }}>{label}</div>
+      <div style={{ color: 'var(--c-muted)', marginBottom: 4 }}>{label}</div>
       {payload.map(p => (
         <div key={p.name} style={{ display: 'flex', gap: 8, alignItems: 'center', marginTop: 2 }}>
           <div style={{ width: 8, height: 8, borderRadius: '50%', background: p.color, flexShrink: 0 }} />
@@ -475,7 +475,7 @@ export default function DashboardPage() {
     const cfg = configs[item._type]
     if (!cfg) return null
     return (
-      <div key={item.id} className="dash-list-row" style={{ padding: '9px 20px', cursor: 'pointer', transition: 'background var(--duration-fast)', borderBottom: '1px solid rgba(255,255,255,0.04)' }}
+      <div key={item.id} className="dash-list-row" style={{ padding: '9px 20px', cursor: 'pointer', transition: 'background var(--duration-fast)', borderBottom: '1px solid var(--c-surface)' }}
         onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.04)'}
         onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
         onClick={() => navigate(cfg.path)}>
@@ -560,9 +560,9 @@ export default function DashboardPage() {
                       </linearGradient>
                     ))}
                   </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
-                  <XAxis dataKey="day" tick={{ fontSize: 10, fill: 'rgba(255,255,255,0.30)' }} tickLine={false} axisLine={false} tickFormatter={tickFormatter} />
-                  <YAxis tick={{ fontSize: 10, fill: 'rgba(255,255,255,0.30)' }} tickLine={false} axisLine={false} allowDecimals={false} />
+                  <CartesianGrid strokeDasharray="3 3" stroke="var(--c-grid)" vertical={false} />
+                  <XAxis dataKey="day" tick={{ fontSize: 10, fill: 'var(--c-tick)' }} tickLine={false} axisLine={false} tickFormatter={tickFormatter} />
+                  <YAxis tick={{ fontSize: 10, fill: 'var(--c-tick)' }} tickLine={false} axisLine={false} allowDecimals={false} />
                   <Tooltip content={<ChartTooltip />} cursor={{ stroke: 'rgba(255,255,255,0.10)', strokeWidth: 1 }} animationDuration={0} isAnimationActive={false} />
                   {Object.entries(CHART_COLORS).map(([key, color]) => (
                     <Area key={key} type="monotone" dataKey={key} stroke={color} strokeWidth={1.5} fill={`url(#top-grad-${key})`} dot={false} activeDot={{ r: 3, fill: color }} isAnimationActive={false} />
@@ -615,7 +615,7 @@ export default function DashboardPage() {
                   </div>
                   <div>
                     <div style={{ fontSize: 11, color: 'var(--text-quaternary)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 4 }}>Last week</div>
-                    <span style={{ fontSize: 38, fontWeight: 800, color: 'rgba(255,255,255,0.2)', letterSpacing: -2, lineHeight: 1 }}>{ws.prev_week}</span>
+                    <span style={{ fontSize: 38, fontWeight: 800, color: 'var(--text-quaternary)', letterSpacing: -2, lineHeight: 1 }}>{ws.prev_week}</span>
                   </div>
                   <div>
                     <div style={{ fontSize: 11, color: 'var(--text-quaternary)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 4 }}>Streak</div>
@@ -633,10 +633,10 @@ export default function DashboardPage() {
                     <div style={{ fontSize: 11, color: 'var(--text-quaternary)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 10 }}>By type</div>
                     <ResponsiveContainer width="100%" height={Math.max(120, chartData.length * 32)}>
                       <BarChart data={chartData} layout="vertical" margin={{ top: 0, right: 32, left: 0, bottom: 0 }} barCategoryGap="30%">
-                        <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" horizontal={false} />
+                        <CartesianGrid strokeDasharray="3 3" stroke="var(--c-grid)" horizontal={false} />
                         <XAxis type="number" tick={{ fontSize: 10, fill: 'rgba(255,255,255,0.3)' }} tickLine={false} axisLine={false} allowDecimals={false} />
-                        <YAxis type="category" dataKey="name" tick={{ fontSize: 11, fill: 'rgba(255,255,255,0.45)' }} tickLine={false} axisLine={false} width={62} />
-                        <Tooltip content={<ChartTooltip />} cursor={{ fill: 'rgba(255,255,255,0.03)' }} animationDuration={0} isAnimationActive={false} />
+                        <YAxis type="category" dataKey="name" tick={{ fontSize: 11, fill: 'var(--c-tick-alt)' }} tickLine={false} axisLine={false} width={62} />
+                        <Tooltip content={<ChartTooltip />} cursor={{ fill: 'var(--c-cursor)' }} animationDuration={0} isAnimationActive={false} />
                         <Bar dataKey="This week" radius={[0, 3, 3, 0]} maxBarSize={10} isAnimationActive={false}
                           label={{ position: 'right', fontSize: 10, fill: 'rgba(255,255,255,0.4)', formatter: v => v > 0 ? v : '' }}>
                           {chartData.map(d => <Cell key={d.name} fill={d.color} />)}
@@ -692,18 +692,18 @@ export default function DashboardPage() {
                   <div style={{ fontSize: 11, color: 'var(--text-tertiary)' }}>health score</div>
                   <div style={{ fontSize: 10, color: scoreColor, fontWeight: 600 }}>{score >= 80 ? '✓ Great' : score >= 50 ? '⚠ Fair' : '✗ Needs work'}</div>
                 </div>
-                <div style={{ width: 1, background: 'rgba(255,255,255,0.06)', flexShrink: 0 }} />
+                <div style={{ width: 1, background: 'var(--c-divider)', flexShrink: 0 }} />
                 <div style={{ flex: 1, minWidth: 160 }}>
                   <div style={{ fontSize: 12, color: 'var(--text-tertiary)', marginBottom: 8 }}>Description coverage</div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                    <div style={{ flex: 1, height: 6, background: 'rgba(255,255,255,0.07)', borderRadius: 99, overflow: 'hidden' }}>
+                    <div style={{ flex: 1, height: 6, background: 'var(--c-surface-hover)', borderRadius: 99, overflow: 'hidden' }}>
                       <div style={{ height: '100%', width: `${descPct}%`, background: descPct >= 70 ? '#30D158' : descPct >= 40 ? '#FF9500' : '#FF375F', borderRadius: 99, transition: 'width 0.6s ease' }} />
                     </div>
                     <span style={{ fontSize: 13, fontWeight: 700, color: descPct >= 70 ? '#30D158' : descPct >= 40 ? '#FF9500' : '#FF375F', minWidth: 36 }}>{descPct}%</span>
                   </div>
                   <div style={{ fontSize: 11, color: 'var(--text-quaternary)', marginTop: 4 }}>{h.items_with_description} of {h.total_items} items have descriptions</div>
                 </div>
-                <div style={{ width: 1, background: 'rgba(255,255,255,0.06)', flexShrink: 0 }} />
+                <div style={{ width: 1, background: 'var(--c-divider)', flexShrink: 0 }} />
                 <div style={{ flex: 2, minWidth: 200 }}>
                   <div style={{ fontSize: 12, color: 'var(--text-tertiary)', marginBottom: 8 }}>{issues.length === 0 ? '✓ No issues found' : `${issues.length} issue${issues.length !== 1 ? 's' : ''} found`}</div>
                   {issues.length === 0 ? (
@@ -761,7 +761,7 @@ export default function DashboardPage() {
                             <span style={{ fontSize: 12, fontWeight: 500, flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.title}</span>
                             <span style={{ fontSize: 12, fontWeight: 700, color: '#007AFF', flexShrink: 0, background: 'rgba(0,122,255,0.1)', padding: '2px 8px', borderRadius: 6 }}>{p.use_count}×</span>
                           </div>
-                          <div style={{ marginLeft: 28, height: 3, background: 'rgba(255,255,255,0.06)', borderRadius: 99, overflow: 'hidden' }}>
+                          <div style={{ marginLeft: 28, height: 3, background: 'var(--c-divider)', borderRadius: 99, overflow: 'hidden' }}>
                             <div style={{ height: '100%', width: `${Math.round((p.use_count / maxUse) * 100)}%`, background: `rgba(0,122,255,${0.9 - i * 0.15})`, borderRadius: 99 }} />
                           </div>
                         </div>
@@ -789,7 +789,7 @@ export default function DashboardPage() {
                             <span style={{ fontSize: 10, color: '#5AC8FA', background: 'rgba(90,200,250,0.1)', padding: '1px 6px', borderRadius: 4, flexShrink: 0, fontFamily: 'monospace' }}>{c.shell}</span>
                             <span style={{ fontSize: 12, fontWeight: 700, color: '#5AC8FA', flexShrink: 0, background: 'rgba(90,200,250,0.1)', padding: '2px 8px', borderRadius: 6 }}>{c.use_count}×</span>
                           </div>
-                          <div style={{ marginLeft: 28, height: 3, background: 'rgba(255,255,255,0.06)', borderRadius: 99, overflow: 'hidden' }}>
+                          <div style={{ marginLeft: 28, height: 3, background: 'var(--c-divider)', borderRadius: 99, overflow: 'hidden' }}>
                             <div style={{ height: '100%', width: `${Math.round((c.use_count / maxUse) * 100)}%`, background: `rgba(90,200,250,${0.9 - i * 0.15})`, borderRadius: 99 }} />
                           </div>
                         </div>
@@ -830,7 +830,7 @@ export default function DashboardPage() {
                   </div>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                     {stats.top_skills_recent.map(s => (
-                      <div key={s.title} onClick={() => navigate('/skills')} style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 10, padding: '8px 10px', borderRadius: 8, background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)', transition: 'background 0.15s' }}
+                      <div key={s.title} onClick={() => navigate('/skills')} style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 10, padding: '8px 10px', borderRadius: 8, background: 'var(--c-surface)', border: '1px solid var(--c-divider)', transition: 'background 0.15s' }}
                         onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.06)'}
                         onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,255,255,0.03)'}>
                         <div style={{ width: 8, height: 8, borderRadius: '50%', background: s.is_active ? '#30D158' : 'rgba(255,255,255,0.2)', boxShadow: s.is_active ? '0 0 6px rgba(48,209,88,0.5)' : 'none', flexShrink: 0 }} />
@@ -876,7 +876,7 @@ export default function DashboardPage() {
           </div>
           <div className="dash-grid-2col">
             <div className="glass-card" style={{ padding: 0, overflow: 'hidden' }}>
-              <div style={{ padding: '16px 20px 12px', borderBottom: '1px solid rgba(255,255,255,0.06)', display: 'flex', alignItems: 'center', gap: 8 }}>
+              <div style={{ padding: '16px 20px 12px', borderBottom: '1px solid var(--c-divider)', display: 'flex', alignItems: 'center', gap: 8 }}>
                 <TrendingUp size={14} color="rgba(255,255,255,0.4)" />
                 <span style={{ fontSize: 13, fontWeight: 600 }}>Recent</span>
               </div>
@@ -887,7 +887,7 @@ export default function DashboardPage() {
               </div>
             </div>
             <div className="glass-card" style={{ padding: 0, overflow: 'hidden' }}>
-              <div style={{ padding: '16px 20px 12px', borderBottom: '1px solid rgba(255,255,255,0.06)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <div style={{ padding: '16px 20px 12px', borderBottom: '1px solid var(--c-divider)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                   <Star size={14} color="var(--yellow)" fill="var(--yellow)" />
                   <span style={{ fontSize: 13, fontWeight: 600 }}>Favoritos</span>
@@ -899,7 +899,7 @@ export default function DashboardPage() {
                   <div style={{ padding: '24px 20px', textAlign: 'center', color: 'var(--text-tertiary)', fontSize: 13 }}>Mark items with ★ to see them here</div>
                 )}
                 {favoriteSkills?.data?.map(s => (
-                  <div key={s.id} className="dash-list-row" style={{ padding: '9px 20px', cursor: 'pointer', transition: 'background var(--duration-fast)', borderBottom: '1px solid rgba(255,255,255,0.04)' }}
+                  <div key={s.id} className="dash-list-row" style={{ padding: '9px 20px', cursor: 'pointer', transition: 'background var(--duration-fast)', borderBottom: '1px solid var(--c-surface)' }}
                     onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.04)'} onMouseLeave={e => e.currentTarget.style.background = 'transparent'} onClick={() => navigate('/skills')}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                       <Star size={11} color="var(--yellow)" fill="var(--yellow)" /><Zap size={11} color="#FF9500" />
@@ -909,7 +909,7 @@ export default function DashboardPage() {
                   </div>
                 ))}
                 {favoriteSteering?.data?.map(s => (
-                  <div key={s.id} className="dash-list-row" style={{ padding: '9px 20px', cursor: 'pointer', transition: 'background var(--duration-fast)', borderBottom: '1px solid rgba(255,255,255,0.04)' }}
+                  <div key={s.id} className="dash-list-row" style={{ padding: '9px 20px', cursor: 'pointer', transition: 'background var(--duration-fast)', borderBottom: '1px solid var(--c-surface)' }}
                     onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.04)'} onMouseLeave={e => e.currentTarget.style.background = 'transparent'} onClick={() => navigate('/steering')}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                       <Star size={11} color="var(--yellow)" fill="var(--yellow)" /><Navigation size={11} color="#BF5AF2" />
@@ -919,7 +919,7 @@ export default function DashboardPage() {
                   </div>
                 ))}
                 {favoriteMcp?.data?.map(m => (
-                  <div key={m.id} className="dash-list-row" style={{ padding: '9px 20px', cursor: 'pointer', transition: 'background var(--duration-fast)', borderBottom: '1px solid rgba(255,255,255,0.04)' }}
+                  <div key={m.id} className="dash-list-row" style={{ padding: '9px 20px', cursor: 'pointer', transition: 'background var(--duration-fast)', borderBottom: '1px solid var(--c-surface)' }}
                     onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.04)'} onMouseLeave={e => e.currentTarget.style.background = 'transparent'} onClick={() => navigate('/mcp')}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                       <Star size={11} color="var(--yellow)" fill="var(--yellow)" /><McpIcon size={11} color="#30D158" />
@@ -929,7 +929,7 @@ export default function DashboardPage() {
                   </div>
                 ))}
                 {favoritePrompts?.data?.map(p => (
-                  <div key={p.id} className="dash-list-row" style={{ padding: '9px 20px', cursor: 'pointer', transition: 'background var(--duration-fast)', borderBottom: '1px solid rgba(255,255,255,0.04)' }}
+                  <div key={p.id} className="dash-list-row" style={{ padding: '9px 20px', cursor: 'pointer', transition: 'background var(--duration-fast)', borderBottom: '1px solid var(--c-surface)' }}
                     onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.04)'} onMouseLeave={e => e.currentTarget.style.background = 'transparent'} onClick={() => navigate('/prompts')}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                       <Star size={11} color="var(--yellow)" fill="var(--yellow)" /><MessageSquare size={11} color="#007AFF" />
@@ -940,7 +940,7 @@ export default function DashboardPage() {
                   </div>
                 ))}
                 {favoriteCommands?.data?.map(c => (
-                  <div key={c.id} className="dash-list-row" style={{ padding: '9px 20px', cursor: 'pointer', transition: 'background var(--duration-fast)', borderBottom: '1px solid rgba(255,255,255,0.04)' }}
+                  <div key={c.id} className="dash-list-row" style={{ padding: '9px 20px', cursor: 'pointer', transition: 'background var(--duration-fast)', borderBottom: '1px solid var(--c-surface)' }}
                     onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.04)'} onMouseLeave={e => e.currentTarget.style.background = 'transparent'} onClick={() => navigate('/commands')}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                       <Star size={11} color="var(--yellow)" fill="var(--yellow)" /><TerminalSquare size={11} color="#5AC8FA" />
@@ -951,7 +951,7 @@ export default function DashboardPage() {
                   </div>
                 ))}
                 {favoriteNotes?.data?.map(n => (
-                  <div key={n.id} className="dash-list-row" style={{ padding: '9px 20px', cursor: 'pointer', transition: 'background var(--duration-fast)', borderBottom: '1px solid rgba(255,255,255,0.04)' }}
+                  <div key={n.id} className="dash-list-row" style={{ padding: '9px 20px', cursor: 'pointer', transition: 'background var(--duration-fast)', borderBottom: '1px solid var(--c-surface)' }}
                     onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.04)'} onMouseLeave={e => e.currentTarget.style.background = 'transparent'} onClick={() => navigate('/notes')}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                       <Star size={11} color="var(--yellow)" fill="var(--yellow)" /><StickyNote size={11} color="#FFD60A" />
@@ -1001,7 +1001,7 @@ export default function DashboardPage() {
                         {typeKeys.map(k => cat[k] > 0 && (
                           <div key={k} style={{ flex: cat[k], background: typeColors[k], opacity: 0.8, minWidth: 2 }} title={`${k}: ${cat[k]}`} />
                         ))}
-                        <div style={{ flex: maxVal - cat.total, background: 'rgba(255,255,255,0.04)' }} />
+                        <div style={{ flex: maxVal - cat.total, background: 'var(--c-surface)' }} />
                       </div>
                       <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-secondary)', minWidth: 24, textAlign: 'right' }}>{cat.total}</span>
                     </div>
@@ -1034,7 +1034,7 @@ export default function DashboardPage() {
                     { label: 'With content', value: ni.with_content, color: '#30D158' },
                     { label: 'Pinned', value: ni.pinned, color: '#007AFF' },
                     { label: 'Favorites', value: ni.favorites, color: '#FFD60A' },
-                    { label: 'Avg length', value: ni.avg_length >= 1000 ? `~${(ni.avg_length/1000).toFixed(1)}k` : `~${ni.avg_length}`, color: 'rgba(255,255,255,0.5)', suffix: ' chars' },
+                    { label: 'Avg length', value: ni.avg_length >= 1000 ? `~${(ni.avg_length/1000).toFixed(1)}k` : `~${ni.avg_length}`, color: 'var(--text-secondary)', suffix: ' chars' },
                   ].map(({ label, value, color, suffix }) => (
                     <div key={label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                       <span style={{ fontSize: 12, color: 'var(--text-tertiary)' }}>{label}</span>
@@ -1053,7 +1053,7 @@ export default function DashboardPage() {
                     {ni.by_color.map(({ color, count }) => (
                       <div key={color} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                         <div style={{ width: 14, height: 14, borderRadius: 4, background: color, flexShrink: 0, border: '1px solid rgba(255,255,255,0.1)' }} />
-                        <div style={{ flex: 1, height: 4, background: 'rgba(255,255,255,0.06)', borderRadius: 99, overflow: 'hidden' }}>
+                        <div style={{ flex: 1, height: 4, background: 'var(--c-divider)', borderRadius: 99, overflow: 'hidden' }}>
                           <div style={{ height: '100%', width: `${Math.round((count / ni.total) * 100)}%`, background: color, opacity: 0.8, borderRadius: 99 }} />
                         </div>
                         <span style={{ fontSize: 12, fontWeight: 600, color, minWidth: 20, textAlign: 'right' }}>{count}</span>
