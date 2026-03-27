@@ -1,85 +1,104 @@
 <svg width="200" height="200" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
   <defs>
-    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="#1C6EF7"/>
-      <stop offset="100%" stop-color="#0A3FCC"/>
-    </linearGradient>
-    <linearGradient id="locker" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="#FFFFFF"/>
-      <stop offset="100%" stop-color="#C8DEFF"/>
+    <linearGradient id="body" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#5AADFF"/>
+      <stop offset="100%" stop-color="#2277DD"/>
     </linearGradient>
     <linearGradient id="door" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="#E8F2FF"/>
-      <stop offset="100%" stop-color="#B0CCEE"/>
+      <stop offset="0%" stop-color="#4499EE"/>
+      <stop offset="100%" stop-color="#1A5FBB"/>
+    </linearGradient>
+    <linearGradient id="handle" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#FFFFFF"/>
+      <stop offset="100%" stop-color="#AACCFF"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#00EEFF"/>
+      <stop offset="100%" stop-color="#00AACC"/>
     </linearGradient>
   </defs>
 
-  <!-- Background -->
-  <rect width="200" height="200" rx="44" fill="url(#bg)"/>
-  <!-- Subtle top shine -->
-  <ellipse cx="100" cy="0" rx="90" ry="50" fill="rgba(255,255,255,0.12)"/>
+  <!-- No background — transparent -->
 
-  <!-- LOCKER BODY — bold simple rectangle -->
-  <rect x="38" y="26" width="124" height="150" rx="14"
-    fill="url(#locker)"
-    style="filter: drop-shadow(0 6px 12px rgba(0,0,80,0.35))"/>
+  <!-- LOCKER BODY -->
+  <rect x="30" y="16" width="140" height="170" rx="16"
+    fill="url(#body)"
+    style="filter: drop-shadow(0 4px 16px rgba(0,100,255,0.5))"/>
 
-  <!-- Left accent stripe (cyan) -->
-  <rect x="38" y="26" width="8" height="150" rx="7"
-    fill="#00DDFF"/>
+  <!-- Body top highlight -->
+  <rect x="30" y="16" width="140" height="6" rx="5"
+    fill="rgba(255,255,255,0.35)"/>
+
+  <!-- Body left highlight -->
+  <rect x="30" y="16" width="5" height="170" rx="3"
+    fill="rgba(255,255,255,0.2)"/>
 
   <!-- DOOR PANEL -->
-  <rect x="52" y="34" width="102" height="134" rx="9"
+  <rect x="42" y="26" width="116" height="152" rx="10"
     fill="url(#door)"/>
 
-  <!-- Top vent slots — 3 bold lines -->
-  <rect x="64" y="44" width="78" height="5" rx="2.5"
-    fill="rgba(0,50,150,0.2)"/>
-  <rect x="64" y="53" width="78" height="5" rx="2.5"
-    fill="rgba(0,50,150,0.15)"/>
-  <rect x="64" y="62" width="78" height="5" rx="2.5"
-    fill="rgba(0,50,150,0.1)"/>
+  <!-- Door top highlight -->
+  <rect x="42" y="26" width="116" height="5" rx="4"
+    fill="rgba(255,255,255,0.25)"/>
 
-  <!-- Horizontal divider -->
-  <rect x="52" y="100" width="102" height="2.5"
-    fill="rgba(0,60,160,0.25)"/>
+  <!-- CYAN LEFT STRIPE -->
+  <rect x="42" y="26" width="7" height="152" rx="4"
+    fill="url(#accent)"/>
 
-  <!-- HANDLE — bold pill on right -->
-  <rect x="140" y="84" width="12" height="32" rx="6"
-    fill="#1C6EF7"
-    style="filter: drop-shadow(0 2px 4px rgba(0,0,80,0.3))"/>
-  <rect x="143" y="88" width="6" height="24" rx="3"
-    fill="rgba(255,255,255,0.5)"/>
+  <!-- VENT SLOTS — 3 bold lines -->
+  <rect x="60" y="38" width="82" height="6" rx="3"
+    fill="rgba(0,30,100,0.35)"/>
+  <rect x="60" y="49" width="82" height="6" rx="3"
+    fill="rgba(0,30,100,0.25)"/>
+  <rect x="60" y="60" width="82" height="6" rx="3"
+    fill="rgba(0,30,100,0.18)"/>
 
-  <!-- LOCK CIRCLE — bold keyhole -->
-  <circle cx="130" cy="100" r="7"
-    fill="#1C6EF7" stroke="white" stroke-width="2.5"/>
-  <circle cx="130" cy="100" r="3"
-    fill="white"/>
+  <!-- HORIZONTAL DIVIDER -->
+  <rect x="42" y="106" width="116" height="3"
+    fill="rgba(0,30,100,0.3)"/>
 
-  <!-- AI TEXT — bold, simple, readable at small size -->
-  <!-- "A" -->
-  <path d="M68 116 L76 88 L84 116" fill="none" stroke="#1C6EF7" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round"/>
-  <line x1="70.5" y1="107" x2="81.5" y2="107" stroke="#1C6EF7" stroke-width="5" stroke-linecap="round"/>
+  <!-- HANDLE -->
+  <rect x="144" y="88" width="14" height="34" rx="7"
+    fill="url(#handle)"
+    style="filter: drop-shadow(0 2px 6px rgba(0,0,80,0.4))"/>
+  <rect x="147" y="93" width="8" height="24" rx="4"
+    fill="rgba(0,60,180,0.2)"/>
 
-  <!-- "I" -->
-  <line x1="96" y1="88" x2="96" y2="116" stroke="#00BBEE" stroke-width="6" stroke-linecap="round"/>
-  <line x1="90" y1="88" x2="102" y2="88" stroke="#00BBEE" stroke-width="5" stroke-linecap="round"/>
-  <line x1="90" y1="116" x2="102" y2="116" stroke="#00BBEE" stroke-width="5" stroke-linecap="round"/>
+  <!-- LOCK CIRCLE -->
+  <circle cx="132" cy="106" r="8"
+    fill="rgba(0,20,80,0.5)"
+    stroke="rgba(255,255,255,0.6)"
+    stroke-width="2.5"/>
+  <circle cx="132" cy="106" r="3.5"
+    fill="white" opacity="0.9"/>
 
-  <!-- Bottom data dots — simple and bold -->
-  <circle cx="68" cy="130" r="4" fill="#1C6EF7" opacity="0.7"/>
-  <rect x="76" y="127" width="52" height="6" rx="3" fill="rgba(0,60,160,0.3)"/>
+  <!-- "AI" — bold white letters, center of door -->
+  <!-- A -->
+  <path d="M66 124 L76 92 L86 124"
+    fill="none" stroke="white" stroke-width="7"
+    stroke-linecap="round" stroke-linejoin="round"/>
+  <line x1="69" y1="114" x2="83" y2="114"
+    stroke="white" stroke-width="6" stroke-linecap="round"/>
 
-  <circle cx="68" cy="144" r="4" fill="#1C6EF7" opacity="0.5"/>
-  <rect x="76" y="141" width="38" height="6" rx="3" fill="rgba(0,60,160,0.2)"/>
+  <!-- I -->
+  <line x1="100" y1="92" x2="100" y2="124"
+    stroke="#00EEFF" stroke-width="7" stroke-linecap="round"/>
+  <line x1="93" y1="92" x2="107" y2="92"
+    stroke="#00EEFF" stroke-width="6" stroke-linecap="round"/>
+  <line x1="93" y1="124" x2="107" y2="124"
+    stroke="#00EEFF" stroke-width="6" stroke-linecap="round"/>
 
-  <circle cx="68" cy="158" r="4" fill="#1C6EF7" opacity="0.35"/>
-  <rect x="76" y="155" width="46" height="6" rx="3" fill="rgba(0,60,160,0.15)"/>
+  <!-- DATA LINES bottom -->
+  <circle cx="60" cy="140" r="4.5" fill="white" opacity="0.7"/>
+  <rect x="70" y="137" width="56" height="7" rx="3.5"
+    fill="rgba(255,255,255,0.4)"/>
 
-  <!-- Sparkle top right -->
-  <circle cx="164" cy="32" r="5" fill="white" opacity="0.85"/>
-  <circle cx="176" cy="50" r="3" fill="white" opacity="0.5"/>
-  <circle cx="158" cy="50" r="2" fill="white" opacity="0.35"/>
+  <circle cx="60" cy="155" r="4.5" fill="white" opacity="0.5"/>
+  <rect x="70" y="152" width="42" height="7" rx="3.5"
+    fill="rgba(255,255,255,0.28)"/>
+
+  <circle cx="60" cy="170" r="4.5" fill="white" opacity="0.35"/>
+  <rect x="70" y="167" width="50" height="7" rx="3.5"
+    fill="rgba(255,255,255,0.18)"/>
 
 </svg>
