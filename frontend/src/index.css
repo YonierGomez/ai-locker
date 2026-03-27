@@ -1160,6 +1160,19 @@ body::before {
   will-change: transform, opacity;
 }
 
+/* ── AI Chat mobile fixes ── */
+@media (max-width: 768px) {
+  /* Bubble max-width más generoso en mobile */
+  .ai-bubble-wrap {
+    max-width: 88% !important;
+  }
+
+  /* Settings label visible en desktop, oculto en mobile ya está con display:none inline */
+  .ai-settings-label {
+    display: none !important;
+  }
+}
+
 /* ── Route transition (page fade on navigation) ── */
 @keyframes routeFadeIn {
   from { opacity: 0; }

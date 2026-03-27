@@ -340,36 +340,36 @@ export default function AiSessionPage() {
   const isEmpty = messages.length === 0
 
   return (
-    <div className="page-content" style={{ display: 'flex', flexDirection: 'column', height: 'calc(100vh - var(--topbar-height) - 40px)', padding: 0 }}>
+    <div className="page-content" style={{ display: 'flex', flexDirection: 'column', height: 'calc(100dvh - var(--topbar-height))', padding: 0, overflow: 'hidden' }}>
       {/* Header */}
-      <div style={{ padding: '20px 24px 0', flexShrink: 0 }}>
+      <div style={{ padding: '14px 16px 0', flexShrink: 0 }}>
         <div style={{
           display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-          marginBottom: 16,
+          marginBottom: 12, gap: 8, flexWrap: 'wrap',
         }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0 }}>
             <div style={{
-              width: 38, height: 38, borderRadius: 10,
+              width: 34, height: 34, borderRadius: 10, flexShrink: 0,
               background: 'linear-gradient(145deg, rgba(94,92,230,0.20), rgba(0,122,255,0.12))',
               border: '1px solid rgba(94,92,230,0.25)',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
             }}>
-              <Bot size={18} color="#5E5CE6" />
+              <Bot size={16} color="#5E5CE6" />
             </div>
-            <div>
-              <div style={{ fontSize: 16, fontWeight: 700, letterSpacing: -0.3 }}>AI Chat</div>
-              <div style={{ fontSize: 12, color: 'var(--text-tertiary)' }}>
+            <div style={{ minWidth: 0 }}>
+              <div style={{ fontSize: 15, fontWeight: 700, letterSpacing: -0.3 }}>AI Chat</div>
+              <div style={{ fontSize: 11, color: 'var(--text-tertiary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                 {aiConfig?.configured
-                  ? `Model: ${aiConfig.model}`
-                  : 'Configure AI key in Settings to start'}
+                  ? `${aiConfig.model}`
+                  : 'Configure AI key in Settings'}
               </div>
             </div>
           </div>
 
-          <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+          <div style={{ display: 'flex', gap: 6, alignItems: 'center', flexShrink: 0 }}>
             {storedCount > 0 && (
-              <span style={{ fontSize: 11, color: 'var(--text-quaternary)', display: 'flex', alignItems: 'center', gap: 4 }}>
-                <History size={11} /> {storedCount} messages
+              <span style={{ fontSize: 10, color: 'var(--text-quaternary)', display: 'flex', alignItems: 'center', gap: 3 }}>
+                <History size={10} /> {storedCount}
               </span>
             )}
             {messages.length > 0 && (
@@ -377,20 +377,20 @@ export default function AiSessionPage() {
                 className="btn btn-glass btn-sm"
                 onClick={e => { e.stopPropagation(); clearChat() }}
                 style={{
-                  gap: 6,
-                  color: confirmClear ? 'var(--red)' : undefined,
-                  borderColor: confirmClear ? 'rgba(255,69,58,0.4)' : undefined,
-                  background: confirmClear ? 'rgba(255,69,58,0.08)' : undefined,
+                  gap: 5, fontSize: 11, padding: '4px 10px',
+                  color: confirmClear ? 'var(--pink)' : undefined,
+                  borderColor: confirmClear ? 'rgba(255,55,95,0.4)' : undefined,
+                  background: confirmClear ? 'rgba(255,55,95,0.08)' : undefined,
                   transition: 'all 0.15s',
-                  minWidth: confirmClear ? 120 : undefined,
                 }}
               >
-                <Trash2 size={12} />
-                {confirmClear ? 'Confirm clear?' : 'Clear history'}
+                <Trash2 size={11} />
+                {confirmClear ? 'Confirm?' : 'Clear'}
               </button>
             )}
-            <button className="btn btn-glass btn-sm" onClick={() => navigate('/settings')} style={{ gap: 6 }}>
-              <Settings size={12} /> AI Settings
+            <button className="btn btn-glass btn-sm" onClick={() => navigate('/settings')} style={{ gap: 5, fontSize: 11, padding: '4px 10px' }}>
+              <Settings size={11} />
+              <span style={{ display: 'none' }} className="ai-settings-label">AI Settings</span>
             </button>
           </div>
         </div>
@@ -414,8 +414,8 @@ export default function AiSessionPage() {
       {/* Chat area */}
       <div style={{
         flex: 1, overflowY: 'auto',
-        padding: '16px 24px',
-        display: 'flex', flexDirection: 'column', gap: 12,
+        padding: '12px 16px',
+        display: 'flex', flexDirection: 'column', gap: 10,
       }}>
         {/* Empty state */}
         {isEmpty && (
@@ -478,14 +478,14 @@ export default function AiSessionPage() {
 
       {/* Input */}
       <div style={{
-        padding: '12px 24px 20px', flexShrink: 0,
+        padding: '10px 12px 12px', flexShrink: 0,
         borderTop: '1px solid var(--glass-border)',
       }}>
         <div style={{
-          display: 'flex', gap: 10, alignItems: 'flex-end',
+          display: 'flex', gap: 8, alignItems: 'flex-end',
           background: 'var(--glass-bg)',
           border: '1px solid var(--glass-border)',
-          borderRadius: 16, padding: '10px 14px',
+          borderRadius: 14, padding: '8px 12px',
           transition: 'border-color 0.2s',
         }}
           onFocus={e => e.currentTarget.style.borderColor = 'color-mix(in srgb, var(--blue) 40%, transparent)'}
@@ -501,7 +501,7 @@ export default function AiSessionPage() {
                 handleSend()
               }
             }}
-            placeholder={aiConfig?.configured ? 'Ask me to create a prompt, command, skill… (Enter to send, Shift+Enter for newline)' : 'Configure AI key in Settings first…'}
+            placeholder={aiConfig?.configured ? 'Ask AI to create a prompt, command, skill…' : 'Configure AI key in Settings first…'}
             disabled={loading || !aiConfig?.configured}
             rows={1}
             style={{
@@ -527,8 +527,8 @@ export default function AiSessionPage() {
             {loading ? <RefreshCw size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <Send size={14} />}
           </button>
         </div>
-        <div style={{ fontSize: 10, color: 'var(--text-quaternary)', textAlign: 'center', marginTop: 8 }}>
-          AI can make mistakes. Always review items before saving.
+        <div style={{ fontSize: 10, color: 'var(--text-quaternary)', textAlign: 'center', marginTop: 6 }}>
+          AI can make mistakes. Always review before saving.
         </div>
       </div>
     </div>
