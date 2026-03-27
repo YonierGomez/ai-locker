@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
-import { Routes, Route, Navigate } from 'react-router-dom'
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import Sidebar from './components/Sidebar'
 import Topbar from './components/Topbar'
@@ -47,44 +47,50 @@ export default function App() {
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [handleKeyDown])
 
+  const location = useLocation()
+
   // Close sidebar on route change (mobile)
   useEffect(() => {
     setSidebarOpen(false)
-  }, [window.location.pathname])
+  }, [location.pathname])
 
   return (
-    <div className="app-layout">
-      {/* Mobile overlay */}
-      <div
-        className={`sidebar-overlay ${sidebarOpen ? 'visible' : ''}`}
-        onClick={() => setSidebarOpen(false)}
-      />
-
-      <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
-
-      <div className="main-content">
-        <Topbar
-          onMenuClick={() => setSidebarOpen(true)}
-          onSearchClick={() => setPaletteOpen(true)}
+    <>
+      <div className="app-layout">
+        {/* Mobile overlay */}
+        <div
+          className={`sidebar-overlay ${sidebarOpen ? 'visible' : ''}`}
+          onClick={() => setSidebarOpen(false)}
         />
 
-        <Routes>
-          <Route path="/" element={<Navigate to="/dashboard" replace />} />
-          <Route path="/dashboard" element={<DashboardPage />} />
-          <Route path="/prompts" element={<PromptsPage />} />
-          <Route path="/skills" element={<SkillsPage />} />
-          <Route path="/steering" element={<SteeringPage />} />
-          <Route path="/mcp" element={<McpPage />} />
-          <Route path="/commands" element={<CommandsPage />} />
-          <Route path="/notes" element={<NotesPage />} />
-          <Route path="/settings" element={<SettingsPage />} />
-          <Route path="/trash" element={<TrashPage />} />
-          <Route path="/ai" element={<AiSessionPage />} />
-        </Routes>
-      </div>
+        <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
-      {/* Global Command Palette */}
-      <CommandPalette isOpen={paletteOpen} onClose={() => setPaletteOpen(false)} />
-    </div>
+        <div className="main-content">
+          <Topbar
+            onMenuClick={() => setSidebarOpen(true)}
+            onSearchClick={() => setPaletteOpen(true)}
+          />
+
+          <div key={location.pathname} className="route-transition">
+            <Routes>
+              <Route path="/" element={<Navigate to="/dashboard" replace />} />
+              <Route path="/dashboard" element={<DashboardPage />} />
+              <Route path="/prompts" element={<PromptsPage />} />
+              <Route path="/skills" element={<SkillsPage />} />
+              <Route path="/steering" element={<SteeringPage />} />
+              <Route path="/mcp" element={<McpPage />} />
+              <Route path="/commands" element={<CommandsPage />} />
+              <Route path="/notes" element={<NotesPage />} />
+              <Route path="/settings" element={<SettingsPage />} />
+              <Route path="/trash" element={<TrashPage />} />
+              <Route path="/ai" element={<AiSessionPage />} />
+            </Routes>
+          </div>
+        </div>
+
+        {/* Global Command Palette */}
+        <CommandPalette isOpen={paletteOpen} onClose={() => setPaletteOpen(false)} />
+      </div>
+    </>
   )
 }

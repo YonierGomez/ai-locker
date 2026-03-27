@@ -412,21 +412,22 @@ export default function DashboardPage() {
     queryKey: ['stats'],
     queryFn: () => settingsApi.stats(),
     staleTime: 30000,
+    placeholderData: (prev) => prev,
   })
 
-  const { data: recentPrompts } = useQuery({ queryKey: ['prompts', { limit: 4, sort: 'updated_at' }], queryFn: () => promptsApi.list({ limit: 4, sort: 'updated_at', order: 'desc' }) })
-  const { data: recentSkills } = useQuery({ queryKey: ['skills', { limit: 4, sort: 'updated_at' }], queryFn: () => skillsApi.list({ limit: 4, sort: 'updated_at', order: 'desc' }), staleTime: 30000 })
-  const { data: recentSteering } = useQuery({ queryKey: ['steering', { limit: 4, sort: 'updated_at' }], queryFn: () => steeringApi.list({ limit: 4, sort: 'updated_at', order: 'desc' }), staleTime: 30000 })
-  const { data: recentMcp } = useQuery({ queryKey: ['mcp', { limit: 4, sort: 'updated_at' }], queryFn: () => mcpApi.list({ limit: 4, sort: 'updated_at', order: 'desc' }), staleTime: 30000 })
-  const { data: recentCommands } = useQuery({ queryKey: ['commands', { limit: 4, sort: 'updated_at' }], queryFn: () => commandsApi.list({ limit: 4, sort: 'updated_at', order: 'desc' }), staleTime: 30000 })
-  const { data: recentNotes } = useQuery({ queryKey: ['notes', { limit: 4, sort: 'updated_at' }], queryFn: () => notesApi.list({ limit: 4, sort: 'updated_at', order: 'desc' }), staleTime: 30000 })
+  const { data: recentPrompts } = useQuery({ queryKey: ['prompts', { limit: 4, sort: 'updated_at' }], queryFn: () => promptsApi.list({ limit: 4, sort: 'updated_at', order: 'desc' }), placeholderData: (prev) => prev })
+  const { data: recentSkills } = useQuery({ queryKey: ['skills', { limit: 4, sort: 'updated_at' }], queryFn: () => skillsApi.list({ limit: 4, sort: 'updated_at', order: 'desc' }), staleTime: 30000, placeholderData: (prev) => prev })
+  const { data: recentSteering } = useQuery({ queryKey: ['steering', { limit: 4, sort: 'updated_at' }], queryFn: () => steeringApi.list({ limit: 4, sort: 'updated_at', order: 'desc' }), staleTime: 30000, placeholderData: (prev) => prev })
+  const { data: recentMcp } = useQuery({ queryKey: ['mcp', { limit: 4, sort: 'updated_at' }], queryFn: () => mcpApi.list({ limit: 4, sort: 'updated_at', order: 'desc' }), staleTime: 30000, placeholderData: (prev) => prev })
+  const { data: recentCommands } = useQuery({ queryKey: ['commands', { limit: 4, sort: 'updated_at' }], queryFn: () => commandsApi.list({ limit: 4, sort: 'updated_at', order: 'desc' }), staleTime: 30000, placeholderData: (prev) => prev })
+  const { data: recentNotes } = useQuery({ queryKey: ['notes', { limit: 4, sort: 'updated_at' }], queryFn: () => notesApi.list({ limit: 4, sort: 'updated_at', order: 'desc' }), staleTime: 30000, placeholderData: (prev) => prev })
 
-  const { data: favoritePrompts } = useQuery({ queryKey: ['prompts', { favorite: true, limit: 4 }], queryFn: () => promptsApi.list({ favorite: 'true', limit: 4 }) })
-  const { data: favoriteSkills } = useQuery({ queryKey: ['skills', { favorite: true, limit: 4 }], queryFn: () => skillsApi.list({ favorite: 'true', limit: 4 }), staleTime: 30000 })
-  const { data: favoriteSteering } = useQuery({ queryKey: ['steering', { favorite: true, limit: 4 }], queryFn: () => steeringApi.list({ favorite: 'true', limit: 4 }), staleTime: 30000 })
-  const { data: favoriteMcp } = useQuery({ queryKey: ['mcp', { favorite: true, limit: 4 }], queryFn: () => mcpApi.list({ favorite: 'true', limit: 4 }), staleTime: 30000 })
-  const { data: favoriteCommands } = useQuery({ queryKey: ['commands', { favorite: true, limit: 4 }], queryFn: () => commandsApi.list({ favorite: 'true', limit: 4 }), staleTime: 30000 })
-  const { data: favoriteNotes } = useQuery({ queryKey: ['notes', { favorite: true, limit: 4 }], queryFn: () => notesApi.list({ favorite: 'true', limit: 4 }), staleTime: 30000 })
+  const { data: favoritePrompts } = useQuery({ queryKey: ['prompts', { favorite: true, limit: 4 }], queryFn: () => promptsApi.list({ favorite: 'true', limit: 4 }), placeholderData: (prev) => prev })
+  const { data: favoriteSkills } = useQuery({ queryKey: ['skills', { favorite: true, limit: 4 }], queryFn: () => skillsApi.list({ favorite: 'true', limit: 4 }), staleTime: 30000, placeholderData: (prev) => prev })
+  const { data: favoriteSteering } = useQuery({ queryKey: ['steering', { favorite: true, limit: 4 }], queryFn: () => steeringApi.list({ favorite: 'true', limit: 4 }), staleTime: 30000, placeholderData: (prev) => prev })
+  const { data: favoriteMcp } = useQuery({ queryKey: ['mcp', { favorite: true, limit: 4 }], queryFn: () => mcpApi.list({ favorite: 'true', limit: 4 }), staleTime: 30000, placeholderData: (prev) => prev })
+  const { data: favoriteCommands } = useQuery({ queryKey: ['commands', { favorite: true, limit: 4 }], queryFn: () => commandsApi.list({ favorite: 'true', limit: 4 }), staleTime: 30000, placeholderData: (prev) => prev })
+  const { data: favoriteNotes } = useQuery({ queryKey: ['notes', { favorite: true, limit: 4 }], queryFn: () => notesApi.list({ favorite: 'true', limit: 4 }), staleTime: 30000, placeholderData: (prev) => prev })
 
   const total = (stats?.prompts ?? 0) + (stats?.skills ?? 0) + (stats?.steering ?? 0) + (stats?.mcp_configs ?? 0) + (stats?.commands ?? 0) + (stats?.notes ?? 0)
   const hasEnoughForCharts = total >= 5
