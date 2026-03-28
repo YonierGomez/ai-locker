@@ -7,8 +7,7 @@ COPY frontend/package.json ./
 RUN npm install --legacy-peer-deps
 
 COPY frontend/ ./
-ARG VITE_BASE_PATH=/
-RUN VITE_BASE_PATH=${VITE_BASE_PATH} npm run build
+RUN npm run build
 
 # ── Stage 2: Production image ─────────────────────────────────
 FROM node:alpine AS production

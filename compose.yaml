@@ -17,8 +17,6 @@ services:
     # build:
     #   context: .
     #   dockerfile: Dockerfile
-    #   args:
-    #     VITE_BASE_PATH: /ailocker/   # subpath si usas reverse proxy
     container_name: ai-locker
     ports:
       - "9091:3001"
