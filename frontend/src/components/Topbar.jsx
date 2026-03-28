@@ -50,9 +50,11 @@ export default function Topbar({ onMenuClick, onSearchClick }) {
       <style>{`
         .topbar-subtitle-text { display: block; }
         .search-shortcut-badge { display: inline-block; }
+        .search-trigger-label { display: inline; }
         @media (max-width: 600px) {
           .topbar-subtitle-text { display: none; }
           .search-shortcut-badge { display: none; }
+          .search-trigger-label { display: none; }
         }
       `}</style>
 
@@ -76,14 +78,47 @@ export default function Topbar({ onMenuClick, onSearchClick }) {
       </div>
 
       {/* Right actions */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
         <button
-          className="btn-icon search-trigger-btn"
           onClick={onSearchClick}
           title="Search (⌘K)"
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 8,
+            padding: '7px 14px',
+            borderRadius: 'var(--radius-full)',
+            background: 'rgba(255,255,255,0.07)',
+            border: '1px solid rgba(255,255,255,0.12)',
+            color: 'var(--text-tertiary)',
+            cursor: 'pointer',
+            transition: 'all 0.15s',
+            backdropFilter: 'blur(20px)',
+            minWidth: 180,
+          }}
+          onMouseEnter={e => {
+            e.currentTarget.style.background = 'rgba(255,255,255,0.11)'
+            e.currentTarget.style.borderColor = 'rgba(255,255,255,0.20)'
+            e.currentTarget.style.color = 'var(--text-secondary)'
+          }}
+          onMouseLeave={e => {
+            e.currentTarget.style.background = 'rgba(255,255,255,0.07)'
+            e.currentTarget.style.borderColor = 'rgba(255,255,255,0.12)'
+            e.currentTarget.style.color = 'var(--text-tertiary)'
+          }}
         >
-          <Search size={15} />
-          <span className="search-shortcut-badge">⌘K</span>
+          <Search size={14} style={{ flexShrink: 0 }} />
+          <span style={{ fontSize: 13, flex: 1, textAlign: 'left' }} className="search-trigger-label">Search…</span>
+          <span className="search-shortcut-badge" style={{
+            fontSize: 10, fontWeight: 600,
+            color: 'var(--text-quaternary)',
+            background: 'rgba(255,255,255,0.08)',
+            border: '1px solid rgba(255,255,255,0.10)',
+            borderRadius: 5,
+            padding: '2px 6px',
+            letterSpacing: '0.02em',
+            lineHeight: 1.3,
+          }}>⌘K</span>
         </button>
       </div>
     </header>
