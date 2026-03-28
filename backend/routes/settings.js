@@ -2,25 +2,32 @@ const express = require('express');
 const router = express.Router();
 const { getDb } = require('../config/database');
 
-// Map of settings keys → environment variable fallbacks
-// When a DB value is empty, the env var is used as default so the UI shows it
-const ENV_FALLBACKS = {
-  ai_provider:             () => process.env.AI_PROVIDER || '',
-  ai_api_key:              () => process.env.AI_API_KEY || process.env.OPENROUTER_API_KEY || process.env.OPENAI_API_KEY || process.env.ANTHROPIC_API_KEY || process.env.GOOGLE_AI_API_KEY || '',
-  ai_base_url:             () => process.env.AI_BASE_URL || '',
-  ai_model:                () => process.env.AI_MODEL || '',
-  ai_aws_region:           () => process.env.AI_AWS_REGION || '',
-  ai_aws_access_key_id:    () => process.env.AI_AWS_ACCESS_KEY_ID || '',
-  ai_aws_secret_access_key:() => process.env.AI_AWS_SECRET_ACCESS_KEY || '',
-  s3_bucket:               () => process.env.S3_BUCKET || '',
-  s3_region:               () => process.env.S3_REGION || '',
-  s3_prefix:               () => process.env.S3_PREFIX || '',
-  s3_access_key:           () => process.env.S3_ACCESS_KEY || '',
-  s3_secret_key:           () => process.env.S3_SECRET_KEY || '',
-  s3_endpoint:             () => process.env.S3_ENDPOINT || '',
-  sync_enabled:            () => process.env.SYNC_ENABLED || '',
-  sync_interval:           () => process.env.SYNC_INTERVAL || '',
+// Environment variable overrides — if set, they ALWAYS take priority over DB values.
+// This allows deploying with a .env file and having the UI reflect those values.
+const ENV_OVERRIDES = {
+  ai_provider:             () => process.env.AI_PROVIDER,
+  ai_api_key:              () => process.env.AI_API_KEY || process.env.OPENROUTER_API_KEY || process.env.OPENAI_API_KEY || process.env.ANTHROPIC_API_KEY || process.env.GOOGLE_AI_API_KEY,
+  ai_base_url:             () => process.env.AI_BASE_URL,
+  ai_model:                () => process.env.AI_MODEL,
+  ai_aws_region:           () => process.env.AI_AWS_REGION,
+  ai_aws_access_key_id:    () => process.env.AI_AWS_ACCESS_KEY_ID,
+  ai_aws_secret_access_key:() => process.env.AI_AWS_SECRET_ACCESS_KEY,
+  s3_bucket:               () => process.env.S3_BUCKET,
+  s3_region:               () => process.env.S3_REGION,
+  s3_prefix:               () => process.env.S3_PREFIX,
+  s3_access_key:           () => process.env.S3_ACCESS_KEY,
+  s3_secret_key:           () => process.env.S3_SECRET_KEY,
+  s3_endpoint:             () => process.env.S3_ENDPOINT,
+  sync_enabled:            () => process.env.SYNC_ENABLED,
+  sync_interval:           () => process.env.SYNC_INTERVAL,
+  default_model:           () => process.env.DEFAULT_MODEL || process.env.AI_MODEL,
 }
+
+// Keys that should be masked when the request is unauthenticated
+const SENSITIVE_KEYS = new Set([
+  'ai_api_key', 'ai_aws_secret_access_key',
+  's3_access_key', 's3_secret_key',
+])
 
 router.get('/', async (req, res) => {
   try {
@@ -28,11 +35,20 @@ router.get('/', async (req, res) => {
     const rows = await db('settings').select('*');
     const result = {};
     rows.forEach(s => { result[s.key] = s.value; });
-    // Apply env var fallbacks for empty DB values
-    for (const [key, getFallback] of Object.entries(ENV_FALLBACKS)) {
-      if (!result[key] || result[key] === '') {
-        const envVal = getFallback();
-        if (envVal) result[key] = envVal;
+    // Env vars always override DB values when set
+    for (const [key, getEnvVal] of Object.entries(ENV_OVERRIDES)) {
+      const envVal = getEnvVal();
+      if (envVal !== undefined && envVal !== null && envVal !== '') {
+        result[key] = envVal;
+      }
+    }
+    // If the request is unauthenticated (no valid Bearer token), mask sensitive values
+    const apiKey = process.env.API_KEY
+    const authHeader = req.headers.authorization
+    const isAuthenticated = !apiKey || (authHeader && authHeader === `Bearer ${apiKey}`)
+    if (!isAuthenticated) {
+      for (const key of SENSITIVE_KEYS) {
+        if (result[key]) result[key] = result[key].slice(0, 8) + '••••••••'
       }
     }
     res.json(result);
@@ -65,6 +81,33 @@ router.put('/', async (req, res) => {
     res.json(result);
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
+
+// Returns which settings are currently overridden by environment variables.
+// NOTE: api_key is NEVER exposed here — this endpoint is public.
+// The frontend must have the token entered manually by the user once.
+router.get('/env-status', (req, res) => {
+  const status = {
+    // Which env vars are active
+    ai_provider:              !!process.env.AI_PROVIDER,
+    ai_api_key:               !!(process.env.AI_API_KEY || process.env.OPENROUTER_API_KEY || process.env.OPENAI_API_KEY || process.env.ANTHROPIC_API_KEY || process.env.GOOGLE_AI_API_KEY),
+    ai_base_url:              !!process.env.AI_BASE_URL,
+    ai_model:                 !!process.env.AI_MODEL,
+    ai_aws_region:            !!process.env.AI_AWS_REGION,
+    ai_aws_access_key_id:     !!process.env.AI_AWS_ACCESS_KEY_ID,
+    ai_aws_secret_access_key: !!process.env.AI_AWS_SECRET_ACCESS_KEY,
+    s3_bucket:                !!process.env.S3_BUCKET,
+    s3_region:                !!process.env.S3_REGION,
+    s3_prefix:                !!process.env.S3_PREFIX,
+    s3_access_key:            !!process.env.S3_ACCESS_KEY,
+    s3_secret_key:            !!process.env.S3_SECRET_KEY,
+    s3_endpoint:              !!process.env.S3_ENDPOINT,
+    sync_enabled:             !!process.env.SYNC_ENABLED,
+    sync_interval:            !!process.env.SYNC_INTERVAL,
+    // Only whether API_KEY is set — never the value itself
+    api_key_protected:        !!process.env.API_KEY,
+  }
+  res.json(status)
+})
 
 router.get('/stats', async (req, res) => {
   try {

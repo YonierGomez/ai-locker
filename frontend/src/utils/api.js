@@ -109,6 +109,7 @@ export const settingsApi = {
   get: () => api.get('/settings'),
   update: (data) => api.put('/settings', data),
   stats: () => api.get('/settings/stats'),
+  envStatus: () => api.get('/settings/env-status'),
 }
 
 // ── Trash ──

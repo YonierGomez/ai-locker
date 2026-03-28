@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom'
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import Sidebar from './components/Sidebar'
 import Topbar from './components/Topbar'
 import CommandPalette from './components/CommandPalette'
@@ -21,6 +21,26 @@ import { settingsApi } from './utils/api'
 export default function App() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [paletteOpen, setPaletteOpen] = useState(false)
+  const qc = useQueryClient()
+
+  // ── Bootstrap: auto-configure Bearer token from server's API_KEY
+  // /api/client-config is a public endpoint that returns the API_KEY so the
+  // frontend can authenticate automatically without manual user input.
+  useEffect(() => {
+    fetch('/api/client-config')
+      .then(r => r.json())
+      .then(data => {
+        if (data.apiKey) {
+          const stored = localStorage.getItem('promptly_api_key')
+          if (stored !== data.apiKey) {
+            localStorage.setItem('promptly_api_key', data.apiKey)
+            // Token changed — invalidate all queries so they re-run authenticated
+            qc.invalidateQueries()
+          }
+        }
+      })
+      .catch(() => { /* server not ready yet */ })
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   const { data: settings } = useQuery({
     queryKey: ['settings'],

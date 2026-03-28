@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { settingsApi, tagsApi, categoriesApi, backupApi } from '../utils/api'
 import Modal from '../components/Modal'
@@ -326,12 +326,34 @@ function Section({ icon: Icon, title, color, children }) {
   )
 }
 
+// Badge shown when a value is locked by an environment variable
+function EnvBadge() {
+  return (
+    <span title="This value is set via environment variable and cannot be changed from the UI" style={{
+      display: 'inline-flex', alignItems: 'center', gap: 4,
+      fontSize: 10, fontWeight: 600, letterSpacing: 0.3,
+      color: '#30D158', background: 'rgba(48,209,88,0.12)',
+      border: '1px solid rgba(48,209,88,0.25)',
+      borderRadius: 6, padding: '2px 7px',
+      fontFamily: 'var(--font-mono)',
+      userSelect: 'none',
+    }}>
+      🔒 .env
+    </span>
+  )
+}
+
 export default function SettingsPage() {
   const qc = useQueryClient()
   const fileInputRef = useRef(null)
   const logoInputRef = useRef(null)
 
   const { data: settings, isLoading } = useQuery({ queryKey: ['settings'], queryFn: () => settingsApi.get() })
+  const { data: envStatus } = useQuery({
+    queryKey: ['env-status'],
+    queryFn: () => settingsApi.envStatus(),
+    staleTime: Infinity,
+  })
   const { data: stats } = useQuery({ queryKey: ['stats'], queryFn: () => settingsApi.stats() })
   const { data: tagsData } = useQuery({ queryKey: ['tags'], queryFn: () => tagsApi.list() })
   const { data: categoriesData } = useQuery({ queryKey: ['categories'], queryFn: () => categoriesApi.list() })
@@ -340,6 +362,17 @@ export default function SettingsPage() {
 
   const [localSettings, setLocalSettings] = useState({})
   const [showAiKey, setShowAiKey] = useState(false)
+  const [apiKeyInput, setApiKeyInput] = useState(localStorage.getItem('promptly_api_key') || '')
+  const [apiKeySaved, setApiKeySaved] = useState(!!localStorage.getItem('promptly_api_key'))
+
+  // Sync apiKeySaved state when token is auto-configured by App.jsx bootstrap
+  useEffect(() => {
+    const stored = localStorage.getItem('promptly_api_key')
+    if (stored && !apiKeySaved) {
+      setApiKeyInput(stored)
+      setApiKeySaved(true)
+    }
+  }, [envStatus]) // re-check after envStatus loads
   const [newTag, setNewTag] = useState({ name: '', color: '#007AFF' })
   const [newCat, setNewCat] = useState({ name: '', color: '#007AFF' })
   const [s3Config, setS3Config] = useState({})
@@ -359,7 +392,7 @@ export default function SettingsPage() {
 
   const DEFAULTS = {
     accent_color: '#007AFF',
-    default_model: 'claude-sonnet-4-6',
+    default_model: 'claude-sonnet-4-6', // claude-sonnet-4-6 is the recommended default
     app_logo: '',
     s3_bucket: '', s3_region: 'us-east-1', s3_prefix: 'promptly-backups/',
     s3_access_key: '', s3_secret_key: '', s3_endpoint: '',
@@ -564,9 +597,37 @@ export default function SettingsPage() {
       <Section icon={Sparkles} title="AI Integration" color="var(--green)">
         <div className="glass-card" style={{ padding: 20, display: 'flex', flexDirection: 'column', gap: 20 }}>
 
+          {/* .env override banner */}
+          {envStatus && (envStatus.ai_provider || envStatus.ai_api_key || envStatus.ai_model) && (
+            <div style={{
+              display: 'flex', alignItems: 'flex-start', gap: 10,
+              padding: '10px 14px',
+              background: 'rgba(48,209,88,0.07)',
+              border: '1px solid rgba(48,209,88,0.2)',
+              borderRadius: 'var(--radius-md)',
+              fontSize: 12, color: 'var(--text-secondary)', lineHeight: 1.6,
+            }}>
+              <span style={{ fontSize: 14, flexShrink: 0, marginTop: 1 }}>🔒</span>
+              <div>
+                <span style={{ fontWeight: 600, color: '#30D158' }}>Configured via .env</span>
+                {' — '}
+                the following fields are locked by environment variables and override any UI changes:
+                {' '}
+                {[
+                  envStatus.ai_provider && <code key="p" style={{ background: 'rgba(255,255,255,0.07)', padding: '0 5px', borderRadius: 3 }}>AI_PROVIDER</code>,
+                  envStatus.ai_api_key  && <code key="k" style={{ background: 'rgba(255,255,255,0.07)', padding: '0 5px', borderRadius: 3 }}>AI_API_KEY</code>,
+                  envStatus.ai_model    && <code key="m" style={{ background: 'rgba(255,255,255,0.07)', padding: '0 5px', borderRadius: 3 }}>AI_MODEL</code>,
+                ].filter(Boolean).reduce((acc, el, i) => i === 0 ? [el] : [...acc, ', ', el], [])}
+              </div>
+            </div>
+          )}
+
           {/* Provider selector */}
           <div className="form-group" style={{ margin: 0 }}>
-            <label className="form-label" style={{ marginBottom: 10, display: 'block' }}>Provider</label>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
+              <label className="form-label" style={{ margin: 0 }}>Provider</label>
+              {envStatus?.ai_provider && <EnvBadge />}
+            </div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))', gap: 8 }}>
               {AI_PROVIDERS.map(p => {
                 const active = (currentSettings.ai_provider || 'openrouter') === p.id
@@ -631,7 +692,10 @@ export default function SettingsPage() {
             /* OpenRouter: API key + custom base URL */
             <>
               <div className="form-group" style={{ margin: 0 }}>
-                <label className="form-label">OpenRouter API Key</label>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+                  <label className="form-label" style={{ margin: 0 }}>OpenRouter API Key</label>
+                  {envStatus?.ai_api_key && <EnvBadge />}
+                </div>
                 <div style={{ position: 'relative', marginTop: 6 }}>
                   <input className="form-input" type={showAiKey ? 'text' : 'password'} placeholder="sk-or-v1-…" value={currentSettings.ai_api_key || ''} onChange={e => set('ai_api_key', e.target.value)} style={{ paddingRight: 36 }} />
                   <button onClick={() => setShowAiKey(v => !v)} style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-tertiary)', display: 'flex' }}>
@@ -650,9 +714,12 @@ export default function SettingsPage() {
           ) : (
             /* All other providers: single API key field */
             <div className="form-group" style={{ margin: 0 }}>
-              <label className="form-label">
-                {AI_PROVIDERS.find(p => p.id === (currentSettings.ai_provider || 'openrouter'))?.label || 'AI'} API Key
-              </label>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+                <label className="form-label" style={{ margin: 0 }}>
+                  {AI_PROVIDERS.find(p => p.id === (currentSettings.ai_provider || 'openrouter'))?.label || 'AI'} API Key
+                </label>
+                {envStatus?.ai_api_key && <EnvBadge />}
+              </div>
               <div style={{ position: 'relative', marginTop: 6 }}>
                 <input className="form-input" type={showAiKey ? 'text' : 'password'}
                   placeholder={AI_PROVIDERS.find(p => p.id === (currentSettings.ai_provider))?.keyPlaceholder || 'sk-…'}
@@ -689,14 +756,19 @@ export default function SettingsPage() {
       <Section icon={Cpu} title="AI Defaults" color="var(--teal)">
         <div className="glass-card" style={{ padding: 20 }}>
           <div className="form-group">
-            <label className="form-label">Default Model</label>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+              <label className="form-label" style={{ margin: 0 }}>Default Model</label>
+              {envStatus?.ai_model && <EnvBadge />}
+            </div>
             <ModelSelector
               value={currentSettings.default_model || ''}
               onChange={(v) => set('default_model', v)}
               placeholder="Search or type a model…"
             />
             <div style={{ fontSize: 11, color: 'var(--text-quaternary)', marginTop: 6 }}>
-              Models updated March 2026 · Type any model ID to use a custom one
+              {envStatus?.ai_model
+                ? 'Locked by AI_MODEL in .env — change it there to update'
+                : 'Models updated March 2026 · Type any model ID to use a custom one'}
             </div>
           </div>
         </div>
@@ -1008,25 +1080,86 @@ export default function SettingsPage() {
 
       {/* ── API Key Protection ── */}
       <Section icon={Key} title="API Key Protection" color="var(--indigo)">
-        <div className="glass-card" style={{ padding: 20 }}>
-          <div style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 12, lineHeight: 1.6 }}>
-            To protect your instance, set <code style={{ fontFamily: 'var(--font-mono)', background: 'rgba(255,255,255,0.06)', padding: '1px 6px', borderRadius: 4 }}>API_KEY=your-secret</code> in the server's <code style={{ fontFamily: 'var(--font-mono)', background: 'rgba(255,255,255,0.06)', padding: '1px 6px', borderRadius: 4 }}>.env</code> file. The frontend will automatically send it with every request when you save it here.
+        <div className="glass-card" style={{ padding: 20, display: 'flex', flexDirection: 'column', gap: 14 }}>
+
+          {/* Server-side status */}
+          <div style={{
+            display: 'flex', alignItems: 'center', gap: 10,
+            padding: '10px 14px',
+            background: envStatus?.api_key_protected ? 'rgba(48,209,88,0.08)' : 'rgba(255,159,10,0.07)',
+            border: `1px solid ${envStatus?.api_key_protected ? 'rgba(48,209,88,0.2)' : 'rgba(255,159,10,0.2)'}`,
+            borderRadius: 'var(--radius-md)',
+          }}>
+            <div className={`status-dot ${envStatus?.api_key_protected ? 'active' : 'inactive'}`} />
+            <div style={{ flex: 1 }}>
+              <div style={{ fontSize: 13, fontWeight: 500, color: envStatus?.api_key_protected ? '#30D158' : 'var(--text-secondary)' }}>
+                {envStatus?.api_key_protected ? 'Server protected — API_KEY is active' : 'Server unprotected — no API_KEY set'}
+              </div>
+              <div style={{ fontSize: 11, color: 'var(--text-quaternary)', marginTop: 2 }}>
+                {envStatus?.api_key_protected
+                  ? 'All API requests require a valid Bearer token. Enter the same key below so the frontend can authenticate.'
+                  : 'Anyone with network access can use this instance. Set API_KEY in .env to enable protection.'}
+              </div>
+            </div>
+            {envStatus?.api_key_protected && <EnvBadge />}
           </div>
-          <div className="form-group">
+
+          <div style={{ fontSize: 13, color: 'var(--text-secondary)', lineHeight: 1.6 }}>
+            The <code style={{ fontFamily: 'var(--font-mono)', background: 'rgba(255,255,255,0.06)', padding: '1px 6px', borderRadius: 4 }}>API_KEY</code> in <code style={{ fontFamily: 'var(--font-mono)', background: 'rgba(255,255,255,0.06)', padding: '1px 6px', borderRadius: 4 }}>.env</code> protects the AI Locker server from unauthorized access — it is <strong>not</strong> related to your AI provider or S3 credentials. Paste the same value below so this browser can authenticate with the server.
+          </div>
+
+          <div className="form-group" style={{ margin: 0 }}>
             <label className="form-label">Bearer Token (client-side)</label>
-            <input
-              className="form-input"
-              type="password"
-              placeholder="Your API_KEY value…"
-              defaultValue={localStorage.getItem('promptly_api_key') || ''}
-              onBlur={e => {
-                const val = e.target.value.trim()
-                if (val) localStorage.setItem('promptly_api_key', val)
-                else localStorage.removeItem('promptly_api_key')
-              }}
-              style={{ marginTop: 6 }}
-            />
-            <div style={{ fontSize: 11, color: 'var(--text-quaternary)', marginTop: 6 }}>Stored in your browser's localStorage. Clear to disable.</div>
+            <div style={{ display: 'flex', gap: 8, marginTop: 6 }}>
+              <input
+                className="form-input"
+                type="password"
+                placeholder="Paste your API_KEY value here…"
+                value={apiKeyInput}
+                onChange={e => { setApiKeyInput(e.target.value); setApiKeySaved(false) }}
+                onKeyDown={e => {
+                  if (e.key === 'Enter') {
+                    const val = apiKeyInput.trim()
+                    if (val) { localStorage.setItem('promptly_api_key', val); setApiKeySaved(true); qc.invalidateQueries(); toast.success('Token saved — reloading data…') }
+                    else { localStorage.removeItem('promptly_api_key'); setApiKeySaved(false); toast.success('Token cleared') }
+                  }
+                }}
+                style={{ flex: 1 }}
+              />
+              <button
+                className={`btn btn-sm ${apiKeySaved ? 'btn-glass' : 'btn-primary'}`}
+                onClick={() => {
+                  const val = apiKeyInput.trim()
+                  if (val) {
+                    localStorage.setItem('promptly_api_key', val)
+                    setApiKeySaved(true)
+                    qc.invalidateQueries()
+                    toast.success('Token saved — all requests will now include it')
+                  } else {
+                    localStorage.removeItem('promptly_api_key')
+                    setApiKeySaved(false)
+                    qc.invalidateQueries()
+                    toast.success('Token cleared')
+                  }
+                }}
+                style={{ flexShrink: 0, gap: 5 }}
+              >
+                {apiKeySaved ? <><Check size={13} /> Saved</> : <><Save size={13} /> Apply</>}
+              </button>
+              {apiKeySaved && (
+                <button
+                  className="btn btn-glass btn-sm"
+                  onClick={() => { setApiKeyInput(''); localStorage.removeItem('promptly_api_key'); setApiKeySaved(false); qc.invalidateQueries(); toast.success('Token cleared') }}
+                  title="Clear token"
+                  style={{ flexShrink: 0 }}
+                >
+                  <X size={13} />
+                </button>
+              )}
+            </div>
+            <div style={{ fontSize: 11, color: apiKeySaved ? '#30D158' : 'var(--text-quaternary)', marginTop: 6 }}>
+              {apiKeySaved ? '✓ Token active — all API requests include this Bearer token' : 'Stored in your browser\'s localStorage only. Press Apply or Enter to activate.'}
+            </div>
           </div>
         </div>
       </Section>

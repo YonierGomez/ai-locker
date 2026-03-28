@@ -4,19 +4,33 @@ const { v4: uuidv4 } = require('uuid')
 const { getDb } = require('../config/database')
 
 // ── AI Config ────────────────────────────────────────────────
+// Priority: env vars > DB values > defaults
+// If an env var is set, it always wins over what's stored in the DB.
 async function getAIConfig() {
   const db = getDb()
   const rows = await db('settings').select('*')
   const s = {}
   rows.forEach(r => { s[r.key] = r.value })
+
+  // Env var helpers — return undefined if not set so we can fall through to DB
+  const env = {
+    provider:    process.env.AI_PROVIDER,
+    apiKey:      process.env.AI_API_KEY || process.env.OPENROUTER_API_KEY || process.env.OPENAI_API_KEY || process.env.ANTHROPIC_API_KEY || process.env.GOOGLE_AI_API_KEY,
+    baseUrl:     process.env.AI_BASE_URL,
+    model:       process.env.AI_MODEL,
+    awsRegion:   process.env.AI_AWS_REGION || process.env.AWS_REGION,
+    awsKeyId:    process.env.AI_AWS_ACCESS_KEY_ID || process.env.AWS_ACCESS_KEY_ID,
+    awsSecret:   process.env.AI_AWS_SECRET_ACCESS_KEY || process.env.AWS_SECRET_ACCESS_KEY,
+  }
+
   return {
-    provider:           s.ai_provider           || process.env.AI_PROVIDER           || 'openrouter',
-    apiKey:             s.ai_api_key             || process.env.OPENROUTER_API_KEY     || process.env.OPENAI_API_KEY || process.env.ANTHROPIC_API_KEY || process.env.GOOGLE_AI_API_KEY || '',
-    baseUrl:            s.ai_base_url            || 'https://openrouter.ai/api/v1',
-    model:              s.ai_model               || s.default_model                   || 'openai/gpt-4o-mini',
-    awsRegion:          s.ai_aws_region          || process.env.AWS_REGION            || 'us-east-1',
-    awsAccessKeyId:     s.ai_aws_access_key_id   || process.env.AWS_ACCESS_KEY_ID     || '',
-    awsSecretAccessKey: s.ai_aws_secret_access_key || process.env.AWS_SECRET_ACCESS_KEY || '',
+    provider:           env.provider    || s.ai_provider           || 'openrouter',
+    apiKey:             env.apiKey      || s.ai_api_key             || '',
+    baseUrl:            env.baseUrl     || s.ai_base_url            || 'https://openrouter.ai/api/v1',
+    model:              env.model       || s.ai_model               || s.default_model || 'openai/gpt-4o-mini',
+    awsRegion:          env.awsRegion   || s.ai_aws_region          || 'us-east-1',
+    awsAccessKeyId:     env.awsKeyId    || s.ai_aws_access_key_id   || '',
+    awsSecretAccessKey: env.awsSecret   || s.ai_aws_secret_access_key || '',
   }
 }
 
