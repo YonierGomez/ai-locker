@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { createPortal } from 'react-dom'
 import { Copy, X, Eye, EyeOff, Lock } from 'lucide-react'
 import toast from 'react-hot-toast'
+import { copyToClipboard } from '../utils/clipboard'
 
 // Variables that should be treated as sensitive (password input)
 const SENSITIVE_PATTERNS = [
@@ -107,7 +108,7 @@ export default function VariableFillModal({ content, onClose }) {
   const handleCopy = async () => {
     const filled = fillVariables(content, values)
     try {
-      await navigator.clipboard.writeText(filled)
+      await copyToClipboard(filled)
       toast.success('Copied with variables filled!')
       onClose()
     } catch {

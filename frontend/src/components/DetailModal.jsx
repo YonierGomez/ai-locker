@@ -14,6 +14,7 @@ const jsonStyle = {
 import toast from 'react-hot-toast'
 import { formatDistanceToNow, format } from 'date-fns'
 import { estimateTokens, formatTokens, getTokenColor } from '../utils/tokens'
+import { copyToClipboard } from '../utils/clipboard'
 
 function hasMarkdown(text) {
   if (!text) return false
@@ -52,7 +53,7 @@ export default function DetailModal({ item, onClose, onEdit, onDelete, onToggleF
       ? JSON.stringify({ [item.server_name]: item.config }, null, 2)
       : displayContent || ''
     try {
-      await navigator.clipboard.writeText(text)
+      await copyToClipboard(text)
       setCopied(true)
       toast.success('Copied to clipboard')
       setTimeout(() => setCopied(false), 2000)

@@ -5,6 +5,7 @@ import Modal from '../components/Modal'
 import DetailModal from '../components/DetailModal'
 import { Code2, Plus, Search, Star, Copy, Check, Trash2, Edit2, LayoutGrid, AlignJustify, List, MousePointer } from 'lucide-react'
 import toast from 'react-hot-toast'
+import { copyToClipboard } from '../utils/clipboard'
 import CategorySelector from '../components/CategorySelector'
 import { formatDistanceToNow } from 'date-fns'
 import hljs from 'highlight.js/lib/core'
@@ -244,7 +245,7 @@ export default function SnippetsPage() {
   }
 
   const handleCopy = async (snippet) => {
-    await navigator.clipboard.writeText(snippet.code)
+    await copyToClipboard(snippet.code)
     setCopiedId(snippet.id)
     useMutation2.mutate(snippet.id)
     toast.success('Code copied!')
