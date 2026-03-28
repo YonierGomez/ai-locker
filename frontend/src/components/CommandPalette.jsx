@@ -1,8 +1,8 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
-import { promptsApi, skillsApi, steeringApi, commandsApi } from '../utils/api'
-import { MessageSquare, Zap, Navigation, Settings, LayoutDashboard, TerminalSquare, Search, ArrowRight, Hash, Copy, Check } from 'lucide-react'
+import { promptsApi, skillsApi, steeringApi, commandsApi, snippetsApi, agentsApi } from '../utils/api'
+import { MessageSquare, Zap, Navigation, Settings, LayoutDashboard, TerminalSquare, Search, ArrowRight, Hash, Copy, Check, Code2, Bot } from 'lucide-react'
 import toast from 'react-hot-toast'
 
 function McpIcon({ size = 14 }) {
@@ -81,6 +81,18 @@ export default function CommandPalette({ isOpen, onClose }) {
     enabled: isOpen,
     staleTime: 30000,
   })
+  const { data: snippets } = useQuery({
+    queryKey: ['snippets', { limit: 100 }],
+    queryFn: () => snippetsApi.list({ limit: 100 }),
+    enabled: isOpen,
+    staleTime: 30000,
+  })
+  const { data: agents } = useQuery({
+    queryKey: ['agents', { limit: 100 }],
+    queryFn: () => agentsApi.list({ limit: 100 }),
+    enabled: isOpen,
+    staleTime: 30000,
+  })
 
   // Build combined searchable list
   const allItems = [
@@ -89,6 +101,8 @@ export default function CommandPalette({ isOpen, onClose }) {
     ...(skills?.data || []).map(s => ({ id: s.id, label: s.title, description: s.description, path: '/skills', icon: Zap, color: '#FF9500', type: 'skill', item: s })),
     ...(commands?.data || []).map(c => ({ id: c.id, label: c.title, description: c.command?.slice(0, 60), path: '/commands', icon: TerminalSquare, color: '#5AC8FA', type: 'command', item: c, mono: true })),
     ...(steering?.data || []).map(s => ({ id: s.id, label: s.title, description: s.description, path: '/steering', icon: Navigation, color: '#BF5AF2', type: 'steering', item: s })),
+    ...(snippets?.data || []).map(s => ({ id: s.id, label: s.title, description: `${s.language} — ${s.description || s.code?.slice(0, 50)}`, path: '/snippets', icon: Code2, color: '#FFD60A', type: 'snippet', item: s, mono: true })),
+    ...(agents?.data || []).map(a => ({ id: a.id, label: a.title, description: a.description || (a.model ? `Model: ${a.model}` : 'AI Agent'), path: '/agents', icon: Bot, color: '#5E5CE6', type: 'agent', item: a })),
   ]
 
   const filtered = query.trim()
@@ -160,8 +174,8 @@ export default function CommandPalette({ isOpen, onClose }) {
     el?.scrollIntoView({ block: 'nearest' })
   }, [activeIdx])
 
-  const typeLabel = { page: 'Page', prompt: 'Prompt', skill: 'Skill', command: 'Command', steering: 'Steering' }
-  const typeColors = { page: '#8E8E93', prompt: '#007AFF', skill: '#FF9500', command: '#5AC8FA', steering: '#BF5AF2' }
+  const typeLabel = { page: 'Page', prompt: 'Prompt', skill: 'Skill', command: 'Command', steering: 'Steering', snippet: 'Snippet', agent: 'Agent' }
+  const typeColors = { page: '#8E8E93', prompt: '#007AFF', skill: '#FF9500', command: '#5AC8FA', steering: '#BF5AF2', snippet: '#FFD60A', agent: '#5E5CE6' }
 
   if (!isOpen) return null
 
