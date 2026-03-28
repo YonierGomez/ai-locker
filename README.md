@@ -210,6 +210,45 @@ docker run -d \
 | `DATABASE_URL` | — | Full PostgreSQL/MySQL connection string |
 | `DB_HOST` / `DB_PORT` / `DB_NAME` / `DB_USER` / `DB_PASSWORD` / `DB_TYPE` | — | Individual DB vars (alternative to `DATABASE_URL`) |
 | `DB_PATH` | `/data/prompts.db` | SQLite path (used when no DB vars are set) |
+| `API_KEY` | — | Bearer token to protect all API endpoints (optional) |
+
+---
+
+### 🔐 API Key Protection
+
+Protect your AI Locker instance with a Bearer token. When `API_KEY` is set, all API requests must include the header `Authorization: Bearer <key>`.
+
+**1. Generate a secure key:**
+
+```bash
+openssl rand -hex 32
+# Example: a3f8c2d1e4b5a6f7c8d9e0f1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1
+```
+
+**2. Set it in your environment:**
+
+```bash
+# .env file
+API_KEY=a3f8c2d1e4b5a6f7c8d9e0f1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1
+
+# Or with Docker Compose
+environment:
+  API_KEY: a3f8c2d1e4b5a6f7c8d9e0f1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1
+
+# Or with docker run
+docker run -e API_KEY=your-key-here ...
+```
+
+**3. Configure the frontend:**
+
+Open AI Locker in your browser → **Settings → API Key** → paste your key and save.
+
+Or set it manually in the browser console:
+```javascript
+localStorage.setItem('promptly_api_key', 'your-key-here')
+```
+
+> **Note:** The key is stored in `localStorage` and sent automatically with every API request. Without the key configured in the frontend, the app will show authentication errors.
 
 ### Useful commands
 
