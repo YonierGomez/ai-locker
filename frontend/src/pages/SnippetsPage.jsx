@@ -30,6 +30,7 @@ import kotlin from 'highlight.js/lib/languages/kotlin'
 import dockerfile from 'highlight.js/lib/languages/dockerfile'
 import nginx from 'highlight.js/lib/languages/nginx'
 import ini from 'highlight.js/lib/languages/ini' // toml/ini
+
 import powershell from 'highlight.js/lib/languages/powershell'
 import csharp from 'highlight.js/lib/languages/csharp'
 import scala from 'highlight.js/lib/languages/scala'
@@ -58,7 +59,6 @@ hljs.registerLanguage('ruby', ruby)
 hljs.registerLanguage('swift', swift)
 hljs.registerLanguage('kotlin', kotlin)
 hljs.registerLanguage('dockerfile', dockerfile)
-hljs.registerLanguage('hcl', ini)   // HCL uses ini-style highlighting
 hljs.registerLanguage('nginx', nginx)
 hljs.registerLanguage('toml', ini)
 hljs.registerLanguage('powershell', powershell)
@@ -69,6 +69,28 @@ hljs.registerLanguage('lua', lua)
 hljs.registerLanguage('perl', perl)
 hljs.registerLanguage('graphql', graphql)
 hljs.registerLanguage('plaintext', plaintext)
+
+// ── Custom HCL (HashiCorp Configuration Language) highlighter ──
+// HCL is not bundled in highlight.js, so we define a custom grammar
+hljs.registerLanguage('hcl', (hljs) => ({
+  name: 'HCL',
+  aliases: ['terraform', 'tf'],
+  keywords: {
+    keyword: 'resource data variable output module provider terraform locals required_providers',
+    literal: 'true false null',
+    built_in: 'abs ceil floor log max min pow signum chomp format join lower replace split trimspace upper toset tolist tomap',
+  },
+  contains: [
+    hljs.HASH_COMMENT_MODE,
+    hljs.COMMENT('/\\*', '\\*/'),
+    hljs.QUOTE_STRING_MODE,
+    { className: 'string', begin: /<<[-~]?\w+/, end: /^\w+$/ },
+    { className: 'title', begin: /\b[a-zA-Z_][a-zA-Z0-9_-]*\s+"[^"]*"\s+"[^"]*"\s*\{/, end: /\{/, returnEnd: true },
+    { className: 'attribute', begin: /^\s*[a-zA-Z_][a-zA-Z0-9_-]*\s*=/, end: /=/, returnEnd: true },
+    hljs.C_NUMBER_MODE,
+    { className: 'variable', begin: /\$\{/, end: /\}/ },
+  ],
+}))
 
 // ── Syntax highlighted code block ──────────────────────────
 function CodeBlock({ code, language, maxLines = 8 }) {
