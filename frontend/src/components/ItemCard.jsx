@@ -101,11 +101,28 @@ export default function ItemCard({
         onSelect={onSelect}
         onNormalClick={() => onView ? onView(item) : onEdit?.(item)}
         className="item-card"
-        checkboxPosition="top-left"
+        checkboxPosition="none"
         highlightSelected
         style={selected ? { borderColor: 'color-mix(in srgb, var(--blue) 40%, transparent)' } : undefined}
       >
         <div className="item-card-header">
+          {/* Inline checkbox in header when selectable */}
+          {selectable && (
+            <div
+              onClick={e => { e.stopPropagation(); onSelect?.(item.id) }}
+              style={{ flexShrink: 0, marginRight: 4, cursor: 'pointer', zIndex: 20, position: 'relative' }}
+            >
+              <div style={{
+                width: 17, height: 17, borderRadius: 5,
+                border: `2px solid ${selected ? 'var(--blue)' : 'rgba(255,255,255,0.25)'}`,
+                background: selected ? 'var(--blue)' : 'transparent',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                transition: 'all 0.15s',
+              }}>
+                {selected && <Check size={10} color="white" strokeWidth={3} />}
+              </div>
+            </div>
+          )}
           <div style={{ flex: 1, minWidth: 0 }}>
             <div className="item-card-title truncate">{item.title}</div>
             {item.description && (
