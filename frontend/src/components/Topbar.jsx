@@ -3,7 +3,7 @@ import { useLocation } from 'react-router-dom'
 import { Menu, Search } from 'lucide-react'
 
 const pageTitles = {
-  '/dashboard': { title: 'Dashboard', subtitle: 'Overview of your AI library' },
+  '/dashboard': { title: 'Dashboard', subtitle: 'Overview of your AI Locker' },
   '/prompts': { title: 'Prompts', subtitle: 'Manage your AI prompt templates' },
   '/skills': { title: 'Skills', subtitle: 'Reusable AI skill definitions' },
   '/steering': { title: 'Steering', subtitle: 'Behavioral guidance & system instructions' },
@@ -16,9 +16,17 @@ const pageTitles = {
   '/ai': { title: 'AI Chat', subtitle: 'Generate items with AI' },
 }
 
-export default function Topbar({ onMenuClick, onSearchClick }) {
+export default function Topbar({ onMenuClick, onSearchClick, onToggleSidebar, sidebarCollapsed = false }) {
   const location = useLocation()
   const [scrolled, setScrolled] = useState(false)
+
+  const handleSidebarControl = () => {
+    if (window.matchMedia('(max-width: 768px)').matches) {
+      onMenuClick?.()
+      return
+    }
+    onToggleSidebar?.()
+  }
 
   const pageInfo = pageTitles[location.pathname] || { title: 'AI Locker', subtitle: '' }
 
@@ -62,8 +70,9 @@ export default function Topbar({ onMenuClick, onSearchClick }) {
 
       <button
         className="mobile-menu-btn"
-        onClick={onMenuClick}
-        aria-label="Open menu"
+        onClick={handleSidebarControl}
+        aria-label={sidebarCollapsed ? 'Show libraries sidebar' : 'Hide libraries sidebar'}
+        title={sidebarCollapsed ? 'Show libraries sidebar' : 'Hide libraries sidebar'}
       >
         <Menu size={18} />
       </button>
@@ -80,8 +89,9 @@ export default function Topbar({ onMenuClick, onSearchClick }) {
       </div>
 
       {/* Right actions */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
+      <div className="topbar-right-actions" style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
         <button
+          className="topbar-search-trigger"
           onClick={onSearchClick}
           title="Search (⌘K)"
           style={{
@@ -96,7 +106,7 @@ export default function Topbar({ onMenuClick, onSearchClick }) {
             cursor: 'pointer',
             transition: 'all 0.15s',
             backdropFilter: 'blur(20px)',
-            minWidth: 180,
+            minWidth: 150,
           }}
           onMouseEnter={e => {
             e.currentTarget.style.background = 'rgba(255,255,255,0.11)'

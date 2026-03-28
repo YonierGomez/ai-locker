@@ -1,4 +1,4 @@
-# AI Locker — AI Prompts Manager
+# AI Locker
 
 A beautiful, self-hosted web app to manage your AI prompts, skills, steering configurations, MCP server setups, and shell commands. Includes built-in **AI Chat** to generate library items from natural language.
 

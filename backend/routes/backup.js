@@ -21,6 +21,20 @@ async function getSettings() {
   const rows = await db('settings').select('*');
   const s = {};
   rows.forEach(r => { s[r.key] = r.value; });
+  // Apply environment variable overrides (same as settings route)
+  const ENV_OVERRIDES = {
+    s3_bucket:    process.env.S3_BUCKET,
+    s3_region:    process.env.S3_REGION,
+    s3_prefix:    process.env.S3_PREFIX,
+    s3_access_key: process.env.S3_ACCESS_KEY,
+    s3_secret_key: process.env.S3_SECRET_KEY,
+    s3_endpoint:  process.env.S3_ENDPOINT,
+    sync_enabled: process.env.SYNC_ENABLED,
+    sync_interval: process.env.SYNC_INTERVAL,
+  };
+  for (const [key, val] of Object.entries(ENV_OVERRIDES)) {
+    if (val !== undefined && val !== null && val !== '') s[key] = val;
+  }
   return s;
 }
 

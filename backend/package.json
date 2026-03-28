@@ -1,7 +1,7 @@
 {
   "name": "ai-prompts-manager-backend",
   "version": "1.0.0",
-  "description": "Backend API for AI Prompts Manager",
+  "description": "Backend API for AI Locker",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",

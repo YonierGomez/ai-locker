@@ -163,8 +163,6 @@ export default function Sidebar({ isOpen, onClose }) {
       <div className="sidebar-footer">
         <div style={{ fontSize: 11, color: 'var(--text-quaternary)', textAlign: 'center', lineHeight: 1.5 }}>
           {appName} v1.0
-          <br />
-          AI Prompts Manager
         </div>
       </div>
     </aside>

@@ -4,9 +4,9 @@
 
 # ✦ AI Locker
 
-<img src="https://raw.githubusercontent.com/YonierGomez/ai-locker/main/docs/promptly.png" alt="AI Locker — AI Prompts Manager" width="100%" style="max-width:900px;border-radius:12px;" />
+<img src="https://raw.githubusercontent.com/YonierGomez/ai-locker/main/docs/promptly.png" alt="AI Locker" width="100%" style="max-width:900px;border-radius:12px;" />
 
-**AI Prompts Manager** — A beautiful, self-hosted web app to manage your AI prompts, skills, steering configurations, MCP server setups, and shell commands. **Includes built-in AI Chat** to generate prompts, skills, steering rules, MCP configs, and commands from natural language.
+**AI Locker** — A beautiful, self-hosted web app to manage your AI prompts, skills, steering configurations, MCP server setups, and shell commands. **Includes built-in AI Chat** to generate prompts, skills, steering rules, MCP configs, and commands from natural language.
 
 Built with a true-black glassmorphism design and multi-provider AI support.
 

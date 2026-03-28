@@ -1,11 +1,12 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { commandsApi } from '../utils/api'
+import Modal from '../components/Modal'
 import DetailModal from '../components/DetailModal'
 import toast from 'react-hot-toast'
 import {
   TerminalSquare, Plus, Search, Copy, Check, Star, Trash2,
-  X, Edit3, RotateCcw, Maximize2, Minimize2,
+  X, Edit3, RotateCcw,
   LayoutGrid, AlignJustify, Code2, Monitor, Columns2, Zap,
 } from 'lucide-react'
 
@@ -618,7 +619,6 @@ function CommandSpotlightView({ commands, onCopy, onFavorite, onEdit, onDelete, 
 // ── Command Modal ─────────────────────────────────────────────
 function CommandModal({ cmd, onClose, onSave, fullscreen: initialFullscreen = false }) {
   const isEdit = !!cmd?.id
-  const [maximized, setMaximized] = useState(initialFullscreen)
   const [form, setForm] = useState({
     title: cmd?.title || '',
     command: cmd?.command || '',
@@ -643,52 +643,44 @@ function CommandModal({ cmd, onClose, onSave, fullscreen: initialFullscreen = fa
   }
 
   return (
-    <>
-      <style>{`
-        @media (max-width: 599px) {
-          .cmd-modal-overlay { align-items: flex-end !important; padding: 0 !important; }
-          .cmd-modal-inner { border-radius: 20px 20px 0 0 !important; max-height: 95vh !important; }
-        }
-      `}</style>
-    <div className="cmd-modal-overlay" style={{ position: 'fixed', inset: 0, zIndex: 1000, display: 'flex', alignItems: maximized ? 'stretch' : 'center', justifyContent: 'center', padding: maximized ? 0 : 20, background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(8px)' }}
-      onClick={e => e.target === e.currentTarget && onClose()}>
-      <div className="cmd-modal-inner" style={{ background: 'var(--surface-2)', border: '1px solid var(--c-border-md)', borderRadius: maximized ? 0 : 16, width: '100%', maxWidth: maximized ? '100vw' : 560, boxShadow: maximized ? 'none' : '0 32px 80px rgba(0,0,0,0.6)', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
-        <div style={{ padding: '18px 20px 14px', borderBottom: '1px solid var(--c-surface-hover)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <div style={{ width: 32, height: 32, borderRadius: 8, background: 'rgba(48,209,88,0.12)', border: '1px solid rgba(48,209,88,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <TerminalSquare size={16} color="#30D158" />
-            </div>
-            <span style={{ fontWeight: 600, fontSize: 15 }}>{isEdit ? 'Edit command' : 'New command'}</span>
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-            <button className="btn-icon" onClick={() => setMaximized(m => !m)}>
-              {maximized ? <Minimize2 size={15} /> : <Maximize2 size={15} />}
-            </button>
-            <button className="btn-icon" onClick={onClose}><X size={16} /></button>
-          </div>
-        </div>
-
-        <form onSubmit={handleSubmit} style={{ padding: 20, display: 'flex', flexDirection: 'column', gap: 14, flex: 1, overflowY: 'auto' }}>
+    <Modal
+      isOpen
+      onClose={onClose}
+      title={isEdit ? 'Edit command' : 'New command'}
+      fullscreen={initialFullscreen}
+      size="md"
+      footer={
+        <>
+          <button type="button" className="btn btn-glass" onClick={onClose}>Cancel</button>
+          <button type="submit" className="btn btn-primary" form="command-modal-form" style={{ gap: 7 }}>
+            <TerminalSquare size={13} />
+            {isEdit ? 'Save changes' : 'Create command'}
+          </button>
+        </>
+      }
+    >
+        <form id="command-modal-form" onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 14, overflowX: 'hidden' }}>
           <div>
             <label style={{ fontSize: 11, color: 'var(--text-tertiary)', display: 'block', marginBottom: 6 }}>TITLE</label>
             <input className="form-input" placeholder="E.g.: List processes on port…" value={form.title} onChange={e => set('title', e.target.value)} />
           </div>
           <div>
             <label style={{ fontSize: 11, color: 'var(--text-tertiary)', display: 'block', marginBottom: 6 }}>COMMAND</label>
-            <div style={{ background: 'var(--c-code-bg-deep)', border: '1px solid var(--c-border-md)', borderRadius: 10, overflow: 'hidden' }}>
+            <div style={{ background: 'var(--bg-tertiary)', border: '1px solid var(--c-border-md)', borderRadius: 10, overflow: 'hidden' }}>
               <div style={{ padding: '7px 12px', borderBottom: '1px solid var(--c-divider)', display: 'flex', gap: 5 }}>
                 {['#FF5F57','#FEBC2E','#28C840'].map((c, i) => <div key={i} style={{ width: 8, height: 8, borderRadius: '50%', background: c, opacity: 0.7 }} />)}
                 <span style={{ fontSize: 10, color: 'var(--text-quaternary)', marginLeft: 6 }}>{form.shell}</span>
               </div>
-              <div style={{ display: 'flex', alignItems: 'flex-start', padding: '10px 12px', gap: 6 }}>
+              <div style={{ display: 'flex', alignItems: 'flex-start', padding: '10px 12px', gap: 6, minWidth: 0 }}>
                 <span style={{ fontSize: 12, color: 'var(--c-icon-sm)', fontFamily: 'monospace', marginTop: 1, userSelect: 'none' }}>$</span>
                 <textarea
+                  className="cmd-command-textarea"
                   ref={cmdRef}
                   placeholder="lsof -i :3000 | grep LISTEN"
                   value={form.command}
                   onChange={e => set('command', e.target.value)}
                   rows={3}
-                  style={{ background: 'transparent', border: 'none', outline: 'none', padding: 0, resize: 'vertical', fontFamily: "'JetBrains Mono','Fira Code',monospace", fontSize: 12.5, color: SHELL_COLORS[form.shell] || '#30D158', flex: 1, width: '100%' }}
+                  style={{ background: 'transparent', border: 'none', outline: 'none', padding: 0, resize: 'vertical', fontFamily: "'JetBrains Mono','Fira Code',monospace", fontSize: 12.5, color: SHELL_COLORS[form.shell] || '#30D158', flex: 1, width: '100%', minWidth: 0 }}
                 />
               </div>
             </div>
@@ -715,17 +707,8 @@ function CommandModal({ cmd, onClose, onSave, fullscreen: initialFullscreen = fa
             <label style={{ fontSize: 11, color: 'var(--text-tertiary)', display: 'block', marginBottom: 6 }}>DESCRIPTION <span style={{ color: 'var(--text-quaternary)' }}>(optional)</span></label>
             <input className="form-input" placeholder="What does this command do?" value={form.description} onChange={e => set('description', e.target.value)} />
           </div>
-          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10, paddingTop: 4 }}>
-            <button type="button" className="btn btn-glass" onClick={onClose}>Cancel</button>
-            <button type="submit" className="btn btn-primary" style={{ gap: 7 }}>
-              <TerminalSquare size={13} />
-              {isEdit ? 'Save changes' : 'Create command'}
-            </button>
-          </div>
         </form>
-      </div>
-    </div>
-    </>
+    </Modal>
   )
 }
 
