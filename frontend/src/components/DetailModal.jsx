@@ -103,7 +103,8 @@ export default function DetailModal({ item, onClose, onEdit, onDelete, onToggleF
           .detail-modal-inner {
             border-radius: 20px 20px 0 0 !important;
             max-width: 100% !important;
-            max-height: 95vh !important;
+            max-height: 95dvh !important;
+            height: 95dvh !important;
           }
           .detail-modal-inner .detail-modal-header {
             padding: 14px 18px 12px !important;
@@ -145,6 +146,7 @@ export default function DetailModal({ item, onClose, onEdit, onDelete, onToggleF
           padding: '20px 24px 16px',
           borderBottom: '1px solid var(--glass-border)',
           display: 'flex', alignItems: 'flex-start', gap: 14,
+          flexShrink: 0,
         }}>
           {TypeIcon && (
             <div style={{
@@ -347,6 +349,7 @@ export default function DetailModal({ item, onClose, onEdit, onDelete, onToggleF
           borderTop: '1px solid var(--glass-border)',
           display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10,
           flexWrap: 'wrap',
+          flexShrink: 0,
         }}>
           <button
             className="btn btn-danger btn-sm"
