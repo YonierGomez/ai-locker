@@ -1,5 +1,6 @@
 import { Star, Copy, Edit2, Trash2, Check, Eye, EyeOff } from 'lucide-react'
 import { useState } from 'react'
+import SelectableItem from './SelectableItem'
 import { formatDistanceToNow } from 'date-fns'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
@@ -84,181 +85,176 @@ export default function ItemCard({
 
   return (
     <>
-    {showVarModal && (
-      <VariableFillModal content={item.content} onClose={() => setShowVarModal(false)} />
-    )}
-    <div
-      className="item-card"
-      onClick={() => selectable ? onSelect?.(item.id) : onView ? onView(item) : onEdit?.(item)}
-      style={selected ? { borderColor: 'color-mix(in srgb, var(--blue) 40%, transparent)', background: 'color-mix(in srgb, var(--blue) 8%, transparent)' } : undefined}
-    >
-      <div className="item-card-header">
-        {/* Checkbox — inline in header when in select mode */}
-        {selectable && (
-          <div
-            onClick={e => { e.stopPropagation(); onSelect?.(item.id) }}
-            style={{ flexShrink: 0, marginRight: 2, cursor: 'pointer' }}
-          >
-            <div style={{
-              width: 17, height: 17, borderRadius: 5,
-              border: `2px solid ${selected ? 'var(--blue)' : 'rgba(255,255,255,0.25)'}`,
-              background: selected ? 'var(--blue)' : 'transparent',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              transition: 'all 0.15s',
-            }}>
-              {selected && <Check size={10} color="white" strokeWidth={3} />}
-            </div>
+      {showVarModal && (
+        <VariableFillModal content={item.content} onClose={() => setShowVarModal(false)} />
+      )}
+      {/*
+        SelectableItem wraps the card.
+        When selectable=true its transparent overlay (z-index 5) intercepts ALL child
+        clicks automatically — action buttons don't need {!selectable && ...} guards.
+        The checkbox (z-index 10) sits above the overlay and is still clickable.
+      */}
+      <SelectableItem
+        id={item.id}
+        isSelectActive={selectable}
+        selected={selected}
+        onSelect={onSelect}
+        onNormalClick={() => onView ? onView(item) : onEdit?.(item)}
+        className="item-card"
+        checkboxPosition="top-left"
+        highlightSelected
+        style={selected ? { borderColor: 'color-mix(in srgb, var(--blue) 40%, transparent)' } : undefined}
+      >
+        <div className="item-card-header">
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div className="item-card-title truncate">{item.title}</div>
+            {item.description && (
+              <div className="item-card-description" style={{ marginTop: 4 }}>
+                {item.description}
+              </div>
+            )}
           </div>
-        )}
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <div className="item-card-title truncate">{item.title}</div>
-          {item.description && (
-            <div className="item-card-description" style={{ marginTop: 4 }}>
-              {item.description}
-            </div>
-          )}
-        </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0 }}>
-          {showStatus && (
-            <div
-              className={`status-dot ${item.is_active ? 'active' : 'inactive'}`}
-              title={item.is_active ? 'Active' : 'Inactive'}
-              onClick={handleToggleActive}
-              style={{ cursor: 'pointer' }}
-            />
-          )}
-          <button
-            className={`favorite-btn ${item.is_favorite ? 'active' : ''}`}
-            onClick={handleFavorite}
-            title={item.is_favorite ? 'Remove from favorites' : 'Add to favorites'}
-          >
-            <Star size={14} fill={item.is_favorite ? 'currentColor' : 'none'} />
-          </button>
-        </div>
-      </div>
-
-      {/* Content preview */}
-      {item.content && (
-        <div>
-          {previewMd && contentHasMd ? (
-            <div
-              className="md-preview-box"
-              onClick={e => e.stopPropagation()}
-              style={{
-                background: 'rgba(0,0,0,0.25)',
-                border: '1px solid rgba(255,255,255,0.07)',
-                borderRadius: 'var(--radius-sm)',
-                padding: '10px 12px',
-                maxHeight: 160,
-                overflowY: 'auto',
-                fontSize: 12,
-              }}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0 }}>
+            {showStatus && (
+              <div
+                className={`status-dot ${item.is_active ? 'active' : 'inactive'}`}
+                title={item.is_active ? 'Active' : 'Inactive'}
+                onClick={handleToggleActive}
+                style={{ cursor: 'pointer' }}
+              />
+            )}
+            <button
+              className={`favorite-btn ${item.is_favorite ? 'active' : ''}`}
+              onClick={handleFavorite}
+              title={item.is_favorite ? 'Remove from favorites' : 'Add to favorites'}
             >
-              <ReactMarkdown
-                remarkPlugins={[remarkGfm]}
-                components={{
-                  h1: ({ children }) => <h1 style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-primary)', marginBottom: 6 }}>{children}</h1>,
-                  h2: ({ children }) => <h2 style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)', marginBottom: 4 }}>{children}</h2>,
-                  h3: ({ children }) => <h3 style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-primary)', marginBottom: 4 }}>{children}</h3>,
-                  p: ({ children }) => <p style={{ fontSize: 12, lineHeight: 1.6, color: 'var(--text-tertiary)', marginBottom: 6 }}>{children}</p>,
-                  code: ({ inline, children }) => inline
-                    ? <code style={{ background: 'rgba(0,0,0,0.4)', borderRadius: 3, padding: '0 4px', fontSize: 11, fontFamily: 'var(--font-mono)', color: '#00D4FF' }}>{children}</code>
-                    : <pre style={{ background: 'rgba(0,0,0,0.4)', borderRadius: 6, padding: '8px 10px', overflow: 'auto', marginBottom: 6 }}><code style={{ fontSize: 11, fontFamily: 'var(--font-mono)', color: 'var(--text-tertiary)' }}>{children}</code></pre>,
-                  ul: ({ children }) => <ul style={{ paddingLeft: 16, marginBottom: 6 }}>{children}</ul>,
-                  ol: ({ children }) => <ol style={{ paddingLeft: 16, marginBottom: 6 }}>{children}</ol>,
-                  li: ({ children }) => <li style={{ fontSize: 12, lineHeight: 1.6, color: 'var(--text-tertiary)', marginBottom: 2 }}>{children}</li>,
-                  strong: ({ children }) => <strong style={{ color: 'var(--text-secondary)', fontWeight: 600 }}>{children}</strong>,
-                  blockquote: ({ children }) => <blockquote style={{ borderLeft: '2px solid rgba(0,122,255,0.4)', paddingLeft: 10, color: 'var(--text-quaternary)', fontStyle: 'italic' }}>{children}</blockquote>,
+              <Star size={14} fill={item.is_favorite ? 'currentColor' : 'none'} />
+            </button>
+          </div>
+        </div>
+
+        {/* Content preview */}
+        {item.content && (
+          <div>
+            {previewMd && contentHasMd ? (
+              <div
+                className="md-preview-box"
+                onClick={e => e.stopPropagation()}
+                style={{
+                  background: 'rgba(0,0,0,0.25)',
+                  border: '1px solid rgba(255,255,255,0.07)',
+                  borderRadius: 'var(--radius-sm)',
+                  padding: '10px 12px',
+                  maxHeight: 160,
+                  overflowY: 'auto',
+                  fontSize: 12,
                 }}
               >
-                {item.content}
-              </ReactMarkdown>
-            </div>
-          ) : (
-            <div className="item-card-content-preview">
-              {item.content.slice(0, 200)}{item.content.length > 200 ? '…' : ''}
-            </div>
-          )}
-        </div>
-      )}
+                <ReactMarkdown
+                  remarkPlugins={[remarkGfm]}
+                  components={{
+                    h1: ({ children }) => <h1 style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-primary)', marginBottom: 6 }}>{children}</h1>,
+                    h2: ({ children }) => <h2 style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)', marginBottom: 4 }}>{children}</h2>,
+                    h3: ({ children }) => <h3 style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-primary)', marginBottom: 4 }}>{children}</h3>,
+                    p: ({ children }) => <p style={{ fontSize: 12, lineHeight: 1.6, color: 'var(--text-tertiary)', marginBottom: 6 }}>{children}</p>,
+                    code: ({ inline, children }) => inline
+                      ? <code style={{ background: 'rgba(0,0,0,0.4)', borderRadius: 3, padding: '0 4px', fontSize: 11, fontFamily: 'var(--font-mono)', color: '#00D4FF' }}>{children}</code>
+                      : <pre style={{ background: 'rgba(0,0,0,0.4)', borderRadius: 6, padding: '8px 10px', overflow: 'auto', marginBottom: 6 }}><code style={{ fontSize: 11, fontFamily: 'var(--font-mono)', color: 'var(--text-tertiary)' }}>{children}</code></pre>,
+                    ul: ({ children }) => <ul style={{ paddingLeft: 16, marginBottom: 6 }}>{children}</ul>,
+                    ol: ({ children }) => <ol style={{ paddingLeft: 16, marginBottom: 6 }}>{children}</ol>,
+                    li: ({ children }) => <li style={{ fontSize: 12, lineHeight: 1.6, color: 'var(--text-tertiary)', marginBottom: 2 }}>{children}</li>,
+                    strong: ({ children }) => <strong style={{ color: 'var(--text-secondary)', fontWeight: 600 }}>{children}</strong>,
+                    blockquote: ({ children }) => <blockquote style={{ borderLeft: '2px solid rgba(0,122,255,0.4)', paddingLeft: 10, color: 'var(--text-quaternary)', fontStyle: 'italic' }}>{children}</blockquote>,
+                  }}
+                >
+                  {item.content}
+                </ReactMarkdown>
+              </div>
+            ) : (
+              <div className="item-card-content-preview">
+                {item.content.slice(0, 200)}{item.content.length > 200 ? '…' : ''}
+              </div>
+            )}
+          </div>
+        )}
 
-      {/* Footer */}
-      <div className="item-card-footer">
-        <div className="item-card-meta">
-          {item.category && (
-            <span className={`category-badge ${item.category}`}>
-              {item.category}
-            </span>
-          )}
-          {item.tags?.slice(0, 2).map(tag => (
-            <span key={tag.id} className="tag" style={{ borderColor: tag.color + '40', color: tag.color }}>
-              {tag.name}
-            </span>
-          ))}
-          {item.tags?.length > 2 && (
-            <span className="tag">+{item.tags.length - 2}</span>
-          )}
-          {showPriority && item.priority > 0 && (
-            <span className="tag" style={{ color: 'var(--orange)', borderColor: 'rgba(255,159,10,0.3)' }}>
-              P{item.priority}
-            </span>
-          )}
-        </div>
+        {/* Footer */}
+        <div className="item-card-footer">
+          <div className="item-card-meta">
+            {item.category && (
+              <span className={`category-badge ${item.category}`}>
+                {item.category}
+              </span>
+            )}
+            {item.tags?.slice(0, 2).map(tag => (
+              <span key={tag.id} className="tag" style={{ borderColor: tag.color + '40', color: tag.color }}>
+                {tag.name}
+              </span>
+            ))}
+            {item.tags?.length > 2 && (
+              <span className="tag">+{item.tags.length - 2}</span>
+            )}
+            {showPriority && item.priority > 0 && (
+              <span className="tag" style={{ color: 'var(--orange)', borderColor: 'rgba(255,159,10,0.3)' }}>
+                P{item.priority}
+              </span>
+            )}
+          </div>
 
-        <div className="item-card-actions" style={{ opacity: 1 }}>
-          {extraActions}
-          {contentHasMd && (
+          <div className="item-card-actions" style={{ opacity: 1 }}>
+            {extraActions}
+            {contentHasMd && (
+              <button
+                className="btn-icon"
+                onClick={handleTogglePreview}
+                title={previewMd ? 'Show raw text' : 'Preview markdown'}
+                style={{ padding: 6, color: previewMd ? 'var(--blue-light)' : undefined }}
+              >
+                {previewMd ? <EyeOff size={13} /> : <Eye size={13} />}
+              </button>
+            )}
+            <button className="btn-icon" onClick={handleCopy} title="Copy content" style={{ padding: 6 }}>
+              {copied ? <Check size={13} color="var(--green)" /> : <Copy size={13} />}
+            </button>
+            <button className="btn-icon" onClick={handleEdit} title="Edit" style={{ padding: 6 }}>
+              <Edit2 size={13} />
+            </button>
             <button
               className="btn-icon"
-              onClick={handleTogglePreview}
-              title={previewMd ? 'Show raw text' : 'Preview markdown'}
-              style={{ padding: 6, color: previewMd ? 'var(--blue-light)' : undefined }}
+              onClick={handleDelete}
+              title="Delete"
+              style={{ padding: 6, color: 'var(--pink)' }}
             >
-              {previewMd ? <EyeOff size={13} /> : <Eye size={13} />}
+              <Trash2 size={13} />
             </button>
-          )}
-          <button className="btn-icon" onClick={handleCopy} title="Copy content" style={{ padding: 6 }}>
-            {copied ? <Check size={13} color="var(--green)" /> : <Copy size={13} />}
-          </button>
-          <button className="btn-icon" onClick={handleEdit} title="Edit" style={{ padding: 6 }}>
-            <Edit2 size={13} />
-          </button>
-          <button
-            className="btn-icon"
-            onClick={handleDelete}
-            title="Delete"
-            style={{ padding: 6, color: 'var(--pink)' }}
-          >
-            <Trash2 size={13} />
-          </button>
+          </div>
         </div>
-      </div>
 
-      {/* Token count + time */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: -4 }}>
-        {tokenCount > 0 && (
-          <span style={{
-            fontSize: 10, fontWeight: 600,
-            color: tokenColor,
-            fontFamily: 'var(--font-mono)',
-            opacity: 0.8,
-          }}>
-            {formatTokens(tokenCount)}
-          </span>
-        )}
-        {hasVars && (
-          <span style={{ fontSize: 10, color: 'var(--orange)', background: 'rgba(255,159,10,0.1)', border: '1px solid rgba(255,159,10,0.2)', borderRadius: 4, padding: '0px 5px', fontWeight: 500 }}>
-            {extractVariables(item.content).length} var{extractVariables(item.content).length !== 1 ? 's' : ''}
-          </span>
-        )}
-        {timeAgo && (
-          <span style={{ fontSize: 11, color: 'var(--text-quaternary)', marginLeft: 'auto' }}>
-            {timeAgo}
-          </span>
-        )}
-      </div>
-    </div>
+        {/* Token count + time */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: -4 }}>
+          {tokenCount > 0 && (
+            <span style={{
+              fontSize: 10, fontWeight: 600,
+              color: tokenColor,
+              fontFamily: 'var(--font-mono)',
+              opacity: 0.8,
+            }}>
+              {formatTokens(tokenCount)}
+            </span>
+          )}
+          {hasVars && (
+            <span style={{ fontSize: 10, color: 'var(--orange)', background: 'rgba(255,159,10,0.1)', border: '1px solid rgba(255,159,10,0.2)', borderRadius: 4, padding: '0px 5px', fontWeight: 500 }}>
+              {extractVariables(item.content).length} var{extractVariables(item.content).length !== 1 ? 's' : ''}
+            </span>
+          )}
+          {timeAgo && (
+            <span style={{ fontSize: 11, color: 'var(--text-quaternary)', marginLeft: 'auto' }}>
+              {timeAgo}
+            </span>
+          )}
+        </div>
+      </SelectableItem>
     </>
   )
 }

@@ -4,6 +4,7 @@ import { mcpApi } from '../utils/api'
 import Modal from '../components/Modal'
 import DetailModal from '../components/DetailModal'
 import { Plus, Search, Star, Copy, Edit2, Trash2, Check, LayoutGrid, AlignJustify, List, Server, FileJson, MousePointer } from 'lucide-react'
+import SelectableItem from '../components/SelectableItem'
 
 function McpIcon({ size = 16 }) {
   return (
@@ -432,38 +433,36 @@ export default function McpPage() {
             </div>
 
           ) : (
-            /* cards view */
+            /* cards view — uses SelectableItem for automatic select support */
             <div className={`cards-grid${!gridMounted.current ? ' stagger-children' : ''}`}
               ref={() => { gridMounted.current = true }}>
               {items.map(item => (
-                <div key={item.id} data-item-id={item.id}
+                <SelectableItem
+                  key={item.id}
+                  id={item.id}
+                  isSelectActive={isSelectActive}
+                  selected={selectedIds.has(item.id)}
+                  onSelect={toggleSelect}
+                  onNormalClick={() => setViewItem(item)}
                   className={`item-card${selectedIds.has(item.id) ? ' selected' : ''}`}
-                  onClick={() => isSelectActive ? toggleSelect(item.id) : setViewItem(item)}
-                  style={{ cursor: 'pointer' }}>
+                  style={{ cursor: 'pointer' }}
+                  checkboxPosition="top-left"
+                >
                   <div className="item-card-header">
-                    {isSelectActive && (
-                      <div style={{ width: 17, height: 17, borderRadius: 5, border: `2px solid ${selectedIds.has(item.id) ? 'var(--blue)' : 'rgba(255,255,255,0.25)'}`, background: selectedIds.has(item.id) ? 'var(--blue)' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginRight: 6 }}>
-                        {selectedIds.has(item.id) && <Check size={10} color="white" strokeWidth={3} />}
-                      </div>
-                    )}
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-                        {!isSelectActive && (
-                          <div className={`status-dot ${item.is_active ? 'active' : 'inactive'}`}
-                            style={{ cursor: 'pointer' }} onClick={e => { e.stopPropagation(); toggleMutation.mutate(item.id) }}
-                            title={item.is_active ? 'Active — click to deactivate' : 'Inactive — click to activate'} />
-                        )}
+                        <div className={`status-dot ${item.is_active ? 'active' : 'inactive'}`}
+                          style={{ cursor: 'pointer' }} onClick={e => { e.stopPropagation(); toggleMutation.mutate(item.id) }}
+                          title={item.is_active ? 'Active — click to deactivate' : 'Inactive — click to activate'} />
                         <div className="item-card-title truncate">{item.title}</div>
                       </div>
                       <div style={{ fontSize: 12, color: 'var(--text-tertiary)', fontFamily: 'var(--font-mono)' }}>
                         {item.server_name}
                       </div>
                     </div>
-                    {!isSelectActive && (
-                      <button className={`favorite-btn ${item.is_favorite ? 'active' : ''}`} onClick={e => { e.stopPropagation(); favMutation.mutate(item.id) }}>
-                        <Star size={14} fill={item.is_favorite ? 'currentColor' : 'none'} />
-                      </button>
-                    )}
+                    <button className={`favorite-btn ${item.is_favorite ? 'active' : ''}`} onClick={e => { e.stopPropagation(); favMutation.mutate(item.id) }}>
+                      <Star size={14} fill={item.is_favorite ? 'currentColor' : 'none'} />
+                    </button>
                   </div>
                   {item.description && <div className="item-card-description">{item.description}</div>}
                   <div className="code-block" style={{ fontSize: 11, maxHeight: 120, overflow: 'hidden' }}>
@@ -477,8 +476,7 @@ export default function McpPage() {
                       <span className="tag" style={{ color: 'var(--teal)', borderColor: 'rgba(90,200,250,0.3)' }}>{item.transport}</span>
                       {item.updated_at && <span style={{ fontSize: 11, color: 'var(--text-quaternary)' }}>{formatDistanceToNow(new Date(item.updated_at), { addSuffix: true })}</span>}
                     </div>
-                    {!isSelectActive && (
-                    <div className="item-card-actions" style={{ opacity: 1 }} data-no-select="true">
+                    <div className="item-card-actions" style={{ opacity: 1 }}>
                       <button className="btn-icon" onClick={e => { e.stopPropagation(); handleCopy(item) }} title="Copy config" style={{ padding: 6 }}>
                         {copiedId === item.id ? <Check size={13} color="var(--green)" /> : <Copy size={13} />}
                       </button>
@@ -489,9 +487,8 @@ export default function McpPage() {
                         <Trash2 size={13} />
                       </button>
                     </div>
-                    )}
                   </div>
-                </div>
+                </SelectableItem>
               ))}
             </div>
           )}

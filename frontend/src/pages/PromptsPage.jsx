@@ -614,10 +614,10 @@ export default function PromptsPage() {
             <ItemCard
               key={prompt.id}
               item={prompt}
-              onView={isSelectMode ? undefined : setViewItem}
-              onEdit={isSelectMode ? undefined : openEdit}
-              onDelete={isSelectMode ? undefined : (id) => setDeleteConfirm(id)}
-              onToggleFavorite={isSelectMode ? undefined : (id) => favMutation.mutate(id)}
+              onView={setViewItem}
+              onEdit={openEdit}
+              onDelete={(id) => setDeleteConfirm(id)}
+              onToggleFavorite={(id) => favMutation.mutate(id)}
               selectable={isSelectMode}
               selected={selectedIds.has(prompt.id)}
               onSelect={(id) => { toggleSelect(id); setSelectMode(true) }}
