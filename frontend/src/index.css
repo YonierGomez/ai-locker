@@ -2471,6 +2471,21 @@ body::before {
   opacity: 1;
 }
 
+/* ── Highlight.js syntax theme (dark, custom) ── */
+.hljs { background: transparent !important; padding: 0 !important; }
+.hljs-keyword, .hljs-selector-tag, .hljs-built_in, .hljs-name, .hljs-tag { color: #FF375F; }
+.hljs-string, .hljs-attr, .hljs-symbol, .hljs-bullet, .hljs-addition { color: #30D158; }
+.hljs-title, .hljs-section, .hljs-attribute { color: #5AC8FA; }
+.hljs-variable, .hljs-template-variable { color: #FF9500; }
+.hljs-comment, .hljs-quote, .hljs-deletion { color: rgba(255,255,255,0.3); font-style: italic; }
+.hljs-number, .hljs-regexp, .hljs-literal, .hljs-type, .hljs-link { color: #BF5AF2; }
+.hljs-meta { color: #FFD60A; }
+.hljs-function .hljs-keyword { color: #007AFF; }
+.hljs-params { color: rgba(255,255,255,0.7); }
+.hljs-doctag { color: #5AC8FA; }
+.hljs-strong { font-weight: bold; }
+.hljs-emphasis { font-style: italic; }
+
 /* ── Item card selected state (used in MCP, etc.) ── */
 .item-card.selected {
   outline: 2px solid var(--blue) !important;

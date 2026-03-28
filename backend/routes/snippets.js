@@ -4,7 +4,13 @@ const { v4: uuidv4 } = require('uuid');
 const { getDb, toBool } = require('../config/database');
 
 const VALID_SORTS = ['title', 'created_at', 'updated_at', 'use_count'];
-const LANGUAGES = ['javascript', 'typescript', 'python', 'bash', 'sql', 'html', 'css', 'json', 'yaml', 'markdown', 'rust', 'go', 'java', 'cpp', 'php', 'ruby', 'swift', 'kotlin', 'other'];
+const LANGUAGES = [
+  'javascript', 'typescript', 'python', 'bash', 'sql',
+  'html', 'css', 'json', 'yaml', 'markdown',
+  'rust', 'go', 'java', 'cpp', 'csharp', 'php', 'ruby', 'swift', 'kotlin',
+  'dockerfile', 'hcl', 'nginx', 'toml', 'powershell',
+  'scala', 'r', 'lua', 'perl', 'graphql', 'plaintext', 'other',
+];
 
 function formatSnippet(s) {
   return { ...s, is_favorite: toBool(s.is_favorite) };

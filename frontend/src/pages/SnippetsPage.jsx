@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { snippetsApi, categoriesApi } from '../utils/api'
 import Modal from '../components/Modal'
@@ -7,19 +7,116 @@ import { Code2, Plus, Search, Star, Copy, Check, Trash2, Edit2, LayoutGrid, Alig
 import toast from 'react-hot-toast'
 import CategorySelector from '../components/CategorySelector'
 import { formatDistanceToNow } from 'date-fns'
+import hljs from 'highlight.js/lib/core'
+// Register languages
+import javascript from 'highlight.js/lib/languages/javascript'
+import typescript from 'highlight.js/lib/languages/typescript'
+import python from 'highlight.js/lib/languages/python'
+import bash from 'highlight.js/lib/languages/bash'
+import sql from 'highlight.js/lib/languages/sql'
+import xml from 'highlight.js/lib/languages/xml' // html
+import css from 'highlight.js/lib/languages/css'
+import json from 'highlight.js/lib/languages/json'
+import yaml from 'highlight.js/lib/languages/yaml'
+import markdown from 'highlight.js/lib/languages/markdown'
+import rust from 'highlight.js/lib/languages/rust'
+import go from 'highlight.js/lib/languages/go'
+import java from 'highlight.js/lib/languages/java'
+import cpp from 'highlight.js/lib/languages/cpp'
+import php from 'highlight.js/lib/languages/php'
+import ruby from 'highlight.js/lib/languages/ruby'
+import swift from 'highlight.js/lib/languages/swift'
+import kotlin from 'highlight.js/lib/languages/kotlin'
+import dockerfile from 'highlight.js/lib/languages/dockerfile'
+import hcl from 'highlight.js/lib/languages/hcl'
+import nginx from 'highlight.js/lib/languages/nginx'
+import toml from 'highlight.js/lib/languages/ini' // toml uses ini highlighter
+import powershell from 'highlight.js/lib/languages/powershell'
+import csharp from 'highlight.js/lib/languages/csharp'
+import scala from 'highlight.js/lib/languages/scala'
+import r from 'highlight.js/lib/languages/r'
+import lua from 'highlight.js/lib/languages/lua'
+import perl from 'highlight.js/lib/languages/perl'
+import graphql from 'highlight.js/lib/languages/graphql'
+import plaintext from 'highlight.js/lib/languages/plaintext'
+
+hljs.registerLanguage('javascript', javascript)
+hljs.registerLanguage('typescript', typescript)
+hljs.registerLanguage('python', python)
+hljs.registerLanguage('bash', bash)
+hljs.registerLanguage('sql', sql)
+hljs.registerLanguage('html', xml)
+hljs.registerLanguage('css', css)
+hljs.registerLanguage('json', json)
+hljs.registerLanguage('yaml', yaml)
+hljs.registerLanguage('markdown', markdown)
+hljs.registerLanguage('rust', rust)
+hljs.registerLanguage('go', go)
+hljs.registerLanguage('java', java)
+hljs.registerLanguage('cpp', cpp)
+hljs.registerLanguage('php', php)
+hljs.registerLanguage('ruby', ruby)
+hljs.registerLanguage('swift', swift)
+hljs.registerLanguage('kotlin', kotlin)
+hljs.registerLanguage('dockerfile', dockerfile)
+hljs.registerLanguage('hcl', hcl)
+hljs.registerLanguage('nginx', nginx)
+hljs.registerLanguage('toml', toml)
+hljs.registerLanguage('powershell', powershell)
+hljs.registerLanguage('csharp', csharp)
+hljs.registerLanguage('scala', scala)
+hljs.registerLanguage('r', r)
+hljs.registerLanguage('lua', lua)
+hljs.registerLanguage('perl', perl)
+hljs.registerLanguage('graphql', graphql)
+hljs.registerLanguage('plaintext', plaintext)
+
+// ── Syntax highlighted code block ──────────────────────────
+function CodeBlock({ code, language, maxLines = 8 }) {
+  const ref = useRef(null)
+  const lines = code.split('\n').slice(0, maxLines)
+  const truncated = code.split('\n').length > maxLines
+  const preview = lines.join('\n') + (truncated ? '\n…' : '')
+
+  useEffect(() => {
+    if (ref.current) {
+      ref.current.removeAttribute('data-highlighted')
+      hljs.highlightElement(ref.current)
+    }
+  }, [code, language])
+
+  const hlLang = language === 'html' ? 'xml' : language === 'toml' ? 'ini' : language
+
+  return (
+    <pre style={{ margin: 0, padding: 0, background: 'transparent', overflow: 'hidden' }}>
+      <code
+        ref={ref}
+        className={`language-${hlLang}`}
+        style={{ fontFamily: 'var(--font-mono)', fontSize: 11.5, lineHeight: 1.6, background: 'transparent', padding: 0 }}
+      >
+        {preview}
+      </code>
+    </pre>
+  )
+}
 
 const LANGUAGES = [
   'javascript', 'typescript', 'python', 'bash', 'sql',
   'html', 'css', 'json', 'yaml', 'markdown',
-  'rust', 'go', 'java', 'cpp', 'php', 'ruby', 'swift', 'kotlin', 'other',
+  'rust', 'go', 'java', 'cpp', 'csharp', 'php', 'ruby', 'swift', 'kotlin',
+  'dockerfile', 'hcl', 'nginx', 'toml', 'powershell',
+  'scala', 'r', 'lua', 'perl', 'graphql', 'plaintext', 'other',
 ]
 
 const LANG_COLORS = {
   javascript: '#FFD60A', typescript: '#007AFF', python: '#30D158',
   bash: '#30D158', sql: '#5AC8FA', html: '#FF9500', css: '#BF5AF2',
-  json: '#FF9500', yaml: '#FF9500', markdown: '#8E8E93',
+  json: '#FF9500', yaml: '#5AC8FA', markdown: '#8E8E93',
   rust: '#FF375F', go: '#5AC8FA', java: '#FF9500', cpp: '#007AFF',
-  php: '#BF5AF2', ruby: '#FF375F', swift: '#FF9500', kotlin: '#BF5AF2', other: '#8E8E93',
+  csharp: '#BF5AF2', php: '#BF5AF2', ruby: '#FF375F', swift: '#FF9500', kotlin: '#BF5AF2',
+  dockerfile: '#2496ED', hcl: '#7B42BC', nginx: '#30D158', toml: '#FF9500',
+  powershell: '#007AFF', scala: '#FF375F', r: '#5AC8FA', lua: '#007AFF',
+  perl: '#FF9500', graphql: '#FF375F', plaintext: '#8E8E93', other: '#8E8E93',
 }
 
 const defaultForm = { title: '', code: '', description: '', language: 'javascript', category: 'general' }
