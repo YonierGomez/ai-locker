@@ -168,6 +168,45 @@ async function initDatabase() {
     t.index(['platform']);
   });
 
+  await ensure('snippets', t => {
+    t.string('id').primary();
+    t.string('title').notNullable();
+    t.text('code').notNullable();
+    t.text('description');
+    t.string('language').defaultTo('javascript');
+    t.string('category').defaultTo('general');
+    t.integer('is_favorite').defaultTo(0);
+    t.integer('use_count').defaultTo(0);
+    t.string('created_at');
+    t.string('updated_at');
+    t.string('deleted_at');
+    t.index(['language']);
+    t.index(['category']);
+    t.index(['is_favorite']);
+  });
+
+  await ensure('agents', t => {
+    t.string('id').primary();
+    t.string('title').notNullable();
+    t.text('description');
+    t.string('model').defaultTo('');
+    t.float('temperature').defaultTo(0.7);
+    t.integer('max_tokens');
+    t.text('system_prompt').defaultTo('');
+    t.text('initial_prompt').defaultTo('');
+    t.string('avatar_emoji').defaultTo('🤖');
+    t.text('mcp_ids').defaultTo('[]');
+    t.text('skill_ids').defaultTo('[]');
+    t.text('steering_ids').defaultTo('[]');
+    t.integer('is_active').defaultTo(1);
+    t.integer('is_favorite').defaultTo(0);
+    t.string('created_at');
+    t.string('updated_at');
+    t.string('deleted_at');
+    t.index(['is_active']);
+    t.index(['is_favorite']);
+  });
+
   await ensure('notes', t => {
     t.string('id').primary();
     t.string('title').notNullable();

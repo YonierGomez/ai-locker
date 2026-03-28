@@ -50,6 +50,8 @@ router.get('/stats', async (req, res) => {
     const [mc] = await db('mcp_configs').whereNull('deleted_at').count('id as count');
     const [cc] = await db('commands').whereNull('deleted_at').count('id as count');
     const [nc] = await db('notes').whereNull('deleted_at').count('id as count');
+    const [snc] = await db('snippets').whereNull('deleted_at').count('id as count');
+    const [agc] = await db('agents').whereNull('deleted_at').count('id as count');
     const [tc] = await db('tags').count('id as count');
     const [fpc] = await db('prompts').whereNull('deleted_at').where('is_favorite', 1).count('id as count');
     const [fsc] = await db('skills').whereNull('deleted_at').where('is_favorite', 1).count('id as count');
@@ -57,6 +59,8 @@ router.get('/stats', async (req, res) => {
     const [fmc] = await db('mcp_configs').whereNull('deleted_at').where('is_favorite', 1).count('id as count');
     const [fcc] = await db('commands').whereNull('deleted_at').where('is_favorite', 1).count('id as count');
     const [fnc] = await db('notes').whereNull('deleted_at').where('is_favorite', 1).count('id as count');
+    const [fsnc] = await db('snippets').whereNull('deleted_at').where('is_favorite', 1).count('id as count');
+    const [fagc] = await db('agents').whereNull('deleted_at').where('is_favorite', 1).count('id as count');
 
     const localDateStr = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
     const d30 = new Date(Date.now() - 29 * 86400000);
@@ -326,6 +330,8 @@ router.get('/stats', async (req, res) => {
       mcp_configs: parseInt(mc.count),
       commands: parseInt(cc.count),
       notes: parseInt(nc.count),
+      snippets: parseInt(snc.count),
+      agents: parseInt(agc.count),
       tags: parseInt(tc.count),
       favorites: {
         prompts: parseInt(fpc.count),
@@ -334,6 +340,8 @@ router.get('/stats', async (req, res) => {
         mcp_configs: parseInt(fmc.count),
         commands: parseInt(fcc.count),
         notes: parseInt(fnc.count),
+        snippets: parseInt(fsnc.count),
+        agents: parseInt(fagc.count),
       },
       activity,
       top_used,

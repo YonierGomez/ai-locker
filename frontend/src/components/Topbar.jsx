@@ -9,6 +9,8 @@ const pageTitles = {
   '/steering': { title: 'Steering', subtitle: 'Behavioral guidance & system instructions' },
   '/mcp': { title: 'MCP', subtitle: 'Model Context Protocol server configurations' },
   '/commands': { title: 'Commands', subtitle: 'Shell commands & scripts' },
+  '/snippets': { title: 'Snippets', subtitle: 'Reusable code snippets for any language' },
+  '/agents': { title: 'Agents', subtitle: 'AI agent presets with model, skills & MCP connections' },
   '/settings': { title: 'Settings', subtitle: 'App preferences & configuration' },
   '/trash': { title: 'Trash', subtitle: 'Deleted items — auto-purged after 5 days' },
   '/ai': { title: 'AI Chat', subtitle: 'Generate items with AI' },

@@ -140,6 +140,28 @@ export const aiApi = {
   config: () => api.get('/ai/config'),
 }
 
+// ── Snippets ──
+export const snippetsApi = {
+  list: (params) => api.get('/snippets', { params }),
+  get: (id) => api.get(`/snippets/${id}`),
+  create: (data) => api.post('/snippets', data),
+  update: (id, data) => api.put(`/snippets/${id}`, data),
+  toggleFavorite: (id) => api.patch(`/snippets/${id}/favorite`),
+  incrementUse: (id) => api.patch(`/snippets/${id}/use`),
+  delete: (id) => api.delete(`/snippets/${id}`),
+}
+
+// ── Agents ──
+export const agentsApi = {
+  list: (params) => api.get('/agents', { params }),
+  get: (id) => api.get(`/agents/${id}`),
+  create: (data) => api.post('/agents', data),
+  update: (id, data) => api.put(`/agents/${id}`, data),
+  toggleFavorite: (id) => api.patch(`/agents/${id}/favorite`),
+  toggle: (id) => api.patch(`/agents/${id}/toggle`),
+  delete: (id) => api.delete(`/agents/${id}`),
+}
+
 // ── Versions ──
 export const versionsApi = {
   list: (itemType, itemId) => api.get(`/${itemType}s/${itemId}/versions`),

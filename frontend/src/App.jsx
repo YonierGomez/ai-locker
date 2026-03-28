@@ -14,6 +14,8 @@ import TrashPage from './pages/TrashPage'
 import CommandsPage from './pages/CommandsPage'
 import NotesPage from './pages/NotesPage'
 import AiSessionPage from './pages/AiSessionPage'
+import SnippetsPage from './pages/SnippetsPage'
+import AgentsPage from './pages/AgentsPage'
 import { settingsApi } from './utils/api'
 
 export default function App() {
@@ -80,6 +82,8 @@ export default function App() {
               <Route path="/steering" element={<SteeringPage />} />
               <Route path="/mcp" element={<McpPage />} />
               <Route path="/commands" element={<CommandsPage />} />
+              <Route path="/snippets" element={<SnippetsPage />} />
+              <Route path="/agents" element={<AgentsPage />} />
               <Route path="/notes" element={<NotesPage />} />
               <Route path="/settings" element={<SettingsPage />} />
               <Route path="/trash" element={<TrashPage />} />

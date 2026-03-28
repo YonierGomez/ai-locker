@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query'
 import { settingsApi, trashApi } from '../utils/api'
 import {
   LayoutDashboard, MessageSquare, Zap, Navigation,
-  Settings, X, Bot, Trash2, TerminalSquare, StickyNote
+  Settings, X, Bot, Trash2, TerminalSquare, StickyNote, Code2
 } from 'lucide-react'
 
 function AiNavItem({ onClose }) {
@@ -65,6 +65,8 @@ const libraryItems = [
   { path: '/steering', icon: Navigation, label: 'Steering', statsKey: 'steering' },
   { path: '/mcp', icon: McpIcon, label: 'MCP', statsKey: 'mcp_configs' },
   { path: '/commands', icon: TerminalSquare, label: 'Commands', statsKey: 'commands' },
+  { path: '/snippets', icon: Code2, label: 'Snippets', statsKey: 'snippets' },
+  { path: '/agents', icon: Bot, label: 'Agents', statsKey: 'agents' },
   { path: '/notes', icon: StickyNote, label: 'Notes', statsKey: 'notes' },
 ]
 

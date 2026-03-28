@@ -21,6 +21,8 @@ const trashRouter = require('./routes/trash');
 const commandsRouter = require('./routes/commands');
 const notesRouter = require('./routes/notes');
 const aiRouter = require('./routes/ai');
+const snippetsRouter = require('./routes/snippets');
+const agentsRouter = require('./routes/agents');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -59,6 +61,8 @@ app.use('/api/trash', trashRouter);
 app.use('/api/commands', commandsRouter);
 app.use('/api/notes', notesRouter);
 app.use('/api/ai', aiRouter);
+app.use('/api/snippets', snippetsRouter);
+app.use('/api/agents', agentsRouter);
 
 // Health check
 app.get('/api/health', (req, res) => {
