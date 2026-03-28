@@ -39,8 +39,10 @@ If AI Locker saves you time, consider supporting its development:
 | 📝 **Prompts** | Store AI prompt templates with categories, models, temperature, max tokens, and Markdown editor |
 | ⚡ **Skills** | Reusable AI skill definitions with trigger phrases and active/inactive toggle |
 | 🧭 **Steering** | Behavioral guidance & system instructions with scope (global/project/session) and priority |
+| 🤖 **Agents** | AI agent presets combining model, system prompt, temperature, skills, steering, and MCP connections — ready to use in one click |
 | 🔌 **MCP Configs** | Model Context Protocol server configurations with syntax-highlighted JSON editor |
 | 💻 **Commands** | Shell command library with shell/platform/category, copy-to-clipboard, and usage tracking |
+| 🧩 **Snippets** | Reusable code snippets with syntax highlighting for 31 languages (Python, YAML, Dockerfile, HCL, SQL, and more) |
 | 📊 **Dashboard** | Analytics with activity heatmap, usage charts, model distribution, and favorites library |
 | 🔍 **Smart Search** | Command palette (⌘K) for instant search across all sections. Full-text search, category filters, favorites filter. |
 | 🗂️ **Detail View** | Read-only detail modal for every item — maximizable to full screen |
