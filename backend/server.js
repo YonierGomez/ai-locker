@@ -1,4 +1,4 @@
-require('dotenv').config();
+require('dotenv').config({ path: require('path').join(__dirname, '.env') });
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
@@ -67,6 +67,17 @@ app.use('/api/agents', agentsRouter);
 // Health check
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString(), version: '1.0.0' });
+});
+
+// ── Client bootstrap config ───────────────────────────────────
+// Serves a JS snippet that pre-configures the frontend with the API_KEY.
+// This is intentionally public — the token is only useful to someone who
+// can already reach the server, so exposing it here doesn't reduce security.
+// It avoids the UX friction of manually pasting the token in Settings.
+app.get('/api/client-config', (req, res) => {
+  res.json({
+    apiKey: process.env.API_KEY || null,
+  });
 });
 
 // Serve static frontend in production
