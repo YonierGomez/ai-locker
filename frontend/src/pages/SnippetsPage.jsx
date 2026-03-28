@@ -28,9 +28,8 @@ import ruby from 'highlight.js/lib/languages/ruby'
 import swift from 'highlight.js/lib/languages/swift'
 import kotlin from 'highlight.js/lib/languages/kotlin'
 import dockerfile from 'highlight.js/lib/languages/dockerfile'
-import hcl from 'highlight.js/lib/languages/hcl'
 import nginx from 'highlight.js/lib/languages/nginx'
-import toml from 'highlight.js/lib/languages/ini' // toml uses ini highlighter
+import ini from 'highlight.js/lib/languages/ini' // toml/ini
 import powershell from 'highlight.js/lib/languages/powershell'
 import csharp from 'highlight.js/lib/languages/csharp'
 import scala from 'highlight.js/lib/languages/scala'
@@ -59,9 +58,9 @@ hljs.registerLanguage('ruby', ruby)
 hljs.registerLanguage('swift', swift)
 hljs.registerLanguage('kotlin', kotlin)
 hljs.registerLanguage('dockerfile', dockerfile)
-hljs.registerLanguage('hcl', hcl)
+hljs.registerLanguage('hcl', ini)   // HCL uses ini-style highlighting
 hljs.registerLanguage('nginx', nginx)
-hljs.registerLanguage('toml', toml)
+hljs.registerLanguage('toml', ini)
 hljs.registerLanguage('powershell', powershell)
 hljs.registerLanguage('csharp', csharp)
 hljs.registerLanguage('scala', scala)
