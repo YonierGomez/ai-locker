@@ -517,10 +517,12 @@ export default function PromptsPage() {
                     onMouseLeave={e => { if (!sel) e.currentTarget.style.background = 'transparent' }}
                     onClick={() => isSelectMode ? toggleSelect(prompt.id) : setViewItem(prompt)}
                   >
-                    <td style={{ padding: '10px 14px' }} onClick={e => { e.stopPropagation(); toggleSelect(prompt.id) }}>
-                      <div style={{ width: 16, height: 16, borderRadius: 4, border: `1.5px solid ${sel ? 'var(--blue)' : 'rgba(255,255,255,0.2)'}`, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', background: sel ? 'var(--blue)' : 'transparent' }}>
-                        {sel && <Check size={10} color="white" strokeWidth={3} />}
-                      </div>
+                    <td style={{ padding: '10px 14px', width: isSelectMode ? 36 : 0, overflow: 'hidden' }} onClick={e => { e.stopPropagation(); if (isSelectMode) toggleSelect(prompt.id) }}>
+                      {isSelectMode && (
+                        <div style={{ width: 16, height: 16, borderRadius: 4, border: `1.5px solid ${sel ? 'var(--blue)' : 'rgba(255,255,255,0.2)'}`, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', background: sel ? 'var(--blue)' : 'transparent' }}>
+                          {sel && <Check size={10} color="white" strokeWidth={3} />}
+                        </div>
+                      )}
                     </td>
                     <td style={{ padding: '10px 14px' }}>
                       <div style={{ fontWeight: 500, marginBottom: 2 }}>{prompt.title}</div>
