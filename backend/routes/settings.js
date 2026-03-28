@@ -2,12 +2,39 @@ const express = require('express');
 const router = express.Router();
 const { getDb } = require('../config/database');
 
+// Map of settings keys → environment variable fallbacks
+// When a DB value is empty, the env var is used as default so the UI shows it
+const ENV_FALLBACKS = {
+  ai_provider:             () => process.env.AI_PROVIDER || '',
+  ai_api_key:              () => process.env.AI_API_KEY || process.env.OPENROUTER_API_KEY || process.env.OPENAI_API_KEY || process.env.ANTHROPIC_API_KEY || process.env.GOOGLE_AI_API_KEY || '',
+  ai_base_url:             () => process.env.AI_BASE_URL || '',
+  ai_model:                () => process.env.AI_MODEL || '',
+  ai_aws_region:           () => process.env.AI_AWS_REGION || '',
+  ai_aws_access_key_id:    () => process.env.AI_AWS_ACCESS_KEY_ID || '',
+  ai_aws_secret_access_key:() => process.env.AI_AWS_SECRET_ACCESS_KEY || '',
+  s3_bucket:               () => process.env.S3_BUCKET || '',
+  s3_region:               () => process.env.S3_REGION || '',
+  s3_prefix:               () => process.env.S3_PREFIX || '',
+  s3_access_key:           () => process.env.S3_ACCESS_KEY || '',
+  s3_secret_key:           () => process.env.S3_SECRET_KEY || '',
+  s3_endpoint:             () => process.env.S3_ENDPOINT || '',
+  sync_enabled:            () => process.env.SYNC_ENABLED || '',
+  sync_interval:           () => process.env.SYNC_INTERVAL || '',
+}
+
 router.get('/', async (req, res) => {
   try {
     const db = getDb();
     const rows = await db('settings').select('*');
     const result = {};
     rows.forEach(s => { result[s.key] = s.value; });
+    // Apply env var fallbacks for empty DB values
+    for (const [key, getFallback] of Object.entries(ENV_FALLBACKS)) {
+      if (!result[key] || result[key] === '') {
+        const envVal = getFallback();
+        if (envVal) result[key] = envVal;
+      }
+    }
     res.json(result);
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
