@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom'
 import { promptsApi, skillsApi, steeringApi, commandsApi, snippetsApi, agentsApi } from '../utils/api'
 import { MessageSquare, Zap, Navigation, Settings, LayoutDashboard, TerminalSquare, Search, ArrowRight, Hash, Copy, Check, Code2, Bot } from 'lucide-react'
 import toast from 'react-hot-toast'
+import { copyToClipboard } from '../utils/clipboard'
 
 function McpIcon({ size = 14 }) {
   return (
@@ -137,7 +138,7 @@ export default function CommandPalette({ isOpen, onClose }) {
       return
     }
     try {
-      await navigator.clipboard.writeText(content)
+      await copyToClipboard(content)
       setCopiedId(item.id)
       toast.success(`"${item.label}" copied!`)
       setTimeout(() => {

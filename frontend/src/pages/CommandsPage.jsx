@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { commandsApi } from '../utils/api'
+import { copyToClipboard } from '../utils/clipboard'
 import Modal from '../components/Modal'
 import DetailModal from '../components/DetailModal'
 import toast from 'react-hot-toast'
@@ -34,11 +35,11 @@ function useCopy(text, onCopy) {
   const [copied, setCopied] = useState(false)
   const handle = (e) => {
     e?.stopPropagation()
-    navigator.clipboard.writeText(text).then(() => {
+    copyToClipboard(text).then(() => {
       setCopied(true)
       setTimeout(() => setCopied(false), 1800)
       onCopy?.()
-    })
+    }).catch(() => {})
   }
   return { copied, handle }
 }

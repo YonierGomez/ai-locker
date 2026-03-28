@@ -6,6 +6,7 @@ import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import toast from 'react-hot-toast'
 import { estimateTokens, formatTokens, getTokenColor } from '../utils/tokens'
+import { copyToClipboard } from '../utils/clipboard'
 import VariableFillModal, { extractVariables } from './VariableFillModal'
 
 // Detect if content has markdown
@@ -41,7 +42,7 @@ export default function ItemCard({
       return
     }
     try {
-      await navigator.clipboard.writeText(item.content)
+      await copyToClipboard(item.content)
       setCopied(true)
       toast.success('Copied to clipboard')
       setTimeout(() => setCopied(false), 2000)

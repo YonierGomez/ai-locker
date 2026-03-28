@@ -10,6 +10,7 @@ import ModelSelector from '../components/ModelSelector'
 import MarkdownEditor from '../components/MarkdownEditor'
 import CategorySelector from '../components/CategorySelector'
 import TagsSelector from '../components/TagsSelector'
+import { copyToClipboard } from '../utils/clipboard'
 
 const baseDefaultForm = {
   title: '', content: '', description: '', category: 'general',
@@ -107,7 +108,7 @@ function FlashcardView({ prompts, onView, onFavorite }) {
   const next = () => { setIdx(i => Math.min(prompts.length - 1, i + 1)); setFlipped(false) }
 
   const handleCopy = async () => {
-    await navigator.clipboard.writeText(current.content)
+    await copyToClipboard(current.content)
     setCopied(true)
     setTimeout(() => setCopied(false), 1800)
   }
@@ -582,7 +583,7 @@ export default function PromptsPage() {
         <CheatsheetView
           prompts={prompts}
           onView={setViewItem}
-          onCopy={async (p) => { await navigator.clipboard.writeText(p.content); toast.success('Copied!') }}
+          onCopy={async (p) => { await copyToClipboard(p.content); toast.success('Copied!') }}
           isSelectMode={isSelectMode}
           selectedIds={selectedIds}
           onSelect={(id) => { toggleSelect(id); setSelectMode(true) }}
