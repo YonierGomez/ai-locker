@@ -1,6 +1,7 @@
 # Dependencies
 node_modules/
 
+portfolioyonier
 # Build outputs
 frontend/build/
 dist/
