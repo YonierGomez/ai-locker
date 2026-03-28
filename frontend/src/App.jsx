@@ -21,6 +21,10 @@ import { settingsApi } from './utils/api'
 export default function App() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [paletteOpen, setPaletteOpen] = useState(false)
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
+    if (typeof window === 'undefined') return false
+    return localStorage.getItem('promptly_sidebar_collapsed') === '1'
+  })
   const qc = useQueryClient()
 
   // ── Bootstrap: auto-configure Bearer token from server's API_KEY
@@ -76,9 +80,13 @@ export default function App() {
     setSidebarOpen(false)
   }, [location.pathname])
 
+  useEffect(() => {
+    localStorage.setItem('promptly_sidebar_collapsed', sidebarCollapsed ? '1' : '0')
+  }, [sidebarCollapsed])
+
   return (
     <>
-      <div className="app-layout">
+      <div className={`app-layout ${sidebarCollapsed ? 'sidebar-desktop-collapsed' : ''}`}>
         {/* Mobile overlay */}
         <div
           className={`sidebar-overlay ${sidebarOpen ? 'visible' : ''}`}
@@ -91,6 +99,8 @@ export default function App() {
           <Topbar
             onMenuClick={() => setSidebarOpen(true)}
             onSearchClick={() => setPaletteOpen(true)}
+            onToggleSidebar={() => setSidebarCollapsed(v => !v)}
+            sidebarCollapsed={sidebarCollapsed}
           />
 
           <div key={location.pathname} className="route-transition">

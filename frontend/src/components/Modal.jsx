@@ -36,7 +36,7 @@ export default function Modal({ isOpen, onClose, title, children, footer, size =
       <style>{`
         @media (max-width: 599px) {
           .modal-overlay-inner { align-items: flex-end !important; padding: 0 !important; }
-          .modal-inner { border-radius: 20px 20px 0 0 !important; max-height: 95vh !important; }
+          .modal-inner { border-radius: 20px 20px 0 0 !important; height: 95dvh !important; max-height: 95dvh !important; overflow: hidden !important; }
         }
       `}</style>
       <div

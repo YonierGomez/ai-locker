@@ -440,7 +440,7 @@ export default function AiSessionPage() {
             </div>
 
             {/* Suggestion chips */}
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, justifyContent: 'center', maxWidth: 580 }}>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, justifyContent: 'center', maxWidth: 'min(580px, 92vw)' }}>
               {SUGGESTIONS.map(s => (
                 <button
                   key={s}
@@ -478,7 +478,9 @@ export default function AiSessionPage() {
 
       {/* Input */}
       <div style={{
-        padding: '10px 12px 12px', flexShrink: 0,
+        padding: '10px 12px',
+        paddingBottom: 'max(12px, env(safe-area-inset-bottom))',
+        flexShrink: 0,
         borderTop: '1px solid var(--glass-border)',
       }}>
         <div style={{
@@ -492,6 +494,7 @@ export default function AiSessionPage() {
           onBlur={e => e.currentTarget.style.borderColor = 'var(--glass-border)'}
         >
           <textarea
+            className="ai-chat-input"
             ref={inputRef}
             value={input}
             onChange={e => { setInput(e.target.value); e.target.style.height = 'auto'; e.target.style.height = Math.min(e.target.scrollHeight, 120) + 'px' }}

@@ -93,16 +93,39 @@ export default function DetailModal({ item, onClose, onEdit, onDelete, onToggleF
   }
 
   return createPortal(
-    <div
-      className="modal-overlay"
-      onClick={(e) => e.target === e.currentTarget && !maximized && onClose?.()}
-      style={{
-        alignItems: maximized ? 'stretch' : 'center',
-        padding: maximized ? 0 : '20px',
-        zIndex: 9000,
-      }}
-    >
-      <div className="detail-modal-container" style={{
+    <>
+      <style>{`
+        @media (max-width: 599px) {
+          .detail-modal-overlay:not(.detail-modal-maximized) {
+            align-items: flex-end !important;
+            padding: 0 !important;
+          }
+          .detail-modal-inner {
+            border-radius: 20px 20px 0 0 !important;
+            max-width: 100% !important;
+            max-height: 95vh !important;
+          }
+          .detail-modal-inner .detail-modal-header {
+            padding: 14px 18px 12px !important;
+          }
+          .detail-modal-inner .detail-modal-footer {
+            padding: 10px 18px max(14px, env(safe-area-inset-bottom)) !important;
+          }
+          .detail-modal-inner .detail-modal-body {
+            padding: 16px 18px !important;
+          }
+        }
+      `}</style>
+      <div
+        className={`modal-overlay detail-modal-overlay${maximized ? ' detail-modal-maximized' : ''}`}
+        onClick={(e) => e.target === e.currentTarget && !maximized && onClose?.()}
+        style={{
+          alignItems: maximized ? 'stretch' : 'center',
+          padding: maximized ? 0 : '20px',
+          zIndex: 9000,
+        }}
+      >
+      <div className="detail-modal-container detail-modal-inner" style={{
         borderRadius: maximized ? 0 : 'var(--radius-2xl)',
         width: '100%',
         maxWidth: maximized ? '100%' : (maxWidth || 780),
@@ -192,7 +215,7 @@ export default function DetailModal({ item, onClose, onEdit, onDelete, onToggleF
         </div>
 
         {/* Scrollable body */}
-        <div style={{ flex: 1, overflowY: 'auto', padding: '20px 24px' }}>
+        <div className="detail-modal-body" style={{ flex: 1, overflowY: 'auto', padding: '20px 24px' }}>
 
           {/* Content */}
           {displayContent && (
@@ -343,7 +366,8 @@ export default function DetailModal({ item, onClose, onEdit, onDelete, onToggleF
           </div>
         </div>
       </div>
-    </div>,
+      </div>
+    </>,
     document.body
   )
 }

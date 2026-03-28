@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { notesApi, tagsApi } from '../utils/api'
+import Modal from '../components/Modal'
 import DetailModal from '../components/DetailModal'
 import MarkdownEditor from '../components/MarkdownEditor'
 import CategorySelector from '../components/CategorySelector'
@@ -9,7 +10,7 @@ import toast from 'react-hot-toast'
 import { formatDistanceToNow, format, isToday, isYesterday, isThisWeek, isThisMonth } from 'date-fns'
 import {
   StickyNote, Plus, Search, Star, Trash2, Edit3, X,
-  LayoutGrid, List, Pin, Maximize2, Minimize2, Kanban, Clock, Columns2, Check, MousePointer,
+  LayoutGrid, List, Pin, Kanban, Clock, Columns2, Check, MousePointer,
 } from 'lucide-react'
 
 // ── Color presets ──────────────────────────────────────────────
@@ -659,7 +660,6 @@ function NoteKanbanView({ notes, onFavorite, onPin, onEdit, onDelete, onView, se
 // ── Note Modal (create / edit) ─────────────────────────────────
 function NoteModal({ note, onClose, onSave }) {
   const isEdit = !!note?.id
-  const [maximized, setMaximized] = useState(false)
   const [form, setForm] = useState({
     title: note?.title || '',
     content: note?.content || '',
@@ -668,17 +668,6 @@ function NoteModal({ note, onClose, onSave }) {
     color: note?.color || '#FFD60A',
     tags: note?.tags?.map(t => t.id) || [],
   })
-
-  useEffect(() => {
-    document.body.style.overflow = 'hidden'
-    return () => { document.body.style.overflow = '' }
-  }, [])
-
-  useEffect(() => {
-    const handleKey = e => { if (e.key === 'Escape') onClose() }
-    document.addEventListener('keydown', handleKey)
-    return () => document.removeEventListener('keydown', handleKey)
-  }, [onClose])
 
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }))
 
@@ -691,62 +680,38 @@ function NoteModal({ note, onClose, onSave }) {
   const color = form.color || '#FFD60A'
 
   return (
-    <div
-      style={{
-        position: 'fixed', inset: 0, zIndex: 1000,
-        display: 'flex',
-        alignItems: maximized ? 'stretch' : 'flex-end',
-        justifyContent: 'center',
-        padding: maximized ? 0 : 0,
-        background: 'var(--c-code-bg)', backdropFilter: 'blur(8px)',
-      }}
-      className="note-modal-overlay"
-      onClick={e => e.target === e.currentTarget && onClose()}
+    <Modal
+      isOpen
+      onClose={onClose}
+      title={isEdit ? 'Edit note' : 'New note'}
+      size="md"
+      footer={
+        <>
+          <button type="button" className="btn btn-ghost" onClick={onClose}>Cancel</button>
+          <button type="submit" className="btn btn-primary" form="note-modal-form">
+            {isEdit ? 'Save changes' : 'Create note'}
+          </button>
+        </>
+      }
     >
-      <style>{`
-        @media (min-width: 600px) {
-          .note-modal-overlay { align-items: center !important; padding: 20px !important; }
-          .note-modal-inner { border-radius: 16px !important; max-height: 90vh !important; }
-        }
-      `}</style>
-      <div className="note-modal-inner" style={{
-        background: 'var(--surface-2)',
-        border: '1px solid var(--c-border-md)',
-        borderTop: `3px solid ${color}`,
-        borderRadius: maximized ? 0 : '16px 16px 0 0',
-        width: '100%', maxWidth: maximized ? '100vw' : 620,
-        boxShadow: maximized ? 'none' : '0 -8px 40px rgba(0,0,0,0.5)',
-        overflow: 'hidden', display: 'flex', flexDirection: 'column',
-        maxHeight: maximized ? '100vh' : '95vh',
-      }}>
-        {/* Header */}
-        <div style={{
-          padding: '16px 20px 12px',
-          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-          borderBottom: '1px solid rgba(255,255,255,0.07)',
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+        <form
+          id="note-modal-form"
+          onSubmit={handleSubmit}
+          style={{ display: 'flex', flexDirection: 'column', gap: 14, overflowX: 'hidden' }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, paddingBottom: 2 }}>
             <div style={{
-              width: 32, height: 32, borderRadius: 8,
+              width: 28, height: 28, borderRadius: 8,
               background: `${color}22`, border: `1px solid ${color}44`,
               display: 'flex', alignItems: 'center', justifyContent: 'center',
+              flexShrink: 0,
             }}>
-              <StickyNote size={16} color={color} />
+              <StickyNote size={14} color={color} />
             </div>
-            <span style={{ fontWeight: 600, fontSize: 15 }}>{isEdit ? 'Edit note' : 'New note'}</span>
+            <span style={{ fontSize: 12, color: 'var(--text-tertiary)', fontWeight: 600, letterSpacing: 0.3, textTransform: 'uppercase' }}>
+              Note details
+            </span>
           </div>
-          <div style={{ display: 'flex', gap: 4 }}>
-            <button className="btn-icon" onClick={() => setMaximized(m => !m)} title={maximized ? 'Restore' : 'Maximize'}>
-              {maximized ? <Minimize2 size={15} /> : <Maximize2 size={15} />}
-            </button>
-            <button className="btn-icon" onClick={onClose}><X size={16} /></button>
-          </div>
-        </div>
-
-        <form
-          onSubmit={handleSubmit}
-          style={{ padding: '16px 20px 20px', display: 'flex', flexDirection: 'column', gap: 14, flex: 1, overflowY: 'auto' }}
-        >
           {/* Title */}
           <div>
             <label style={{ fontSize: 11, color: 'var(--text-tertiary)', display: 'block', marginBottom: 6 }}>TITLE</label>
@@ -843,21 +808,12 @@ function NoteModal({ note, onClose, onSave }) {
             <MarkdownEditor
               value={form.content}
               onChange={v => set('content', v)}
-              minHeight={maximized ? 400 : 220}
+              minHeight={220}
               showTokens={false}
             />
           </div>
-
-          {/* Actions */}
-          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10, paddingTop: 4 }}>
-            <button type="button" className="btn btn-ghost" onClick={onClose}>Cancel</button>
-            <button type="submit" className="btn btn-primary">
-              {isEdit ? 'Save changes' : 'Create note'}
-            </button>
-          </div>
         </form>
-      </div>
-    </div>
+    </Modal>
   )
 }
 

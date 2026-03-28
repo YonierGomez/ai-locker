@@ -43,7 +43,7 @@ function VersionPanel({ itemId, itemType, onRestore, onClose }) {
       border: '1px solid rgba(255,255,255,0.09)',
       borderTop: 'none',
       borderRadius: '0 0 var(--radius-md) var(--radius-md)',
-      background: 'rgba(255,255,255,0.02)',
+      background: 'var(--bg-secondary)',
       maxHeight: 280, overflowY: 'auto',
     }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 14px', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
@@ -115,7 +115,7 @@ function ImprovePanel({ value, onChange, onClose }) {
       border: '1px solid rgba(48,209,88,0.2)',
       borderTop: 'none',
       borderRadius: '0 0 var(--radius-md) var(--radius-md)',
-      background: 'rgba(48,209,88,0.04)',
+      background: 'color-mix(in srgb, var(--bg-secondary) 88%, #30D158 12%)',
       padding: 14,
     }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
@@ -200,7 +200,7 @@ export default function MarkdownEditor({
       <div style={{
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
         padding: '6px 10px',
-        background: 'rgba(255,255,255,0.03)',
+        background: 'var(--bg-tertiary)',
         border: '1px solid rgba(255,255,255,0.09)',
         borderBottom: 'none',
         borderRadius: 'var(--radius-md) var(--radius-md) 0 0',
@@ -308,12 +308,13 @@ export default function MarkdownEditor({
         {/* Editor pane */}
         {(mode === 'edit' || mode === 'split') && (
           <textarea
+            className="markdown-editor-textarea"
             value={value}
             onChange={e => onChange(e.target.value)}
             placeholder={placeholder}
             style={{
               flex: 1,
-              background: 'rgba(255,255,255,0.04)',
+              background: 'var(--bg-secondary)',
               border: 'none',
               borderRight: mode === 'split' ? '1px solid rgba(255,255,255,0.07)' : 'none',
               outline: 'none',
@@ -332,7 +333,7 @@ export default function MarkdownEditor({
         {(mode === 'preview' || mode === 'split') && (
           <div style={{
             flex: 1,
-            background: 'rgba(255,255,255,0.02)',
+            background: 'var(--bg-primary)',
             padding: '14px 16px',
             overflowY: 'auto',
             minHeight,
