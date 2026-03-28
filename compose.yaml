@@ -1,50 +1,57 @@
 # ┌─────────────────────────────────────────────────────────────────┐
 # │  AI Locker — docker-compose                                     │
 # │                                                                 │
-# │  Dos formas de conectar la base de datos:                       │
+# │  Base de datos — elige UNA opción:                             │
 # │                                                                 │
-# │  A) String de conexión   → DATABASE_URL                        │
-# │  B) Variables separadas  → DB_HOST / DB_NAME / DB_USER / etc.  │
-# │                                                                 │
-# │  Si no defines ninguna, se usa SQLite automáticamente.         │
+# │  1. SQLite   → sin variables de DB (por defecto)               │
+# │  2. PostgreSQL → activa el servicio postgres-db                │
+# │  3. MySQL     → activa el servicio mysql-db                    │
 # └─────────────────────────────────────────────────────────────────┘
 
 services:
 
-  # ── Aplicación principal ────────────────────────────────────────
+  # ── Aplicación ─────────────────────────────────────────────────
   app:
     image: yoniergomez/ai-locker:latest
-    # Para construir desde el código fuente en lugar de usar la imagen oficial:
+    # Para construir desde el código fuente:
     # build:
     #   context: .
     #   dockerfile: Dockerfile
+    #   args:
+    #     VITE_BASE_PATH: /ailocker/   # subpath si usas reverse proxy
     container_name: ai-locker
     ports:
-      - "9090:3001"
+      - "9091:3001"
+    restart: unless-stopped
+    volumes:
+      - ai_locker_data:/data
     environment:
       NODE_ENV: production
       PORT: 3001
 
-      # ── Opción A: string de conexión (descomentar una) ──────────
-      # PostgreSQL:
-      # DATABASE_URL: postgresql://ai-locker:secret@postgres-db:5432/ai-locker
-      # MySQL / MariaDB:
-      # DATABASE_URL: mysql://ai-locker:secret@mysql-db:3306/ai-locker
+      # ── SQLite (por defecto — comenta las vars de DB abajo) ─────
+      # DB_PATH: /data/ai-locker.db
 
-      # ── Opción B: variables separadas ───────────────────────────
+      # ── PostgreSQL ──────────────────────────────────────────────
+      DB_TYPE: postgres
       DB_HOST: postgres-db
       DB_PORT: 5432
       DB_NAME: ai-locker
       DB_USER: ai-locker
       DB_PASSWORD: secret
-      DB_TYPE: postgres
 
-      # ── SQLite (por defecto — sin DB_HOST ni DATABASE_URL) ──────
-      # DB_PATH: /data/ai-locker.db
+      # ── MySQL / MariaDB ─────────────────────────────────────────
+      # DB_TYPE: mysql
+      # DB_HOST: mysql-db
+      # DB_PORT: 3306
+      # DB_NAME: ai-locker
+      # DB_USER: ai-locker
+      # DB_PASSWORD: secret
 
-    volumes:
-      - ai_locker_data:/data
-    restart: unless-stopped
+      # ── O usa un string de conexión completo ────────────────────
+      # DATABASE_URL: postgresql://ai-locker:secret@postgres-db:5432/ai-locker
+      # DATABASE_URL: mysql://ai-locker:secret@mysql-db:3306/ai-locker
+
     depends_on:
       postgres-db:
         condition: service_healthy
@@ -57,7 +64,7 @@ services:
       retries: 3
       start_period: 15s
 
-  # ── PostgreSQL ─────────────────────────────────────────────────
+  # ── PostgreSQL ──────────────────────────────────────────────────
   postgres-db:
     image: postgres:alpine
     container_name: ai-locker_postgres
@@ -77,9 +84,8 @@ services:
       retries: 5
       start_period: 10s
 
-  # ── MySQL / MariaDB ────────────────────────────────────────────
-  # Descomentar para usar MySQL en lugar de PostgreSQL.
-  # También cambiar depends_on del servicio app arriba.
+  # ── MySQL / MariaDB (alternativa a PostgreSQL) ──────────────────
+  # Descomenta y ajusta depends_on en el servicio app si lo usas.
   #
   # mysql-db:
   #   image: mysql:9-oracle
