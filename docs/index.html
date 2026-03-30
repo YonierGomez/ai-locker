@@ -538,7 +538,7 @@
       <div class="dot dot-red"></div>
       <div class="dot dot-yellow"></div>
       <div class="dot dot-green"></div>
-      <div class="preview-url">localhost:9090/prompts</div>
+      <div class="preview-url">localhost:9091/prompts</div>
     </div>
     <div class="preview-content">
       <div class="preview-sidebar">
@@ -711,7 +711,7 @@
           <div class="deploy-step-number" style="background:linear-gradient(135deg,rgba(191,90,242,0.2),rgba(0,122,255,0.1));border:1px solid rgba(191,90,242,0.3);color:var(--purple);">3</div>
           <div class="deploy-step-title">Open</div>
           <div class="deploy-step-desc">Your library is live — no config needed</div>
-          <div style="margin-top:12px;background:rgba(0,0,0,0.4);border-radius:10px;padding:10px 14px;font-family:var(--mono);font-size:11.5px;color:#FF9F0A;">localhost:9090 ✦</div>
+          <div style="margin-top:12px;background:rgba(0,0,0,0.4);border-radius:10px;padding:10px 14px;font-family:var(--mono);font-size:11.5px;color:#FF9F0A;">localhost:9091 ✦</div>
         </div>
 
       </div>
@@ -732,7 +732,7 @@
           <div class="t-line" style="color:rgba(255,255,255,0.3);"> ✔ Network ai-locker_default    Created</div>
           <div class="t-line" style="color:rgba(255,255,255,0.3);"> ✔ Container ai-locker_postgres Started</div>
           <div class="t-line" style="color:rgba(255,255,255,0.3);"> ✔ Container ai-locker          Started</div>
-          <div class="t-line"><span class="t-prompt">~</span><span class="t-prompt">$</span><span class="t-cmd">open</span><span class="t-url">http://localhost:9090</span></div>
+          <div class="t-line"><span class="t-prompt">~</span><span class="t-prompt">$</span><span class="t-cmd">open</span><span class="t-url">http://localhost:9091</span></div>
           <div class="t-line"><span class="t-success">✦ AI Locker is running</span></div>
         </div>
       </div>
@@ -768,7 +768,7 @@
           <span class="comment"># Download compose file (no clone needed)</span><br/>
           <span class="cmd">curl</span> -O <span class="arg">https://raw.githubusercontent.com/YonierGomez/ai-locker/main/compose.yaml</span><br/>
           <span class="cmd">docker compose up -d</span><br/><br/>
-          <span class="comment"># Open → http://localhost:9090</span><br/><br/>
+          <span class="comment"># Open → http://localhost:9091</span><br/><br/>
           <span class="comment"># Update to the latest image at any time:</span><br/>
           <span class="cmd">docker compose pull</span> &amp;&amp; <span class="cmd">docker compose up -d</span>
         </div>
@@ -777,7 +777,7 @@
 <span style="color:rgba(255,255,255,0.35);">services:</span><br/>
 <span style="color:rgba(255,255,255,0.35);">&nbsp;&nbsp;app:</span><br/>
 <span style="color:rgba(255,255,255,0.35);">&nbsp;&nbsp;&nbsp;&nbsp;image: </span><span class="arg">yoniergomez/ai-locker:latest</span><br/>
-<span style="color:rgba(255,255,255,0.35);">&nbsp;&nbsp;&nbsp;&nbsp;ports: [</span><span class="arg">"9090:3001"</span><span style="color:rgba(255,255,255,0.35);">]</span><br/>
+<span style="color:rgba(255,255,255,0.35);">&nbsp;&nbsp;&nbsp;&nbsp;ports: [</span><span class="arg">"9091:3001"</span><span style="color:rgba(255,255,255,0.35);">]</span><br/>
 <span style="color:rgba(255,255,255,0.35);">&nbsp;&nbsp;&nbsp;&nbsp;environment:</span><br/>
 <span style="color:rgba(255,255,255,0.35);">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;DB_HOST: </span><span class="arg">postgres-db</span><br/>
 <span style="color:rgba(255,255,255,0.35);">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;DB_TYPE: </span><span class="arg">postgres</span><br/>
@@ -795,14 +795,14 @@
         <div class="code-block" style="font-size:12.5px;">
           <span class="cmd">curl</span> -O <span class="arg">https://raw.githubusercontent.com/YonierGomez/ai-locker/main/compose.yaml</span><br/>
           <span class="cmd">docker compose up -d</span><br/><br/>
-          <span class="comment"># Open → http://localhost:9090</span>
+          <span class="comment"># Open → http://localhost:9091</span>
         </div>
         <div class="deploy-tab-heading">compose.yaml (SQLite variant)</div>
         <div class="code-block" style="font-size:12px;line-height:1.8;">
 <span style="color:rgba(255,255,255,0.35);">services:</span><br/>
 <span style="color:rgba(255,255,255,0.35);">&nbsp;&nbsp;app:</span><br/>
 <span style="color:rgba(255,255,255,0.35);">&nbsp;&nbsp;&nbsp;&nbsp;image: </span><span class="arg">yoniergomez/ai-locker:latest</span><br/>
-<span style="color:rgba(255,255,255,0.35);">&nbsp;&nbsp;&nbsp;&nbsp;ports: [</span><span class="arg">"9090:3001"</span><span style="color:rgba(255,255,255,0.35);">]</span><br/>
+<span style="color:rgba(255,255,255,0.35);">&nbsp;&nbsp;&nbsp;&nbsp;ports: [</span><span class="arg">"9091:3001"</span><span style="color:rgba(255,255,255,0.35);">]</span><br/>
 <span style="color:rgba(255,255,255,0.35);">&nbsp;&nbsp;&nbsp;&nbsp;environment:</span><br/>
 <span style="color:rgba(255,255,255,0.35);">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;DB_PATH: </span><span class="arg">/data/ai-locker.db</span><br/>
 <span style="color:rgba(255,255,255,0.35);">&nbsp;&nbsp;&nbsp;&nbsp;volumes: [</span><span class="arg">ai_locker_data:/data</span><span style="color:rgba(255,255,255,0.35);">]</span><br/>
