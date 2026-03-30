@@ -73,7 +73,7 @@ curl -O https://raw.githubusercontent.com/YonierGomez/ai-locker/main/compose.yam
 docker compose up -d
 ```
 
-Open **http://localhost:9090** and you're done.
+Open **http://localhost:9091** and you're done.
 
 <details>
 <summary><strong>compose.yaml</strong></summary>
@@ -85,7 +85,7 @@ services:
     image: yoniergomez/ai-locker:latest
     container_name: ai-locker
     ports:
-      - "9090:3001"
+      - "9091:3001"
     environment:
       NODE_ENV: production
       PORT: 3001
@@ -151,7 +151,7 @@ services:
     image: yoniergomez/ai-locker:latest
     container_name: ai-locker
     ports:
-      - "9090:3001"
+      - "9091:3001"
     environment:
       NODE_ENV: production
       PORT: 3001
@@ -166,7 +166,7 @@ volumes:
 
 </details>
 
-Open **http://localhost:9090**.
+Open **http://localhost:9091**.
 
 ---
 
