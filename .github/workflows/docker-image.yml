@@ -1,38 +1,48 @@
 # CI/CD Docker Multi-Arch para AI Locker
-# - Build multi-arquitectura (amd64, arm64) con QEMU + Buildx (armv7 no soportado por node:alpine)
+# - Build multi-arquitectura (amd64, arm64) con native runners (no QEMU)
 # - Detecta versión desde package.json
 # - Genera releases con changelog desde commits
 # - Requiere secrets: USER_HUB, PASS_HUB (Docker Hub)
 
 name: Docker Image CI (multi-arch)
 
-
 on:
   push:
     branches: [main]
   schedule:
-    - cron: '0 8 * * 1'  # Cada lunes a las 8:00 UTC
+    - cron: '0 8 * * 1'  # Every Monday 08:00 UTC
   workflow_dispatch:
     inputs:
       force_build:
-        description: 'Forzar build y push de Docker'
+        description: 'Force build even if version unchanged'
         required: false
-        default: false
-        type: boolean
+        type: choice
+        default: 'false'
+        options:
+          - 'true'
+          - 'false'
+      skip_release:
+        description: 'Build and push Docker image but skip GitHub Release creation'
+        required: false
+        type: choice
+        default: 'false'
+        options:
+          - 'true'
+          - 'false'
 
 permissions:
   contents: write
 
 jobs:
-  check_and_build:
+  # ── Phase 1: detect whether a new version is available ───────────────────────
+  check-version:
     runs-on: ubuntu-latest
-    env:
-      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+    outputs:
+      version: ${{ steps.pkg_version.outputs.version }}
+      should_build: ${{ steps.compare.outputs.should_build }}
 
     steps:
       - uses: actions/checkout@v6.0.2
-        with:
-          fetch-depth: 0  # Historial completo para changelog
 
       - name: Get version from package.json
         id: pkg_version
@@ -41,64 +51,136 @@ jobs:
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
           echo "AI Locker version: $VERSION"
 
-      - name: Get latest release tag from repo
-        id: latest_release
+      - name: Get latest GitHub release tag
+        id: get_release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          LATEST_TAG=$(gh release view --json tagName -q '.tagName' 2>/dev/null || echo "none")
-          echo "tag=$LATEST_TAG" >> "$GITHUB_OUTPUT"
-          echo "Latest release tag: $LATEST_TAG"
+          LATEST=$(gh release list \
+            --repo ${{ github.repository }} \
+            --limit 1 \
+            --json tagName \
+            --jq '.[0].tagName // ""')
+          echo "latest=$LATEST" >> "$GITHUB_OUTPUT"
+          echo "Latest release: $LATEST"
 
-      - name: Compare versions
+      - name: Decide whether to build
         id: compare
         run: |
           PKG_VERSION="v${{ steps.pkg_version.outputs.version }}"
-          LATEST="${{ steps.latest_release.outputs.tag }}"
-          echo "Package: $PKG_VERSION vs Latest release: $LATEST"
-          if [ "$PKG_VERSION" != "$LATEST" ]; then
-            echo "new_version=true" >> "$GITHUB_OUTPUT"
-            echo "Nueva versión detectada"
+          LATEST="${{ steps.get_release.outputs.latest }}"
+          FORCE="${{ github.event.inputs.force_build }}"
+          # Always build on push to main
+          if [[ "${{ github.event_name }}" == "push" || "$PKG_VERSION" != "$LATEST" || "$FORCE" == "true" ]]; then
+            echo "should_build=true"  >> "$GITHUB_OUTPUT"
+            echo "Build needed: pkg=$PKG_VERSION, latest=$LATEST, force=$FORCE"
           else
-            echo "new_version=false" >> "$GITHUB_OUTPUT"
-            echo "Sin cambios"
+            echo "should_build=false" >> "$GITHUB_OUTPUT"
+            echo "No new version — skipping build."
           fi
 
-      - name: Set up QEMU
-        if: steps.compare.outputs.new_version == 'true' || github.event.inputs.force_build == 'true'
-        uses: docker/setup-qemu-action@v4.0.0
+  # ── Phase 2: build per-arch on native runners (no QEMU) ──────────────────────
+  build:
+    needs: check-version
+    if: needs.check-version.outputs.should_build == 'true'
+    runs-on: ${{ matrix.runner }}
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: linux/amd64
+            runner: ubuntu-latest
+          - platform: linux/arm64
+            runner: ubuntu-24.04-arm
+
+    steps:
+      - uses: actions/checkout@v6.0.2
+        with:
+          fetch-depth: 0
 
       - name: Set up Docker Buildx
-        if: steps.compare.outputs.new_version == 'true' || github.event.inputs.force_build == 'true'
         uses: docker/setup-buildx-action@v4.0.0
 
       - name: Docker Login
-        if: steps.compare.outputs.new_version == 'true' || github.event.inputs.force_build == 'true'
         uses: docker/login-action@v4.0.0
         with:
           registry: docker.io
           username: ${{ secrets.USER_HUB }}
           password: ${{ secrets.PASS_HUB }}
 
-      - name: Build and push Docker image
-        if: steps.compare.outputs.new_version == 'true' || github.event.inputs.force_build == 'true'
+      - name: Build and push by digest
+        id: build
         uses: docker/build-push-action@v7.0.0
         with:
           context: .
           file: ./Dockerfile
-          platforms: linux/amd64,linux/arm64
+          platforms: ${{ matrix.platform }}
           push: true
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-          tags: |
-            ${{ secrets.USER_HUB }}/ai-locker:latest
-            ${{ secrets.USER_HUB }}/ai-locker:${{ steps.pkg_version.outputs.version }}
+          outputs: type=image,name=${{ secrets.USER_HUB }}/ai-locker,push-by-digest=true,name-canonical=true,push=true
+
+      - name: Export digest
+        run: |
+          mkdir -p /tmp/digests
+          digest="${{ steps.build.outputs.digest }}"
+          touch "/tmp/digests/${digest#sha256:}"
+
+      - name: Upload digest artifact
+        uses: actions/upload-artifact@v7.0.0
+        with:
+          name: digest-${{ matrix.runner }}
+          path: /tmp/digests/*
+          if-no-files-found: error
+          retention-days: 1
+
+  # ── Phase 3: merge digests into multi-arch manifest ──────────────────────────
+  build-and-push:
+    needs: [check-version, build]
+    if: needs.check-version.outputs.should_build == 'true'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Download digests
+        uses: actions/download-artifact@v8.0.1
+        with:
+          path: /tmp/digests
+          pattern: digest-*
+          merge-multiple: true
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4.0.0
+
+      - name: Docker Login
+        uses: docker/login-action@v4.0.0
+        with:
+          registry: docker.io
+          username: ${{ secrets.USER_HUB }}
+          password: ${{ secrets.PASS_HUB }}
+
+      - name: Create and push multi-arch manifest
+        run: |
+          VERSION="${{ needs.check-version.outputs.version }}"
+          docker buildx imagetools create \
+            -t ${{ secrets.USER_HUB }}/ai-locker:latest \
+            -t ${{ secrets.USER_HUB }}/ai-locker:${VERSION} \
+            $(printf '${{ secrets.USER_HUB }}/ai-locker@sha256:%s ' $(ls /tmp/digests))
+
+  # ── Phase 4: GitHub Release with changelog ────────────────────────────────────
+  release:
+    needs: [check-version, build-and-push]
+    if: needs.check-version.outputs.should_build == 'true' && github.event.inputs.skip_release != 'true'
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v6.0.2
+        with:
+          fetch-depth: 0
 
       - name: Generate changelog from commits
-        if: steps.compare.outputs.new_version == 'true' || github.event.inputs.force_build == 'true'
         id: changelog
         run: |
-          VERSION="${{ steps.pkg_version.outputs.version }}"
+          VERSION="${{ needs.check-version.outputs.version }}"
           LAST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
           if [ -n "$LAST_TAG" ]; then
             CHANGELOG=$(git log --pretty=format:"- %s (%h)" "$LAST_TAG"..HEAD 2>/dev/null | head -40)
@@ -109,56 +191,52 @@ jobs:
           echo "$CHANGELOG" > /tmp/changelog.txt
 
       - name: Create or update GitHub Release
-        if: steps.compare.outputs.new_version == 'true' || github.event.inputs.force_build == 'true'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          TAG="v${{ steps.pkg_version.outputs.version }}"
-          VERSION="${{ steps.pkg_version.outputs.version }}"
+          TAG="v${{ needs.check-version.outputs.version }}"
+          VERSION="${{ needs.check-version.outputs.version }}"
           CHANGELOG=$(cat /tmp/changelog.txt)
           IMAGE="${{ secrets.USER_HUB }}/ai-locker"
 
-          cat > /tmp/release_notes.md << EOF
+          cat > /tmp/release-notes.md << NOTES
           ## AI Locker ${VERSION}
 
-          ### Cambios en esta versión
+          ### Changes
 
           \`\`\`
           ${CHANGELOG}
           \`\`\`
 
-          ### Docker tags
+          ### Docker Images
 
           \`\`\`bash
           docker pull ${IMAGE}:latest
           docker pull ${IMAGE}:${VERSION}
           \`\`\`
 
-          ### Arquitecturas soportadas
+          ### Supported Architectures
 
-          La imagen es multi-arch. Docker descarga la versión correcta automáticamente.
+          | Architecture | Tag |
+          |---|---|
+          | linux/amd64 | \`latest\`, \`${VERSION}\` |
+          | linux/arm64 | \`latest\`, \`${VERSION}\` |
 
-          | Arquitectura | Plataforma | Comando para forzar |
-          |---|---|---|
-          | x86-64 | PCs, servidores | \`docker pull --platform linux/amd64 ${IMAGE}\` |
-          | ARM64 | Raspberry Pi 3/4/5, Apple Silicon | \`docker pull --platform linux/arm64 ${IMAGE}\` |
-
-          ### Uso rápido
+          ### Quick Start
 
           \`\`\`bash
           docker run -d --name ai-locker -p 9090:3001 -v ai_locker_data:/data --restart unless-stopped ${IMAGE}:latest
           \`\`\`
+          NOTES
 
-          Abre **http://localhost:3001**
-          EOF
-
-          # Si el release ya existe, eliminarlo primero (force_build o re-release)
+          # If release already exists, delete and recreate (force_build or re-release)
           if gh release view "$TAG" &>/dev/null; then
-            echo "Release $TAG ya existe — eliminando para recrear"
+            echo "Release $TAG exists — deleting to recreate"
             gh release delete "$TAG" --yes --cleanup-tag || true
             git push origin ":refs/tags/$TAG" || true
           fi
 
           gh release create "$TAG" \
+            --repo ${{ github.repository }} \
             --title "AI Locker $VERSION" \
-            --notes-file /tmp/release_notes.md
+            --notes-file /tmp/release-notes.md
