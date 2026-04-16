@@ -4,8 +4,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>AI Locker</title>
-  <meta name="description" content="Self-hosted AI Locker with built-in AI Chat. Manage prompts, skills, steering, MCP configs, shell commands, and notes. Supports OpenAI, Anthropic, Gemini, Bedrock, and OpenRouter. Deploy in seconds with Docker." />
-  <meta name="keywords" content="AI Locker, self-hosted, prompt organizer, AI skills, MCP configs, steering, shell commands, Docker, OpenAI, Anthropic, Gemini, ChatGPT, Claude, open source" />
+  <meta name="description" content="Self-hosted AI Locker with built-in AI Chat. Manage prompts, skills, instructions, MCP configs, shell commands, and notes. Supports OpenAI, Anthropic, Gemini, Bedrock, and OpenRouter. Deploy in seconds with Docker." />
+  <meta name="keywords" content="AI Locker, self-hosted, prompt organizer, AI skills, MCP configs, instructions, shell commands, Docker, OpenAI, Anthropic, Gemini, ChatGPT, Claude, open source" />
   <meta name="author" content="Yonier Gomez" />
   <meta name="robots" content="index, follow" />
   <link rel="canonical" href="https://yoniergomez.github.io/ai-locker/" />
@@ -14,7 +14,7 @@
   <meta property="og:type" content="website" />
   <meta property="og:url" content="https://yoniergomez.github.io/ai-locker/" />
   <meta property="og:title" content="AI Locker" />
-  <meta property="og:description" content="Self-hosted AI Locker with built-in AI Chat. Generate and organize prompts, skills, steering rules, MCP configs, shell commands, and notes from natural language. Deploy in seconds with Docker." />
+  <meta property="og:description" content="Self-hosted AI Locker with built-in AI Chat. Generate and organize prompts, skills, instructions, MCP configs, shell commands, and notes from natural language. Deploy in seconds with Docker." />
   <meta property="og:image" content="https://yoniergomez.github.io/ai-locker/ailockeryonier-social-20260330.png" />
   <meta property="og:image:secure_url" content="https://yoniergomez.github.io/ai-locker/ailockeryonier-social-20260330.png" />
   <meta property="og:image:type" content="image/png" />
@@ -29,7 +29,7 @@
   <meta name="twitter:site" content="@YonierGomez" />
   <meta name="twitter:creator" content="@YonierGomez" />
   <meta name="twitter:title" content="AI Locker" />
-  <meta name="twitter:description" content="Self-hosted AI Locker with built-in AI Chat. Manage prompts, skills, steering, MCP configs, commands, and notes. Deploy in seconds with Docker." />
+  <meta name="twitter:description" content="Self-hosted AI Locker with built-in AI Chat. Manage prompts, skills, instructions, MCP configs, commands, and notes. Deploy in seconds with Docker." />
   <meta name="twitter:image" content="https://yoniergomez.github.io/ai-locker/ailockeryonier-social-20260330.png" />
   <meta name="twitter:image:alt" content="AI Locker" />
 
@@ -512,7 +512,7 @@
 <section class="hero">
   <div class="container">
     <h1>Your AI Locker,<br /><span>Beautifully Organized</span></h1>
-    <p>A self-hosted manager for AI prompts, skills, steering configs, MCP servers, shell commands, and notes — with <strong>built-in AI Chat</strong> to generate items from natural language. Supports OpenAI, Anthropic, Gemini, Bedrock, and OpenRouter.</p>
+    <p>A self-hosted manager for AI prompts, skills, instructions, MCP servers, shell commands, and notes — with <strong>built-in AI Chat</strong> to generate items from natural language. Supports OpenAI, Anthropic, Gemini, Bedrock, and OpenRouter.</p>
     <div class="hero-actions">
       <a href="#docker" class="btn btn-primary">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M13.983 11.078h2.119a.186.186 0 00.186-.185V9.006a.186.186 0 00-.186-.186h-2.119a.185.185 0 00-.185.185v1.888c0 .102.083.185.185.185m-2.954-5.43h2.118a.186.186 0 00.186-.186V3.574a.186.186 0 00-.186-.185h-2.118a.185.185 0 00-.185.185v1.888c0 .102.082.185.185.185m0 2.716h2.118a.187.187 0 00.186-.186V6.29a.186.186 0 00-.186-.185h-2.118a.185.185 0 00-.185.185v1.887c0 .102.082.185.185.186m-2.93 0h2.12a.186.186 0 00.184-.186V6.29a.185.185 0 00-.185-.185H8.1a.185.185 0 00-.185.185v1.887c0 .102.083.185.185.186m-2.964 0h2.119a.186.186 0 00.185-.186V6.29a.185.185 0 00-.185-.185H5.136a.186.186 0 00-.186.185v1.887c0 .102.084.185.186.186m5.893 2.715h2.118a.186.186 0 00.186-.185V9.006a.186.186 0 00-.186-.186h-2.118a.185.185 0 00-.185.185v1.888c0 .102.082.185.185.185m-2.93 0h2.12a.185.185 0 00.184-.185V9.006a.185.185 0 00-.184-.186h-2.12a.185.185 0 00-.184.185v1.888c0 .102.083.185.185.185m-2.964 0h2.119a.185.185 0 00.185-.185V9.006a.185.185 0 00-.184-.186h-2.12a.186.186 0 00-.186.186v1.887c0 .102.084.185.186.185m-2.92 0h2.12a.186.186 0 00.184-.185V9.006a.185.185 0 00-.184-.186h-2.12a.185.185 0 00-.184.186v1.887c0 .102.082.185.185.185M23.763 9.89c-.065-.051-.672-.51-1.954-.51-.338.001-.676.03-1.01.087-.248-1.7-1.653-2.53-1.716-2.566l-.344-.199-.226.327c-.284.438-.49.922-.612 1.43-.23.97-.09 1.882.403 2.661-.595.332-1.55.413-1.744.42H.751a.751.751 0 00-.75.748 11.376 11.376 0 00.692 4.062c.545 1.428 1.355 2.48 2.41 3.124 1.18.723 3.1 1.137 5.275 1.137.983.003 1.963-.086 2.93-.266a12.248 12.248 0 003.823-1.389c.98-.567 1.86-1.288 2.61-2.136 1.252-1.418 1.998-2.997 2.553-4.4h.221c1.372 0 2.215-.549 2.68-1.009.309-.293.55-.65.707-1.046l.098-.288z"/></svg>
@@ -554,7 +554,7 @@
         <div style="font-size:9px;color:rgba(255,255,255,0.25);padding:6px 10px 2px;letter-spacing:0.8px;text-transform:uppercase;font-weight:600;">Library</div>
         <div class="preview-nav-item active"><div class="preview-nav-dot"></div> Prompts <span style="margin-left:auto;font-size:9px;background:rgba(0,122,255,0.2);color:#409CFF;padding:1px 6px;border-radius:8px;">24</span></div>
         <div class="preview-nav-item"><div class="preview-nav-dot" style="background:#FF9500;"></div> Skills</div>
-        <div class="preview-nav-item"><div class="preview-nav-dot" style="background:#BF5AF2;"></div> Steering</div>
+        <div class="preview-nav-item"><div class="preview-nav-dot" style="background:#BF5AF2;"></div> Instructions</div>
         <div class="preview-nav-item"><div class="preview-nav-dot" style="background:#5E5CE6;"></div> Agents</div>
         <div class="preview-nav-item"><div class="preview-nav-dot" style="background:#30D158;"></div> MCP</div>
         <div class="preview-nav-item"><div class="preview-nav-dot" style="background:#5AC8FA;"></div> Commands</div>
@@ -587,13 +587,13 @@
     <div class="reveal">
       <div class="section-label" style="color:#5E5CE6;">AI Chat</div>
       <div class="section-title">Generate library items<br />from natural language</div>
-      <div class="section-desc">Describe what you need and the AI creates prompts, skills, steering rules, MCP configs, or shell commands — ready to save to your library. Configure your preferred provider in Settings.</div>
+      <div class="section-desc">Describe what you need and the AI creates prompts, skills, instructions, MCP configs, or shell commands — ready to save to your library. Configure your preferred provider in Settings.</div>
     </div>
     <div class="highlights stagger" style="margin-top:40px;">
       <div class="highlight-item"><div class="highlight-icon" style="background:rgba(94,92,230,0.15);">🔀</div><div><div class="highlight-title">5 AI Providers</div><div class="highlight-desc">OpenAI, Anthropic, Google Gemini, Amazon Bedrock, OpenRouter — switch with one click.</div></div></div>
       <div class="highlight-item"><div class="highlight-icon" style="background:rgba(0,212,255,0.15);">📋</div><div><div class="highlight-title">Latest models</div><div class="highlight-desc">GPT-5.4, Claude 4.6, Gemini 3.1 Pro — always up to date.</div></div></div>
       <div class="highlight-item"><div class="highlight-icon" style="background:rgba(48,209,88,0.15);">💾</div><div><div class="highlight-title">Persistent history</div><div class="highlight-desc">Chat history saved in your browser. Clear anytime.</div></div></div>
-      <div class="highlight-item"><div class="highlight-icon" style="background:rgba(255,159,10,0.15);">⚡</div><div><div class="highlight-title">One-click save</div><div class="highlight-desc">Generated items go straight to your library — prompts, skills, steering, MCP, commands.</div></div></div>
+      <div class="highlight-item"><div class="highlight-icon" style="background:rgba(255,159,10,0.15);">⚡</div><div><div class="highlight-title">One-click save</div><div class="highlight-desc">Generated items go straight to your library — prompts, skills, instructions, MCP, commands.</div></div></div>
     </div>
   </div>
 </section>
@@ -607,11 +607,11 @@
       <div class="section-desc">A complete toolkit for AI power users — organized, searchable, and always at your fingertips.</div>
     </div>
     <div class="features-grid stagger" style="margin-top:48px;">
-      <div class="feature-card"><div class="feature-icon" style="background:rgba(94,92,230,0.2);">🤖</div><div class="feature-title">AI Chat</div><div class="feature-desc">Built-in chat to generate prompts, skills, steering, MCP configs, and commands from natural language. Supports OpenAI, Anthropic, Gemini, Amazon Bedrock, and OpenRouter. Persistent history, latest models (GPT-5.4, Claude 4.6, Gemini 3.1).</div></div>
+      <div class="feature-card"><div class="feature-icon" style="background:rgba(94,92,230,0.2);">🤖</div><div class="feature-title">AI Chat</div><div class="feature-desc">Built-in chat to generate prompts, skills, instructions, MCP configs, and commands from natural language. Supports OpenAI, Anthropic, Gemini, Amazon Bedrock, and OpenRouter. Persistent history, latest models (GPT-5.4, Claude 4.6, Gemini 3.1).</div></div>
       <div class="feature-card"><div class="feature-icon" style="background:rgba(0,122,255,0.15);">📝</div><div class="feature-title">Prompts Library</div><div class="feature-desc">Store and organize AI prompt templates with categories, models, temperature settings, token counting, and a Markdown editor with live preview.</div></div>
       <div class="feature-card"><div class="feature-icon" style="background:rgba(255,159,10,0.15);">⚡</div><div class="feature-title">Skills</div><div class="feature-desc">Define reusable AI behaviors with trigger phrases. Toggle active/inactive without deleting. Perfect for recurring tasks.</div></div>
-      <div class="feature-card"><div class="feature-icon" style="background:rgba(191,90,242,0.15);">🧭</div><div class="feature-title">Steering</div><div class="feature-desc">Manage behavioral guidance and system instructions with scope (global/project/session) and priority ordering.</div></div>
-      <div class="feature-card"><div class="feature-icon" style="background:rgba(94,92,230,0.15);">🤖</div><div class="feature-title">Agents</div><div class="feature-desc">Create AI agent presets combining model, system prompt, temperature, skills, steering configs, and MCP connections — activate any agent in one click.</div></div>
+      <div class="feature-card"><div class="feature-icon" style="background:rgba(191,90,242,0.15);">📋</div><div class="feature-title">Instructions</div><div class="feature-desc">Manage behavioral guidance and rules with scope (global/project/session) and priority ordering. Always applied to your AI workflows.</div></div>
+      <div class="feature-card"><div class="feature-icon" style="background:rgba(94,92,230,0.15);">🤖</div><div class="feature-title">Agents</div><div class="feature-desc">Create AI agent presets combining model, system prompt, temperature, skills, instructions, and MCP connections — activate any agent in one click.</div></div>
       <div class="feature-card"><div class="feature-icon" style="background:rgba(48,209,88,0.15);">🔌</div><div class="feature-title">MCP Configs</div><div class="feature-desc">Store Model Context Protocol server configurations with syntax-highlighted JSON viewer. Paste directly from Claude or Cursor's mcp.json.</div></div>
       <div class="feature-card"><div class="feature-icon" style="background:rgba(90,200,250,0.15);">💻</div><div class="feature-title">Commands</div><div class="feature-desc">Shell command library for bash, zsh, fish, PowerShell, and more. Filter by platform (macOS/Linux/Windows) and copy with one click.</div></div>
       <div class="feature-card"><div class="feature-icon" style="background:rgba(255,214,10,0.15);">🧩</div><div class="feature-title">Snippets</div><div class="feature-desc">Reusable code snippets with real syntax highlighting for 31 languages — Python, YAML, Dockerfile, HCL (Terraform), SQL, JavaScript, and more.</div></div>
@@ -629,7 +629,7 @@
       <div class="highlight-item"><div class="highlight-icon" style="background:rgba(0,122,255,0.12);">⬆️</div><div><div class="highlight-title">Maximize any modal</div><div class="highlight-desc">Expand detail views and edit forms to full screen for long content.</div></div></div>
       <div class="highlight-item"><div class="highlight-icon" style="background:rgba(191,90,242,0.12);">✏️</div><div><div class="highlight-title">Markdown editor</div><div class="highlight-desc">Edit / Split / Preview modes with live rendering and syntax colors.</div></div></div>
       <div class="highlight-item"><div class="highlight-icon" style="background:rgba(48,209,88,0.12);">🔄</div><div><div class="highlight-title">Auto-sync to S3</div><div class="highlight-desc">15m · 30m · 1h · 2h · 3h · 6h · 9h · 12h · 1d · 2d</div></div></div>
-      <div class="highlight-item"><div class="highlight-icon" style="background:rgba(255,159,10,0.12);">📦</div><div><div class="highlight-title">Full backup coverage</div><div class="highlight-desc">Prompts, Skills, Steering, MCP, Commands, Tags, Categories — all backed up.</div></div></div>
+      <div class="highlight-item"><div class="highlight-icon" style="background:rgba(255,159,10,0.12);">📦</div><div><div class="highlight-title">Full backup coverage</div><div class="highlight-desc">Prompts, Skills, Instructions, MCP, Commands, Tags, Categories — all backed up.</div></div></div>
     </div>
   </div>
 </section>
@@ -648,7 +648,7 @@
             <div style="display:flex;align-items:flex-start;gap:12px;"><div style="width:28px;height:28px;border-radius:8px;background:rgba(255,159,10,0.12);border:1px solid rgba(255,159,10,0.2);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:13px;">☁️</div><div><div style="font-size:13px;font-weight:600;margin-bottom:2px;">AWS S3 · Cloudflare R2 · Backblaze B2 · MinIO</div><div style="font-size:12px;color:rgba(255,255,255,0.4);">Any S3-compatible provider works out of the box.</div></div></div>
             <div style="display:flex;align-items:flex-start;gap:12px;"><div style="width:28px;height:28px;border-radius:8px;background:rgba(48,209,88,0.12);border:1px solid rgba(48,209,88,0.2);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:13px;">🔄</div><div><div style="font-size:13px;font-weight:600;margin-bottom:2px;">Auto-sync on a schedule</div><div style="font-size:12px;color:rgba(255,255,255,0.4);">15m · 30m · 1h · 2h · 3h · 6h · 9h · 12h · 1d · 2d — toggle and it starts immediately.</div></div></div>
             <div style="display:flex;align-items:flex-start;gap:12px;"><div style="width:28px;height:28px;border-radius:8px;background:rgba(0,122,255,0.12);border:1px solid rgba(0,122,255,0.2);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:13px;">🗂️</div><div><div style="font-size:13px;font-weight:600;margin-bottom:2px;">Browse &amp; restore any snapshot</div><div style="font-size:12px;color:rgba(255,255,255,0.4);">List all backups in your bucket and restore with one click — merge or replace.</div></div></div>
-            <div style="display:flex;align-items:flex-start;gap:12px;"><div style="width:28px;height:28px;border-radius:8px;background:rgba(191,90,242,0.12);border:1px solid rgba(191,90,242,0.2);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:13px;">📦</div><div><div style="font-size:13px;font-weight:600;margin-bottom:2px;">Everything included</div><div style="font-size:12px;color:rgba(255,255,255,0.4);">Prompts, Skills, Steering, MCP, Commands, Tags, Categories — nothing left behind.</div></div></div>
+            <div style="display:flex;align-items:flex-start;gap:12px;"><div style="width:28px;height:28px;border-radius:8px;background:rgba(191,90,242,0.12);border:1px solid rgba(191,90,242,0.2);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:13px;">📦</div><div><div style="font-size:13px;font-weight:600;margin-bottom:2px;">Everything included</div><div style="font-size:12px;color:rgba(255,255,255,0.4);">Prompts, Skills, Instructions, MCP, Commands, Tags, Categories — nothing left behind.</div></div></div>
             <div style="display:flex;align-items:flex-start;gap:12px;"><div style="width:28px;height:28px;border-radius:8px;background:rgba(90,200,250,0.12);border:1px solid rgba(90,200,250,0.2);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:13px;">📤</div><div><div style="font-size:13px;font-weight:600;margin-bottom:2px;">JSON export &amp; import</div><div style="font-size:12px;color:rgba(255,255,255,0.4);">Download a full snapshot anytime, or import to migrate between instances.</div></div></div>
           </div>
         </div>
