@@ -4,7 +4,7 @@ import { steeringApi, categoriesApi } from '../utils/api'
 import ItemCard from '../components/ItemCard'
 import Modal from '../components/Modal'
 import DetailModal from '../components/DetailModal'
-import { Navigation, Plus, Search, Star, LayoutGrid, AlignJustify, List, BarChart3, Columns2, MousePointer, Check, Trash2 } from 'lucide-react'
+import { BookOpenCheck, Plus, Search, Star, LayoutGrid, AlignJustify, List, BarChart3, Columns2, MousePointer, Check, Trash2 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import MarkdownEditor from '../components/MarkdownEditor'
 import CategorySelector from '../components/CategorySelector'
@@ -16,7 +16,7 @@ const defaultForm = {
   title: '', content: '', description: '', category: 'general', scope: 'global', priority: 0, tags: []
 }
 
-export default function SteeringPage() {
+export default function InstructionsPage() {
   const qc = useQueryClient()
   const gridMounted = useRef(false)
   const [search, setSearch] = useState('')
@@ -43,7 +43,7 @@ export default function SteeringPage() {
     try {
       await Promise.all([...selectedIds].map(id => steeringApi.delete(id)))
       qc.invalidateQueries({ queryKey: ['steering'] }); qc.invalidateQueries({ queryKey: ['stats'] }); qc.invalidateQueries({ queryKey: ['trash-count'] })
-      toast.success(`${selectedIds.size} steering${selectedIds.size !== 1 ? 's' : ''} deleted`)
+      toast.success(`${selectedIds.size} instruction${selectedIds.size !== 1 ? 's' : ''} deleted`)
       setSelectedIds(new Set())
     } catch (err) { toast.error(err.message) } finally { setBulkDeleting(false) }
   }
@@ -69,19 +69,19 @@ export default function SteeringPage() {
 
   const createMutation = useMutation({
     mutationFn: (data) => steeringApi.create(data),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ['steering'] }); qc.invalidateQueries({ queryKey: ['stats'] }); qc.invalidateQueries({ queryKey: ['trash'] }); toast.success('Steering created!'); closeModal() },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['steering'] }); qc.invalidateQueries({ queryKey: ['stats'] }); qc.invalidateQueries({ queryKey: ['trash'] }); toast.success('Instruction created!'); closeModal() },
     onError: (e) => toast.error(e.message),
   })
 
   const updateMutation = useMutation({
     mutationFn: ({ id, data }) => steeringApi.update(id, data),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ['steering'] }); toast.success('Steering updated!'); closeModal() },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['steering'] }); toast.success('Instruction updated!'); closeModal() },
     onError: (e) => toast.error(e.message),
   })
 
   const deleteMutation = useMutation({
     mutationFn: (id) => steeringApi.delete(id),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ['steering'] }); qc.invalidateQueries({ queryKey: ['stats'] }); qc.invalidateQueries({ queryKey: ['trash'] }); qc.invalidateQueries({ queryKey: ['trash-count'] }); toast.success('Steering deleted'); setDeleteConfirm(null) },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['steering'] }); qc.invalidateQueries({ queryKey: ['stats'] }); qc.invalidateQueries({ queryKey: ['trash'] }); qc.invalidateQueries({ queryKey: ['trash-count'] }); toast.success('Instruction deleted'); setDeleteConfirm(null) },
     onError: (e) => toast.error(e.message),
   })
 
@@ -138,7 +138,7 @@ export default function SteeringPage() {
       <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 20, flexWrap: 'wrap' }}>
         <div className="search-bar" style={{ flex: 1, minWidth: 200 }}>
           <Search size={15} color="var(--text-tertiary)" />
-          <input placeholder="Search steering…" value={search} onChange={e => setSearch(e.target.value)} />
+          <input placeholder="Search instructions…" value={search} onChange={e => setSearch(e.target.value)} />
         </div>
         <button className={`filter-chip ${showFavorites ? 'active' : ''}`} onClick={() => setShowFavorites(!showFavorites)}>
           <Star size={12} fill={showFavorites ? 'currentColor' : 'none'} /> Favorites
@@ -156,7 +156,7 @@ export default function SteeringPage() {
           style={(selectMode || selectedIds.size > 0) ? { borderColor: 'color-mix(in srgb, var(--blue) 40%, transparent)', color: 'var(--blue-light)' } : {}}>
           <MousePointer size={13} /> Select
         </button>
-        <button className="btn btn-primary" onClick={openCreate}><Plus size={15} /> New Steering</button>
+        <button className="btn btn-primary" onClick={openCreate}><Plus size={15} /> New Instruction</button>
       </div>
 
       {selectedIds.size > 0 && (
@@ -198,9 +198,9 @@ export default function SteeringPage() {
       ) : items.length === 0 ? (
         <div className="empty-state">
           <div className="empty-state-icon"><Search size={28} /></div>
-          <div className="empty-state-title">{search || category || scope ? 'No steering found' : 'No steering configs yet'}</div>
+          <div className="empty-state-title">{search || category || scope ? 'No instructions found' : 'No instructions yet'}</div>
           <div className="empty-state-desc">{search || category || scope ? 'Try adjusting your filters' : 'Create behavioral guidance and system instructions for your AI'}</div>
-          {!search && !category && !scope && <button className="btn btn-primary" onClick={openCreate} style={{ marginTop: 8 }}><Plus size={15} /> Create Steering</button>}
+          {!search && !category && !scope && <button className="btn btn-primary" onClick={openCreate} style={{ marginTop: 8 }}><Plus size={15} /> Create Instruction</button>}
         </div>
       ) : (
       <div style={{ position: 'relative' }}>
@@ -353,12 +353,12 @@ export default function SteeringPage() {
       </div>
       )}
 
-      <Modal isOpen={modalOpen} onClose={closeModal} title={editItem ? 'Edit Steering' : 'New Steering'} fullscreen={editFullscreen}
+      <Modal isOpen={modalOpen} onClose={closeModal} title={editItem ? 'Edit Instruction' : 'New Instruction'} fullscreen={editFullscreen}
         footer={<>
           <button className="btn btn-glass" onClick={closeModal}>Cancel</button>
           <button className="btn btn-primary" onClick={handleSubmit} disabled={isSubmitting}>
             {isSubmitting ? <span className="spinner" style={{ width: 14, height: 14 }} /> : null}
-            {editItem ? 'Save Changes' : 'Create Steering'}
+            {editItem ? 'Save Changes' : 'Create Instruction'}
           </button>
         </>}>
         <div className="form-group">
@@ -402,20 +402,20 @@ export default function SteeringPage() {
         </div>
       </Modal>
 
-      <Modal isOpen={!!deleteConfirm} onClose={() => setDeleteConfirm(null)} title="Delete Steering" size="sm"
+      <Modal isOpen={!!deleteConfirm} onClose={() => setDeleteConfirm(null)} title="Delete Instruction" size="sm"
         footer={<>
           <button className="btn btn-glass" onClick={() => setDeleteConfirm(null)}>Cancel</button>
           <button className="btn btn-danger" onClick={() => deleteMutation.mutate(deleteConfirm)} disabled={deleteMutation.isPending}>Delete</button>
         </>}>
-        <p style={{ color: 'var(--text-secondary)', fontSize: 14 }}>Are you sure you want to delete this steering config?</p>
+        <p style={{ color: 'var(--text-secondary)', fontSize: 14 }}>Are you sure you want to delete this instruction?</p>
       </Modal>
 
       {viewItem && (
         <DetailModal
           item={viewItem}
-          typeLabel="Steering"
+          typeLabel="Instruction"
           typeColor="#BF5AF2"
-          typeIcon={Navigation}
+          typeIcon={BookOpenCheck}
           onClose={() => setViewItem(null)}
           onEdit={(item, fullscreen) => { setViewItem(null); openEdit(item, fullscreen) }}
           onDelete={(id) => { setViewItem(null); setDeleteConfirm(id) }}

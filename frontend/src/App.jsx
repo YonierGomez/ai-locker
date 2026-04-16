@@ -6,7 +6,7 @@ import Topbar from './components/Topbar'
 import CommandPalette from './components/CommandPalette'
 import PromptsPage from './pages/PromptsPage'
 import SkillsPage from './pages/SkillsPage'
-import SteeringPage from './pages/SteeringPage'
+import InstructionsPage from './pages/InstructionsPage'
 import McpPage from './pages/McpPage'
 import DashboardPage from './pages/DashboardPage'
 import SettingsPage from './pages/SettingsPage'
@@ -109,7 +109,7 @@ export default function App() {
               <Route path="/dashboard" element={<DashboardPage />} />
               <Route path="/prompts" element={<PromptsPage />} />
               <Route path="/skills" element={<SkillsPage />} />
-              <Route path="/steering" element={<SteeringPage />} />
+              <Route path="/steering" element={<InstructionsPage />} />
               <Route path="/mcp" element={<McpPage />} />
               <Route path="/commands" element={<CommandsPage />} />
               <Route path="/snippets" element={<SnippetsPage />} />

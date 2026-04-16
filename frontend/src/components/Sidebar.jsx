@@ -2,7 +2,7 @@ import { NavLink } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { settingsApi, trashApi } from '../utils/api'
 import {
-  LayoutDashboard, MessageSquare, Zap, Navigation,
+  LayoutDashboard, MessageSquare, Zap, BookOpenCheck,
   Settings, X, Bot, Trash2, TerminalSquare, StickyNote, Code2
 } from 'lucide-react'
 
@@ -62,7 +62,7 @@ const navItems = [
 const libraryItems = [
   { path: '/prompts', icon: MessageSquare, label: 'Prompts', statsKey: 'prompts' },
   { path: '/skills', icon: Zap, label: 'Skills', statsKey: 'skills' },
-  { path: '/steering', icon: Navigation, label: 'Steering', statsKey: 'steering' },
+  { path: '/steering', icon: BookOpenCheck, label: 'Instructions', statsKey: 'steering' },
   { path: '/agents', icon: Bot, label: 'Agents', statsKey: 'agents' },
   { path: '/mcp', icon: McpIcon, label: 'MCP', statsKey: 'mcp_configs' },
   { path: '/commands', icon: TerminalSquare, label: 'Commands', statsKey: 'commands' },
