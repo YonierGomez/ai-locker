@@ -61,31 +61,34 @@ export default function TagsSelector({ value = [], onChange }) {
   return (
     <>
       <div ref={triggerRef} onClick={() => { updatePos(); setOpen(o => !o) }} style={{
-        display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap',
+        display: 'flex', alignItems: 'center',
         background: 'rgba(255,255,255,0.05)', border: `1px solid ${open ? 'rgba(0,122,255,0.5)' : 'rgba(255,255,255,0.09)'}`,
         borderRadius: 'var(--radius-md)', padding: '8px 12px', cursor: 'pointer',
         boxShadow: open ? '0 0 0 3px rgba(0,122,255,0.12)' : 'none', minHeight: 42,
+        gap: 8,
       }}>
-        {selectedTags.length === 0 ? (
-          <span style={{ fontSize: 14, color: 'rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', gap: 6 }}>
-            <Tag size={13} /> Add tags…
-          </span>
-        ) : (
-          selectedTags.map(tag => (
-            <span key={tag.id} onClick={e => { e.stopPropagation(); toggleTag(tag.id) }} style={{
-              display: 'inline-flex', alignItems: 'center', gap: 4,
-              background: `${tag.color}20`, border: `1px solid ${tag.color}50`,
-              borderRadius: 20, padding: '2px 8px 2px 6px',
-              fontSize: 11, color: tag.color, fontWeight: 500, cursor: 'pointer',
-            }}>
-              <div style={{ width: 6, height: 6, borderRadius: '50%', background: tag.color }} />
-              {tag.name}
-              <X size={9} style={{ opacity: 0.7 }} />
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, flex: 1, alignItems: 'center' }}>
+          {selectedTags.length === 0 ? (
+            <span style={{ fontSize: 14, color: 'rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', gap: 6 }}>
+              <Tag size={13} /> Add tags…
             </span>
-          ))
-        )}
+          ) : (
+            selectedTags.map(tag => (
+              <span key={tag.id} onClick={e => { e.stopPropagation(); toggleTag(tag.id) }} style={{
+                display: 'inline-flex', alignItems: 'center', gap: 4,
+                background: `${tag.color}20`, border: `1px solid ${tag.color}50`,
+                borderRadius: 20, padding: '2px 8px 2px 6px',
+                fontSize: 11, color: tag.color, fontWeight: 500, cursor: 'pointer',
+              }}>
+                <div style={{ width: 6, height: 6, borderRadius: '50%', background: tag.color }} />
+                {tag.name}
+                <X size={9} style={{ opacity: 0.7 }} />
+              </span>
+            ))
+          )}
+        </div>
         {selectedTags.length > 0 && (
-          <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)', marginLeft: 'auto' }}>
+          <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)', flexShrink: 0 }}>
             {selectedTags.length} tag{selectedTags.length > 1 ? 's' : ''}
           </span>
         )}

@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { getDb } = require('../config/database');
 
-const TABLES = ['prompts', 'skills', 'steering', 'mcp_configs', 'commands', 'notes'];
+const TABLES = ['prompts', 'skills', 'steering', 'mcp_configs', 'commands', 'notes', 'hooks', 'vault'];
 const TRASH_DAYS = 5;
 
 router.get('/', async (req, res) => {

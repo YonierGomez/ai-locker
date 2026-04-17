@@ -16,6 +16,8 @@ import NotesPage from './pages/NotesPage'
 import AiSessionPage from './pages/AiSessionPage'
 import SnippetsPage from './pages/SnippetsPage'
 import AgentsPage from './pages/AgentsPage'
+import HooksPage from './pages/HooksPage'
+import VaultPage from './pages/VaultPage'
 import { settingsApi } from './utils/api'
 
 export default function App() {
@@ -114,6 +116,8 @@ export default function App() {
               <Route path="/commands" element={<CommandsPage />} />
               <Route path="/snippets" element={<SnippetsPage />} />
               <Route path="/agents" element={<AgentsPage />} />
+              <Route path="/hooks" element={<HooksPage />} />
+              <Route path="/vault" element={<VaultPage />} />
               <Route path="/notes" element={<NotesPage />} />
               <Route path="/settings" element={<SettingsPage />} />
               <Route path="/trash" element={<TrashPage />} />

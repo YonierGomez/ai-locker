@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query'
 import { settingsApi, trashApi } from '../utils/api'
 import {
   LayoutDashboard, MessageSquare, Zap, BookOpenCheck,
-  Settings, X, Bot, Trash2, TerminalSquare, StickyNote, Code2
+  Settings, X, Bot, Trash2, TerminalSquare, StickyNote, Code2, Webhook, KeyRound
 } from 'lucide-react'
 
 function AiNavItem({ onClose }) {
@@ -61,13 +61,15 @@ const navItems = [
 
 const libraryItems = [
   { path: '/prompts', icon: MessageSquare, label: 'Prompts', statsKey: 'prompts' },
+  { path: '/mcp', icon: McpIcon, label: 'MCP', statsKey: 'mcp_configs' },
+  { path: '/agents', icon: Bot, label: 'Agents', statsKey: 'agents' },
   { path: '/skills', icon: Zap, label: 'Skills', statsKey: 'skills' },
   { path: '/steering', icon: BookOpenCheck, label: 'Instructions', statsKey: 'steering' },
-  { path: '/agents', icon: Bot, label: 'Agents', statsKey: 'agents' },
-  { path: '/mcp', icon: McpIcon, label: 'MCP', statsKey: 'mcp_configs' },
   { path: '/commands', icon: TerminalSquare, label: 'Commands', statsKey: 'commands' },
+  { path: '/hooks', icon: Webhook, label: 'Hooks', statsKey: 'hooks' },
   { path: '/snippets', icon: Code2, label: 'Snippets', statsKey: 'snippets' },
   { path: '/notes', icon: StickyNote, label: 'Notes', statsKey: 'notes' },
+  { path: '/vault', icon: KeyRound, label: 'Vault', statsKey: 'vault' },
 ]
 
 export default function Sidebar({ isOpen, onClose }) {

@@ -207,6 +207,41 @@ async function initDatabase() {
     t.index(['is_favorite']);
   });
 
+  await ensure('vault', t => {
+    t.string('id').primary();
+    t.string('name').notNullable();          // VAR_NAME para referenciar con {{VAR_NAME}}
+    t.string('label').notNullable();         // nombre legible
+    t.text('value_encrypted').notNullable(); // valor cifrado AES
+    t.text('description');
+    t.string('type').defaultTo('secret');    // secret | variable | api_key | token | private_key | public_key | password | certificate
+    t.integer('is_favorite').defaultTo(0);
+    t.string('created_at');
+    t.string('updated_at');
+    t.string('deleted_at');
+    t.index(['name']);
+    t.index(['type']);
+  });
+
+  await ensure('hooks', t => {
+    t.string('id').primary();
+    t.string('title').notNullable();
+    t.text('description');
+    t.string('event_type').notNullable(); // fileEdited | fileCreated | fileDeleted | userTriggered | promptSubmit | agentStop | preToolUse | postToolUse | preTaskExecution | postTaskExecution
+    t.text('file_patterns');              // JSON array, for file-based events
+    t.text('tool_types');                 // JSON array, for preToolUse/postToolUse
+    t.string('action_type').notNullable().defaultTo('askAgent'); // askAgent | runCommand
+    t.text('action_prompt');              // for askAgent
+    t.text('action_command');             // for runCommand
+    t.integer('action_timeout').defaultTo(60);
+    t.integer('is_active').defaultTo(1);
+    t.integer('is_favorite').defaultTo(0);
+    t.string('created_at');
+    t.string('updated_at');
+    t.string('deleted_at');
+    t.index(['event_type']);
+    t.index(['is_active']);
+  });
+
   await ensure('notes', t => {
     t.string('id').primary();
     t.string('title').notNullable();

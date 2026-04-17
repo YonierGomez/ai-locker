@@ -118,6 +118,8 @@ const LIBRARY_TYPES = [
   { key: 'commands', table: 'commands', label: 'Commands', color: '#5AC8FA', activity_key: 'commands', path: '/commands', has_category: true, has_use_count: true, token_fields: ['command'], has_model: false },
   { key: 'snippets', table: 'snippets', label: 'Snippets', color: '#FF6B35', activity_key: 'snippets', path: '/snippets', has_category: true, has_use_count: true, token_fields: ['code'], has_model: false },
   { key: 'notes', table: 'notes', label: 'Notes', color: '#FFD60A', activity_key: 'notes', path: '/notes', has_category: true, has_use_count: false, token_fields: ['content'], has_model: false },
+  { key: 'hooks', table: 'hooks', label: 'Hooks', color: '#FF6B35', activity_key: 'hooks', path: '/hooks', has_category: false, has_use_count: false, token_fields: [], has_model: false },
+  { key: 'vault', table: 'vault', label: 'Vault', color: '#FFD60A', activity_key: 'vault', path: '/vault', has_category: false, has_use_count: false, token_fields: [], has_model: false },
 ]
 
 const CATEGORY_LIBRARY_TYPES = LIBRARY_TYPES.filter(t => t.has_category)
@@ -468,6 +470,8 @@ router.get('/stats', async (req, res) => {
       notes: counts.notes || 0,
       snippets: counts.snippets || 0,
       agents: counts.agents || 0,
+      hooks: counts.hooks || 0,
+      vault: counts.vault || 0,
       tags: parseInt(tc.count),
       favorites: {
         prompts: favoriteCounts.prompts || 0,

@@ -163,6 +163,28 @@ export const agentsApi = {
   delete: (id) => api.delete(`/agents/${id}`),
 }
 
+// ── Hooks ──
+export const hooksApi = {
+  list: (params) => api.get('/hooks', { params }),
+  get: (id) => api.get(`/hooks/${id}`),
+  create: (data) => api.post('/hooks', data),
+  update: (id, data) => api.put(`/hooks/${id}`, data),
+  toggleFavorite: (id) => api.patch(`/hooks/${id}/favorite`),
+  toggle: (id) => api.patch(`/hooks/${id}/toggle`),
+  delete: (id) => api.delete(`/hooks/${id}`),
+}
+
+// ── Vault ──
+export const vaultApi = {
+  list: (params) => api.get('/vault', { params }),
+  reveal: (id) => api.get(`/vault/${id}/reveal`),
+  create: (data) => api.post('/vault', data),
+  update: (id, data) => api.put(`/vault/${id}`, data),
+  toggleFavorite: (id) => api.patch(`/vault/${id}/favorite`),
+  delete: (id) => api.delete(`/vault/${id}`),
+  resolve: (text) => api.post('/vault/resolve', { text }),
+}
+
 // ── Versions ──
 export const versionsApi = {
   list: (itemType, itemId) => api.get(`/${itemType}s/${itemId}/versions`),

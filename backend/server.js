@@ -23,6 +23,8 @@ const notesRouter = require('./routes/notes');
 const aiRouter = require('./routes/ai');
 const snippetsRouter = require('./routes/snippets');
 const agentsRouter = require('./routes/agents');
+const hooksRouter = require('./routes/hooks');
+const vaultRouter = require('./routes/vault');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -63,6 +65,8 @@ app.use('/api/notes', notesRouter);
 app.use('/api/ai', aiRouter);
 app.use('/api/snippets', snippetsRouter);
 app.use('/api/agents', agentsRouter);
+app.use('/api/hooks', hooksRouter);
+app.use('/api/vault', vaultRouter);
 
 // Health check
 app.get('/api/health', (req, res) => {
