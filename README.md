@@ -43,6 +43,8 @@ If AI Locker saves you time, consider supporting its development:
 | 🔌 **MCP Configs** | Model Context Protocol server configurations with syntax-highlighted JSON editor |
 | 💻 **Commands** | Shell command library with shell/platform/category, copy-to-clipboard, and usage tracking |
 | 🧩 **Snippets** | Reusable code snippets with syntax highlighting for 31 languages (Python, YAML, Dockerfile, HCL, SQL, and more) |
+| 🪝 **Hooks** | Automate actions based on IDE events (file edits, agent stops, tool use, task execution). Trigger Ask Agent prompts or shell commands automatically |
+| 🔐 **Vault** | Store API keys, tokens, private keys, passwords and secrets encrypted with AES-256-GCM. Values hidden by default, reveal on demand. Reference anywhere with `{{VAR_NAME}}` |
 | 📊 **Dashboard** | Analytics with activity heatmap, usage charts, model distribution, and favorites library |
 | 🔍 **Smart Search** | Command palette (⌘K) for instant search across all sections. Full-text search, category filters, favorites filter. |
 | 🗂️ **Detail View** | Read-only detail modal for every item — maximizable to full screen |
@@ -309,6 +311,8 @@ ai-locker/
 │   │   ├── steering.js      # Steering CRUD
 │   │   ├── mcp.js           # MCP Configs CRUD
 │   │   ├── commands.js      # Commands CRUD
+│   │   ├── hooks.js         # Hooks CRUD
+│   │   ├── vault.js         # Vault (AES-256-GCM encrypted secrets)
 │   │   ├── tags.js          # Tags management
 │   │   ├── categories.js    # Categories management
 │   │   ├── backup.js        # S3 backup/restore (export + import)
@@ -333,9 +337,14 @@ ai-locker/
 │       │   ├── DashboardPage.jsx
 │       │   ├── PromptsPage.jsx
 │       │   ├── SkillsPage.jsx
-│       │   ├── SteeringPage.jsx
+│       │   ├── InstructionsPage.jsx
+│       │   ├── AgentsPage.jsx
 │       │   ├── McpPage.jsx
 │       │   ├── CommandsPage.jsx
+│       │   ├── HooksPage.jsx
+│       │   ├── SnippetsPage.jsx
+│       │   ├── NotesPage.jsx
+│       │   ├── VaultPage.jsx
 │       │   ├── TrashPage.jsx
 │       │   └── SettingsPage.jsx
 │       └── utils/
@@ -361,6 +370,41 @@ Every item in the library has a **full-screen detail view** accessible by clicki
 - **Maximize button** — expand the view to fill the entire screen
 - Action buttons: Copy · Edit · Delete · Toggle Favorite
 - Edit also opens maximized if the detail view was maximized
+
+---
+
+## 🪝 Hooks
+
+Automate actions based on IDE events:
+
+| Event | Description |
+|-------|-------------|
+| `fileEdited` / `fileCreated` / `fileDeleted` | Triggered when files change — supports glob patterns like `*.ts` |
+| `promptSubmit` / `agentStop` | Agent lifecycle events |
+| `preToolUse` / `postToolUse` | Before/after tool execution — filter by `read`, `write`, `shell`, `web`, `*` or regex |
+| `preTaskExecution` / `postTaskExecution` | Spec task lifecycle |
+| `userTriggered` | Manual trigger |
+
+Each hook runs either **Ask Agent** (sends a prompt to the agent) or **Run Command** (executes a shell command with optional timeout).
+
+---
+
+## 🔐 Vault
+
+Encrypted secret storage with AES-256-GCM using your `API_KEY` as the encryption seed:
+
+- **Types**: Secret, API Key, Token, Password, Private Key, Public Key, Certificate, Variable
+- **Values** are always hidden in the UI — click the eye icon to reveal
+- **Reference** any secret in prompts, skills, or commands with `{{VAR_NAME}}`
+- **Resolve endpoint**: `POST /api/vault/resolve` — replaces all `{{VAR_NAME}}` placeholders in a given text with their decrypted values
+
+```bash
+# Resolve variables in text
+curl -X POST http://localhost:3001/api/vault/resolve \
+  -H "Content-Type: application/json" \
+  -d '{"text": "Authorization: Bearer {{OPENAI_API_KEY}}"}'
+# → {"resolved": "Authorization: Bearer sk-..."}
+```
 
 ---
 
@@ -484,6 +528,19 @@ You can also type any custom model ID directly in the model selector.
 | `DELETE` | `/api/commands/:id` | Move to trash |
 | `PATCH` | `/api/commands/:id/favorite` | Toggle favorite |
 | `PATCH` | `/api/commands/:id/use` | Increment use count |
+| `GET` | `/api/hooks` | List hooks |
+| `POST` | `/api/hooks` | Create hook |
+| `PUT` | `/api/hooks/:id` | Update hook |
+| `PATCH` | `/api/hooks/:id/toggle` | Toggle active |
+| `PATCH` | `/api/hooks/:id/favorite` | Toggle favorite |
+| `DELETE` | `/api/hooks/:id` | Move to trash |
+| `GET` | `/api/vault` | List vault entries (values never returned) |
+| `GET` | `/api/vault/:id/reveal` | Get decrypted value |
+| `POST` | `/api/vault` | Create entry |
+| `PUT` | `/api/vault/:id` | Update entry |
+| `PATCH` | `/api/vault/:id/favorite` | Toggle favorite |
+| `DELETE` | `/api/vault/:id` | Move to trash |
+| `POST` | `/api/vault/resolve` | Resolve `{{VAR_NAME}}` in text |
 | `GET` | `/api/trash` | List trashed items |
 | `PATCH` | `/api/trash/:type/:id/restore` | Restore item |
 | `DELETE` | `/api/trash/:type/:id` | Permanently delete |
